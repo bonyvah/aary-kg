@@ -30,7 +30,9 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS
 - Backend: FastAPI (Python 3.12+), async, WebSockets for live games
 - DB: PostgreSQL (SQLAlchemy 2.0 async + Alembic)
-- Live game state: in-memory first, behind an interface so Redis can replace it later
+- Live game state: Redis (game state, PINs with TTL, rate limiting, pub/sub for broadcasting WebSocket events across instances). When a game ends, persist results to PostgreSQL. Redis is for live state only, never the source of truth for history.
+- i18n: next-intl, Kyrgyz (ky) and Russian (ru) ONLY. See the i18n section.
+- Icons: Phosphor (bold/fill weights) plus custom SVGs. NOT lucide.
 - Auth: JWT for admin/user; players get a short-lived game-scoped token
 - One backend service, one frontend, one Postgres. No microservices.
 
@@ -38,6 +40,23 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - This is a client-heavy realtime app. Use Next.js mainly for routing, layouts and the build pipeline.
 - NO Next.js API routes, NO Server Actions for business logic. FastAPI is the single backend.
 - Game screens are client components. No SSR needed for them.
+
+### Route groups (one codebase, two audiences)
+- `(player)`: `/` is straight PIN entry, then nickname, lobby, game. Mobile-first, very light, loads NO staff/auth code. Auth is only a short-lived game-scoped token.
+- `(staff)`: `/login`, `/dashboard`, `/quizzes`, `/host`, `/contests`, `/admin`. JWT auth, separate from the player token.
+- Shared UI components live outside both groups. The player side must stay deployable on its own subdomain later without rewrites.
+
+## i18n (Kyrgyz + Russian only, from day one)
+
+- Supported locales: `ky`, `ru`. No English UI. Default locale: ask me. Language switcher on the player join screen and in staff settings.
+- Use next-intl. ZERO hardcoded user-facing strings anywhere, everything goes through message files (`messages/ky.json`, `messages/ru.json`) with the same keys in both.
+- Fonts: load Montserrat with BOTH `cyrillic` and `cyrillic-ext` subsets. Kyrgyz letters (ң, ө, ү) are in cyrillic-ext. Verify they render in Montserrat, not a fallback font.
+- Layout must survive text 20-30% longer than English: no fixed-width buttons, answer tiles wrap or scale text, test with the longest strings.
+- Plurals: use ICU plural syntax. Russian has 3 plural forms. Never build sentences by string concatenation.
+- Backend returns error CODES, never display text. The frontend translates them.
+- Dates, numbers and sorting use the locale (Intl APIs).
+- User-written quiz content is not translated.
+- Kyrgyz strings I will review myself, so keep them easy to find and edit. Mark unreviewed Kyrgyz keys in a `_todo_review` list.
 
 ## Design system (Kahoot-inspired, NOT a copy)
 
@@ -54,7 +73,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
   - greys: `#ffffff #fafafa #f2f2f2 #e9e9e9 #ccc #b2b2b2 #6e6e6e #333`
 - Answer tile colors (always paired with a shape for accessibility):
   red + triangle, blue + diamond, yellow + circle, green + square
-- Font: Montserrat, weights 500 / 700 / 900. Self-host via next/font.
+- Font: Montserrat, weights 500 / 700 / 900, subsets latin + cyrillic + cyrillic-ext. Self-host via next/font.
 - Spacing: 4px base grid only (4, 8, 12, 16, 20, 24, 32, 40, 48, 64). No arbitrary values.
 - Radii: 4, 8, 12, 16, 24, full.
 - Type scale (px): 11, 12, 14, 16, 20, 24, 32, 40, 48.
@@ -63,7 +82,15 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - Buttons are chunky with a solid darker bottom edge (about 4px) and a press-down effect. Not soft shadows.
 - Big bold headings (700-900), generous tap targets (min 44px), mobile-first for the player flow.
 - Flat solid color blocks. NO gradients as decoration, NO glassmorphism, NO neumorphism, NO generic "SaaS dashboard card with soft shadow" look, NO emoji as icons.
-- Icons: one consistent icon set (lucide-react). Answer shapes are custom SVG.
+- Icons: Phosphor icons (@phosphor-icons/react), use `bold` or `fill` weight only, never thin/light/regular outline. Do NOT use lucide-react. Signature elements are custom SVG (see Custom SVG rules).
+
+### Custom SVG rules
+- Custom icons live in `src/components/icons/` as React components (SVGR style), one file per icon, exported through an index.
+- Signature set: AnswerTriangle, AnswerDiamond, AnswerCircle, AnswerSquare, Crown, Podium, Trophy, Timer, Medal. Others only when approved.
+- Draw on a 24x24 or 32x32 grid, chunky: thick strokes (min 2.5px at 24px) or solid fills, rounded joins, minimal detail.
+- Always use `currentColor` for fills/strokes so tokens control color. No hardcoded hex inside icons.
+- Simple geometric shapes are written directly as SVG code. Complex shapes are drawn by me in Figma/Inkscape and exported as SVG, then cleaned with SVGO. Do not invent complex illustrations in code.
+- Add `aria-hidden` for decorative icons, or a translated `aria-label` when meaningful.
 - Motion: short and punchy (150-250ms). Timer bar, score count-up, podium reveal. Respect `prefers-reduced-motion`.
 - Player screens: portrait phone layout first. Host screen: landscape, projector-friendly, very large type.
 - Every interactive element needs hover, active, focus-visible and disabled states.
@@ -76,7 +103,7 @@ Put them in `/design-refs/` (join screen, lobby, question + 4 answer tiles, answ
 
 ## Build phases
 
-1. **Foundation**: tokens, Montserrat, base components (Button, Input, Card, Badge, AnswerTile, TimerBar, Avatar, Modal, Toast, Podium, LeaderboardRow) and a `/design` kitchen-sink route showing every component in every state. STOP and wait for my visual review.
+1. **Foundation**: tokens, Montserrat, base components (Button, Input, Card, Badge, AnswerTile, TimerBar, Avatar, Modal, Toast, Podium, LeaderboardRow, plus the Icon wrapper and custom SVG set) and a `/design` kitchen-sink route showing every component in every state. STOP and wait for my visual review.
 2. **Player flow** (mock data): join (PIN) -> nickname -> lobby -> question -> answered/wait -> result -> leaderboard -> podium.
 3. **Host + user screens** (mock data): login, dashboard, quiz editor, host lobby, host live view (question, answer counts, leaderboard), game report.
 4. **Admin + contest screens** (mock data): user management, contest create, jury scoring screen, contest results.
@@ -112,6 +139,8 @@ The server is the source of truth. The client is never trusted.
 - Layers: routers -> services -> repositories. No business logic in routers.
 - WebSocket game engine isolated in its own module with a clear message protocol (typed, versioned events).
 - Config via environment variables, never committed secrets.
+- Return stable error codes (e.g. `GAME_NOT_FOUND`), not human text. i18n happens on the frontend.
+- Game state goes through a repository interface backed by Redis. WebSocket handlers must work when several app instances run (use Redis pub/sub for broadcasts).
 - Tests with pytest. The game engine and anti-cheat rules must have unit tests.
 
 ## Repo layout (target)
@@ -127,7 +156,7 @@ aary-kg/
 ```
 
 ## Open decisions (ask me, do not decide silently)
-- Hosting for the FastAPI WebSocket backend and for Next.js
-- Redis vs in-memory for live state
+- Hosting is deferred. Do not plan or suggest hosting until I bring it up. Local dev via docker compose (Postgres + Redis).
+- Default locale (ky or ru)
 - Contest scoring model details (criteria, weights, tie-breaks)
 - Product branding (logo, final wording)

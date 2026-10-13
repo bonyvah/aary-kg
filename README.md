@@ -6,6 +6,8 @@ A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based
 
 ## What it does
 
+The interface is available in Kyrgyz and Russian.
+
 ### Live quiz games
 - A user creates a quiz and hosts a live game.
 - Players join with a game PIN and a nickname. No account needed.
@@ -27,6 +29,8 @@ A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based
 
 There is no public registration. Accounts are created by admins.
 
+Players and staff use separate areas of the same app: the player side (`/`) is just PIN entry and play, while staff (`/login`, dashboard, host, admin) is behind authentication.
+
 ## Anti-cheat
 
 The server is authoritative. The client is never trusted.
@@ -46,9 +50,10 @@ The server is authoritative. The client is never trusted.
 | Frontend       | Next.js (App Router), TypeScript, Tailwind CSS      |
 | Backend        | FastAPI (Python 3.12+), async, WebSockets           |
 | Database       | PostgreSQL, SQLAlchemy 2.0 (async), Alembic         |
-| Live state     | In-memory first, Redis later if needed              |
+| Live state     | Redis (game state, PIN TTL, pub/sub, rate limits)  |
+| i18n           | next-intl, Kyrgyz and Russian only                  |
 | Auth           | JWT for admin/user, game-scoped token for players   |
-| Font / icons   | Montserrat, lucide-react                            |
+| Font / icons   | Montserrat (latin + cyrillic), Phosphor + custom SVG |
 
 ## Design
 

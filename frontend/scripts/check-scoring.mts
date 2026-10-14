@@ -1,6 +1,6 @@
 // Checks the contest scoring model of docs/contest-scoring.md against numbers worked out by hand.
 // Run: pnpm check:scoring (Node 22.6+ strips the types itself).
-import { canManage, canScore, contestRole, finishedCount, jurorEntryScore, rankEntries, round2, scoredEntryCount, validateContest, weightsTotal } from "../src/lib/contestScoring.ts";
+import { canManage, canScore, contestRole, entryBreakdown, finishedCount, jurorEntryScore, rankEntries, round2, scoredEntryCount, validateContest, weightsTotal } from "../src/lib/contestScoring.ts";
 import { getMockContest } from "../src/mocks/contests.ts";
 
 let failed = 0;
@@ -44,6 +44,12 @@ check("a jury member scores only while it is open", canScore(photo, "u-omur") &&
 check("contestRole tells owner, jury and neither", contestRole(photo, "u-aizhan") === "owner" && contestRole(english, "u-aizhan") === "jury" && contestRole(english, "u-gulzat") === null);
 check("scoredEntryCount counts fully scored entries", scoredEntryCount(photo, "u-ulan") === 3 && scoredEntryCount(photo, "u-omur") === 0 && scoredEntryCount(singers, "u-gulzat") === 5);
 check("finishedCount counts finished jury members", finishedCount(photo) === 1 && finishedCount(singers) === 3 && finishedCount(english) === 0);
+
+const winner = ranked[0]!.entry.id;
+const rows = entryBreakdown(singers, winner);
+check("the breakdown has one row per finished jury member, in jury order", rows.map((r) => r.name).join("|") === "Айжан Мамбетова|Өмүр Күмөш кызы|Гүлзат Токтогулова");
+check("a breakdown row has the criteria scores and the weighted total", rows[0]!.total === 4.7 && rows[0]!.scores["closed-c1"] === 5 && rows[2]!.total === 4.6, JSON.stringify(rows.map((r) => r.total)));
+check("the breakdown skips jury members who have not finished", entryBreakdown(photo, photo.entries[0]!.id).length === 1);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

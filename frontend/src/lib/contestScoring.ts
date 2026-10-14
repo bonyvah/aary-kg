@@ -147,3 +147,24 @@ export function canScore(contest: Pick<Contest, "status" | "jury">, userId: stri
 export function scoredEntryCount(contest: Pick<Contest, "criteria" | "entries" | "scores">, userId: string): number {
   return contest.entries.filter((entry) => jurorEntryScore(contest.criteria, contest.scores[userId]?.[entry.id]) !== null).length;
 }
+
+export type BreakdownRow = {
+  userId: string;
+  name: string;
+  scores: Record<string, Score | undefined>;
+  /** This jury member's weighted score for the entry, at 2 decimals. */
+  total: number | null;
+};
+
+/** Every finished jury member's scores for one entry, for the results breakdown. */
+export function entryBreakdown(contest: Contest, entryId: string): BreakdownRow[] {
+  return contest.jury
+    .filter((member) => member.finished)
+    .map((member) => {
+      const sheet = contest.scores[member.userId]?.[entryId];
+      const total = jurorEntryScore(contest.criteria, sheet);
+      const scores: Record<string, Score | undefined> = {};
+      for (const criterion of contest.criteria) scores[criterion.id] = sheet?.[criterion.id];
+      return { userId: member.userId, name: member.name, scores, total: total === null ? null : round2(total) };
+    });
+}

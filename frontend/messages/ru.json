@@ -110,7 +110,8 @@
         "title": "Конкурсы скоро появятся",
         "description": "Создавать конкурсы можно будет в следующей версии."
       },
-      "admin": "Админ"
+      "admin": "Админ",
+      "createContest": "Создать конкурс"
     },
     "editor": {
       "back": "Назад",
@@ -436,6 +437,33 @@
       "disabled": "Пользователь отключён.",
       "copied": "Пароль скопирован.",
       "copyFailed": "Не удалось скопировать. Выделите пароль вручную."
+    },
+    "tabsLabel": "Разделы",
+    "tabs": {
+      "users": "Пользователи",
+      "contests": "Конкурсы"
+    },
+    "contests": {
+      "title": "Название",
+      "owner": "Организатор",
+      "status": "Статус",
+      "entries": "Участники",
+      "jury": "Жюри"
     }
+  },
+  "contest": {
+    "status": {
+      "draft": "Черновик",
+      "open": "Идёт оценка",
+      "closed": "Завершён"
+    },
+    "role": {
+      "owner": "Организатор",
+      "jury": "Жюри"
+    },
+    "entryCount": "{count, plural, one {# участник} few {# участника} many {# участников} other {# участника}}",
+    "juryCount": "{count, plural, one {# член жюри} few {# члена жюри} many {# членов жюри} other {# члена жюри}}",
+    "summary": "{entries, plural, one {# участник} few {# участника} many {# участников} other {# участника}} · {jury, plural, one {# член жюри} few {# члена жюри} many {# членов жюри} other {# члена жюри}}",
+    "progress": "Оценили: {finished} из {total}"
   }
 }

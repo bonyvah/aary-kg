@@ -1,0 +1,5 @@
+{
+  "app": { "name": "aary kg" },
+  "player": { "home": { "title": "Присоединяйся к игре!" } },
+  "staff": { "login": { "title": "Вход" } }
+}

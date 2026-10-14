@@ -32,6 +32,7 @@ import { mockLobbyPlayers, mockPlayers, mockStaff } from "@/mocks/design";
 import type { StaffRole } from "@/types/game";
 import { BuilderDemo } from "./BuilderDemo";
 import { ModalDemo } from "./ModalDemo";
+import { TabsDemo } from "./TabsDemo";
 import { ToastDemo } from "./ToastDemo";
 
 const CARD_COUNTS = [1, 2, 5, 21] as const;
@@ -57,7 +58,7 @@ function Case({ label, children }: { label: string; children: ReactNode }) {
 
 const wrap = "flex flex-wrap items-start gap-4";
 
-export function Gallery() {
+export function Gallery({ idBase }: { idBase: string }) {
   const t = useTranslations("design");
   const tc = useTranslations("common");
   const topThree = mockPlayers.slice(0, 3);
@@ -296,6 +297,10 @@ export function Gallery() {
             <LobbyChip key={player.id} nickname={player.nickname} character={player.character} />
           ))}
         </div>
+      </Section>
+
+      <Section title={t("section.tabs")}>
+        <TabsDemo idBase={idBase} />
       </Section>
 
       <Section title={t("section.modal")}>

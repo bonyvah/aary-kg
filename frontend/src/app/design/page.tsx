@@ -14,11 +14,11 @@ export default function DesignPage() {
       </header>
       <section className="bg-surface p-6 text-ink">
         <h2 className="mb-6 text-overline font-bold uppercase text-ink-muted">{t("theme.light")}</h2>
-        <Gallery />
+        <Gallery idBase="design-light" />
       </section>
       <section data-theme="game" className="bg-surface p-6 text-ink">
         <h2 className="mb-6 text-overline font-bold uppercase text-ink-muted">{t("theme.game")}</h2>
-        <Gallery />
+        <Gallery idBase="design-game" />
       </section>
     </main>
   );

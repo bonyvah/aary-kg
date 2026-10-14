@@ -4,7 +4,8 @@
     "staff.login.title",
     "design",
     "common",
-    "player"
+    "player",
+    "staff"
   ],
   "app": {
     "name": "aary kg"
@@ -87,6 +88,12 @@
   "staff": {
     "login": {
       "title": "Кирүү"
+    },
+    "menu": {
+      "open": "Менюну ачуу",
+      "title": "Жөндөөлөр",
+      "close": "Жабуу",
+      "signOut": "Чыгуу"
     }
   },
   "design": {
@@ -114,7 +121,9 @@
       "loading": "Жүктөө",
       "icons": "Иконкалар",
       "logo": "Логотип",
-      "builder": "Каарман куруучу"
+      "builder": "Каарман куруучу",
+      "tabs": "Таб-тар",
+      "select": "Тандоо тизмеси"
     },
     "state": {
       "rest": "Адатта",

@@ -3,11 +3,8 @@
     "name": "aary kg"
   },
   "player": {
-    "home": {
-      "title": "Присоединяйся к игре!"
-    },
     "join": {
-      "title": "Присоединяйся к игре!",
+      "title": "Заходи в игру!",
       "pinLabel": "PIN-код игры",
       "pinPlaceholder": "123 456",
       "submit": "Войти"
@@ -51,7 +48,24 @@
       "yourPlace": "Ты на {rank}-м месте! {score, plural, one {# очко} few {# очка} many {# очков} other {# очка}}.",
       "exit": "Выйти"
     },
-    "next": "Следующий вопрос скоро появится"
+    "next": "Следующий вопрос скоро появится",
+    "dev": {
+      "label": "Демо",
+      "pause": "Пауза",
+      "resume": "Продолжить",
+      "restart": "Заново",
+      "jump": "Перейти к экрану",
+      "phase": {
+        "join": "PIN",
+        "nickname": "Имя",
+        "lobby": "Лобби",
+        "question": "Вопрос",
+        "answered": "Ответ дан",
+        "result": "Итог",
+        "leaderboard": "Лидеры",
+        "podium": "Подиум"
+      }
+    }
   },
   "staff": {
     "login": {

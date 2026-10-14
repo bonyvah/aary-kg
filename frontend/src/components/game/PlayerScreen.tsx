@@ -4,7 +4,7 @@ import { cx } from "@/lib/cx";
 
 export function Logo({ className }: { className?: string }) {
   const t = useTranslations("app");
-  return <span className={cx("text-h3 font-black lowercase text-ink", className)}>{t("name")}</span>;
+  return <span className={cx("whitespace-nowrap text-h3 font-black lowercase text-ink", className)}>{t("name")}</span>;
 }
 
 type PlayerScreenProps = {
@@ -23,7 +23,7 @@ export function PlayerScreen({ topLeft, topRight, footer, children, className }:
   return (
     <div data-theme="game" className="min-h-dvh bg-surface text-ink">
       <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col gap-6 p-4">
-        <header className="flex min-h-[44px] items-center justify-between gap-4">
+        <header className="flex min-h-[44px] flex-wrap items-center justify-between gap-x-4 gap-y-2">
           {topLeft ?? <Logo />}
           {topRight}
         </header>

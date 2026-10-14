@@ -32,7 +32,7 @@ export function NicknameScreen({ error, onSubmit }: NicknameScreenProps) {
     <PlayerScreen>
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
         <div className="flex flex-1 flex-col gap-6">
-          <h1 className="text-display font-black">{t("nickname.title")}</h1>
+          <h1 className="text-display font-black [overflow-wrap:anywhere]">{t("nickname.title")}</h1>
           <Input
             label={t("nickname.label")}
             placeholder={t("nickname.placeholder")}

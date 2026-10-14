@@ -1,6 +1,5 @@
-import { useTranslations } from "next-intl";
+import { PlayerFlow } from "@/components/game/PlayerFlow";
 
 export default function PlayerHomePage() {
-  const t = useTranslations("player.home");
-  return <h1>{t("title")}</h1>;
+  return <PlayerFlow />;
 }

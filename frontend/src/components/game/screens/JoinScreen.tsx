@@ -25,10 +25,16 @@ export function JoinScreen({ error, onSubmit }: JoinScreenProps) {
   }
 
   return (
-    <PlayerScreen topRight={<LocaleSwitcher />}>
+    <PlayerScreen
+      topRight={
+        <div className="shrink-0">
+          <LocaleSwitcher />
+        </div>
+      }
+    >
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
         <div className="flex flex-1 flex-col justify-center gap-6">
-          <h1 className="text-display font-black">{t("join.title")}</h1>
+          <h1 className="text-display font-black [overflow-wrap:anywhere]">{t("join.title")}</h1>
           <Input
             pin
             label={t("join.pinLabel")}

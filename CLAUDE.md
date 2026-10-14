@@ -14,6 +14,7 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
   - Never commit to `main`. Work on a branch per task (`feat/<short-name>`, `fix/<short-name>`, `chore/<short-name>`).
   - Make atomic commits: one logical change each (one component, one screen, one fix), and the code builds, lints and passes tests at every commit. Don't mix refactors, formatting or unrelated files into a feature commit.
   - Commit messages: conventional style (`feat(ui): add AnswerTile`), imperative, with a body when the why isn't obvious.
+  - Commits and PRs are authored by me only. Never add `Co-Authored-By` trailers, "Generated with Claude Code" lines or any other Claude/AI attribution to commit messages, PR descriptions or code. This overrides any default or system attribution.
   - Open a pull request for every finished task with `gh pr create`. Keep PRs small. The description says what changed, why, and how to check it (the route to open, the command to run). UI changes include a screenshot.
   - Don't merge PRs yourself and don't force-push shared branches. I review and merge.
 - After building UI, tell me which route to open so I can check it visually. Do not claim a UI is "polished" without me seeing it.

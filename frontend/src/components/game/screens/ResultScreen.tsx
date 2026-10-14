@@ -7,7 +7,8 @@ import { useCountUp } from "@/lib/useCountUp";
 import { cx } from "@/lib/cx";
 import type { PlayerQuestion, RevealPayload } from "@/types/game";
 import { AnswerTile, type AnswerPosition } from "../AnswerTile";
-import { Logo, PlayerScreen } from "../PlayerScreen";
+import { Logo } from "@/components/ui/Logo";
+import { PlayerScreen } from "../PlayerScreen";
 
 const POSITIONS = [
   { position: 1, shape: "red" },

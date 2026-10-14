@@ -14,9 +14,9 @@ type PodiumProps = {
 };
 
 const steps = {
-  1: { block: "h-40 bg-accent text-on-accent", delay: "[animation-delay:400ms]" },
-  2: { block: "h-28 bg-tile-blue text-on-tile", delay: "[animation-delay:200ms]" },
-  3: { block: "h-20 bg-warning text-on-warning", delay: "[animation-delay:0ms]" },
+  1: { block: "h-[160px] bg-accent text-on-accent", delay: "[animation-delay:400ms]" },
+  2: { block: "h-[112px] bg-tile-blue text-on-tile", delay: "[animation-delay:200ms]" },
+  3: { block: "h-[80px] bg-warning text-on-warning", delay: "[animation-delay:0ms]" },
 } as const;
 
 type Rank = keyof typeof steps;
@@ -36,7 +36,7 @@ export function Podium({ players, crownLabel, className }: PodiumProps) {
         <div
           key={rank}
           className={cx(
-            "flex w-28 flex-col items-center gap-2 text-center animate-reveal",
+            "flex w-[112px] flex-col items-center gap-2 text-center animate-reveal",
             steps[rank].delay,
           )}
         >

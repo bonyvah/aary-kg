@@ -51,7 +51,7 @@ export function AnswerTile({
               tone,
               "cursor-pointer shadow-[0_6px_0_0_var(--tile-e)] transition-[transform,box-shadow] duration-150 ease-out",
               "hover:-translate-y-px hover:shadow-[0_7px_0_0_var(--tile-e)]",
-              "active:translate-y-1.5 active:shadow-[0_0_0_0_var(--tile-e)]",
+              "active:translate-y-[6px] active:shadow-[0_0_0_0_var(--tile-e)]",
             ),
         "focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-focus-ring",
         "aria-pressed:outline-4 aria-pressed:outline-offset-4 aria-pressed:outline-focus-ring",

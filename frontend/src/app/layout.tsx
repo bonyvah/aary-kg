@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { Montserrat } from "next/font/google";
 import { getLocale, getTranslations } from "next-intl/server";
+import { montserratVariables } from "@/fonts/montserrat";
 import "./globals.css";
-
-const montserrat = Montserrat({
-  subsets: ["latin", "cyrillic", "cyrillic-ext"],
-  weight: ["500", "700", "900"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("app");
@@ -22,7 +15,7 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   return (
-    <html lang={locale} className={montserrat.variable}>
+    <html lang={locale} className={montserratVariables}>
       <body>
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

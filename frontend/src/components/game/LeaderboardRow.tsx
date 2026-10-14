@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useFormatter } from "next-intl";
 import { cx } from "@/lib/cx";
 import { Avatar, type AvatarId } from "./Avatar";
@@ -8,10 +9,12 @@ type LeaderboardRowProps = {
   nickname: string;
   score: number;
   avatar: AvatarId;
+  /** Small marker after the nickname, e.g. a «you» badge on the player's own row. */
+  badge?: ReactNode;
   className?: string;
 };
 
-export function LeaderboardRow({ rank, nickname, score, avatar, className }: LeaderboardRowProps) {
+export function LeaderboardRow({ rank, nickname, score, avatar, badge, className }: LeaderboardRowProps) {
   const format = useFormatter();
   const first = rank === 1;
 
@@ -30,6 +33,7 @@ export function LeaderboardRow({ rank, nickname, score, avatar, className }: Lea
       <span title={nickname} className="min-w-0 flex-1 truncate text-body-lg font-bold">
         {nickname}
       </span>
+      {badge}
       <span className="text-body-lg font-black tabular-nums">{format.number(score)}</span>
     </div>
   );

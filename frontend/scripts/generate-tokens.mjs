@@ -61,7 +61,9 @@ theme.push("  --shadow-*: initial;");
 for (const token of tokens.shadow.tokens) {
   theme.push(`  --shadow-${token.name}: var(--${token.name});`);
 }
-theme.push("  --font-sans: var(--font-montserrat), Arial, sans-serif;");
+theme.push(
+  "  --font-sans: var(--font-montserrat-latin), var(--font-montserrat-cyrillic), var(--font-montserrat-cyrillic-ext), Arial, sans-serif;",
+);
 theme.push("  --text-*: initial;");
 for (const group of tokens.type.groups) {
   for (const style of group.styles) {

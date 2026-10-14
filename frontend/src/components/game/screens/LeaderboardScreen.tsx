@@ -2,7 +2,8 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion, Standing } from "@/types/game";
 import { LeaderboardRow } from "../LeaderboardRow";
-import { Logo, PlayerScreen } from "../PlayerScreen";
+import { Logo } from "@/components/ui/Logo";
+import { PlayerScreen } from "../PlayerScreen";
 
 const TOP_COUNT = 5;
 

@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
 import { cx } from "@/lib/cx";
-
-export function Logo({ className }: { className?: string }) {
-  const t = useTranslations("app");
-  return <span className={cx("whitespace-nowrap text-h3 font-black lowercase text-ink", className)}>{t("name")}</span>;
-}
+import { Logo } from "@/components/ui/Logo";
 
 type PlayerScreenProps = {
   /** Right side of the top bar, e.g. a badge. */

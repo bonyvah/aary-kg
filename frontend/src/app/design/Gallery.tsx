@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Input";
+import { Logo, LogoMark } from "@/components/ui/Logo";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -62,6 +63,14 @@ export function Gallery() {
 
   return (
     <div className="flex flex-col gap-8">
+      <Section title={t("section.logo")}>
+        <div className="flex flex-wrap items-center gap-6">
+          <Logo />
+          <LogoMark size={64} />
+          <LogoMark size={96} />
+        </div>
+      </Section>
+
       <Section title={t("section.buttons")}>
         <Case label={t("state.rest")}>
           <div className={wrap}>

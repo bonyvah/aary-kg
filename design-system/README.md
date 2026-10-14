@@ -44,4 +44,4 @@ aary kg is a live quiz platform for classrooms and contests: players join a game
 
 ## Logo
 
-There is no logo yet. Set the name as "aary kg" in Montserrat 900, lowercase, in `ink`.
+The logo is a bee mark (`frontend/public/logo.svg`) with the name "aary kg" next to it in Montserrat 900, lowercase, in `ink`. The mark is brand artwork with its own colors (yellow body, dark purple head, stripes and stinger, white wings): do not recolor it with tokens. The React component is `Logo` (mark and wordmark) and `LogoMark` (mark alone, with a translated `aria-label` when it stands alone).

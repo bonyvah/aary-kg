@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { AnswerCircle, AnswerDiamond, AnswerSquare, AnswerTriangle, Check, Cross } from "@/components/icons";
 import { cx } from "@/lib/cx";
 
@@ -11,7 +11,7 @@ const positions = {
   4: { Shape: AnswerSquare, tone: "bg-tile-green text-on-tile [--tile-e:var(--tile-green-edge)]" },
 } as const;
 
-type AnswerTileProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-pressed"> & {
+type AnswerTileBase = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-pressed" | "children"> & {
   /** 1 red triangle, 2 blue diamond, 3 yellow circle, 4 green square. */
   position: AnswerPosition;
   /** The player locked this answer. */
@@ -24,27 +24,35 @@ type AnswerTileProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-press
   resultLabel?: string;
 };
 
-export function AnswerTile({
-  position,
-  pressed = false,
-  dim = false,
-  result,
-  resultLabel,
-  type = "button",
-  className,
-  children,
-  ...rest
-}: AnswerTileProps) {
+type AnswerTileProps =
+  | (AnswerTileBase & { shapeOnly?: false; children: ReactNode })
+  /** Player phone: only the shape on the color, the answer text is read on the host screen. */
+  | (AnswerTileBase & { shapeOnly: true; "aria-label": string });
+
+export function AnswerTile(props: AnswerTileProps) {
+  const {
+    position,
+    pressed = false,
+    dim = false,
+    result,
+    resultLabel,
+    type = "button",
+    className,
+    shapeOnly = false,
+    ...rest
+  } = props;
+  // `children` only exists on the text variant; the shapes-only variant has none.
+  const { children, ...buttonProps } = rest as typeof rest & { children?: ReactNode };
   const { Shape, tone } = positions[position];
 
   return (
     <button
       type={type}
       aria-pressed={pressed}
-      disabled={dim || rest.disabled}
+      disabled={dim || buttonProps.disabled}
       className={cx(
-        "flex min-h-[96px] w-full items-center gap-4 rounded-md px-6 py-4 text-left text-h2 font-black",
-        "[overflow-wrap:anywhere]",
+        "flex w-full items-center gap-4 rounded-md text-left text-h2 font-black [overflow-wrap:anywhere]",
+        shapeOnly ? "relative min-h-[140px] justify-center p-4" : "min-h-[96px] px-6 py-4",
         dim
           ? "cursor-default bg-disabled text-on-disabled"
           : cx(
@@ -57,16 +65,17 @@ export function AnswerTile({
         "aria-pressed:outline-4 aria-pressed:outline-offset-4 aria-pressed:outline-focus-ring",
         className,
       )}
-      {...rest}
+      {...buttonProps}
     >
-      <Shape className="size-10 flex-none" />
-      <span className="min-w-0">{children}</span>
+      <Shape className={shapeOnly ? "size-[64px] flex-none" : "size-10 flex-none"} />
+      {shapeOnly ? null : <span className="min-w-0">{children}</span>}
       {result ? (
         <span
           role="img"
           aria-label={resultLabel}
           className={cx(
-            "ml-auto grid size-10 flex-none place-items-center rounded-full bg-on-tile",
+            "grid size-10 flex-none place-items-center rounded-full bg-on-tile",
+            shapeOnly ? "absolute top-2 right-2" : "ml-auto",
             result === "ok" ? "text-tile-green-edge" : "text-danger-edge",
           )}
         >

@@ -131,6 +131,33 @@
       "errors": {
         "FIELD_REQUIRED": "Заполните поле."
       }
+    },
+    "report": {
+      "toDashboard": "На главную",
+      "summary": "Итоги",
+      "players": "Игроки",
+      "accuracy": "Средняя точность",
+      "questions": "Вопросы",
+      "duration": "Длительность",
+      "minutes": "{minutes} мин.",
+      "playersTitle": "Игроки",
+      "flagsNote": "Сигналы — это подсказки, а не доказательство. Игрока автоматически не исключают.",
+      "columns": {
+        "rank": "№",
+        "player": "Игрок",
+        "score": "Очки",
+        "correct": "Верных ответов",
+        "signals": "Сигналы"
+      },
+      "correctOf": "{correct} из {total}",
+      "noSignals": "Сигналов нет",
+      "flags": {
+        "TAB_BLUR": "Переключил вкладку: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+        "PASTE": "Вставил текст: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+        "FAST_ANSWERS": "Слишком быстрые ответы: {count}",
+        "SAME_TIMING": "Одинаковое время с другими: {count}"
+      },
+      "questionsTitle": "Точность по вопросам"
     }
   },
   "design": {
@@ -320,6 +347,28 @@
       "players": "Игроки",
       "waiting": "Ждём игроков…",
       "start": "Начать игру"
+    },
+    "live": {
+      "counter": "Вопрос {current} из {total}",
+      "answered": "Ответили: {count} из {total}",
+      "unit": "сек",
+      "continue": "Продолжить",
+      "correct": "Правильный ответ",
+      "count": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
+      "leaderboard": "Лидеры",
+      "winner": "Победитель!",
+      "crown": "Победитель",
+      "viewReport": "Открыть отчёт",
+      "toDashboard": "На главную"
+    },
+    "dev": {
+      "phase": {
+        "lobby": "Лобби",
+        "question": "Вопрос",
+        "counts": "Ответы",
+        "leaderboard": "Лидеры",
+        "podium": "Подиум"
+      }
     }
   }
 }

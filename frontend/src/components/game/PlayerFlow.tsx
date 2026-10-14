@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { mockStandings, MOCK_TOTAL_QUESTIONS } from "@/mocks/playerFlow";
 import { usePlayerFlow } from "@/lib/playerFlow/usePlayerFlow";
 import { DemoBar } from "./DemoBar";
+import type { GamePhase } from "@/types/game";
 import { CharacterScreen } from "./screens/CharacterScreen";
 import { JoinScreen } from "./screens/JoinScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
@@ -12,9 +14,22 @@ import { PodiumScreen } from "./screens/PodiumScreen";
 import { QuestionScreen } from "./screens/QuestionScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 
+const DEMO_PHASES: readonly GamePhase[] = [
+  "join",
+  "nickname",
+  "lobby",
+  "character",
+  "question",
+  "answered",
+  "result",
+  "leaderboard",
+  "podium",
+];
+
 /** The whole player flow on mock data. The screens only read `state` and call the actions. */
 export function PlayerFlow() {
   const flow = usePlayerFlow();
+  const tDev = useTranslations("player.dev.phase");
   const { state } = flow;
   const { phase, question, selected, reveal } = state;
   const round = question?.index ?? MOCK_TOTAL_QUESTIONS;
@@ -67,6 +82,7 @@ export function PlayerFlow() {
   return (
     <>
       <DemoBar
+        phases={DEMO_PHASES.map((value) => ({ value, label: tDev(value) }))}
         phase={phase}
         paused={flow.paused}
         onPausedChange={flow.setPaused}

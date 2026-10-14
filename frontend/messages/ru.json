@@ -95,6 +95,21 @@
       "title": "Настройки",
       "close": "Закрыть",
       "signOut": "Выйти"
+    },
+    "dashboard": {
+      "title": "Главная",
+      "tabsLabel": "Разделы",
+      "tabs": {
+        "quizzes": "Викторины",
+        "contests": "Конкурсы"
+      },
+      "createQuiz": "Создать викторину",
+      "draft": "Черновик",
+      "questionCount": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+      "contestsEmpty": {
+        "title": "Конкурсы скоро появятся",
+        "description": "Создавать конкурсы можно будет в следующей версии."
+      }
     }
   },
   "design": {

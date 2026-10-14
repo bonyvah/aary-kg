@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import type { GamePhase } from "@/types/game";
 
 const PHASES: readonly GamePhase[] = [
@@ -33,18 +34,19 @@ export function DemoBar({ phase, paused, onPausedChange, onJump, onRestart }: De
     <div data-theme="game" className="bg-brand-dark text-ink">
       <div className="mx-auto flex w-full max-w-[480px] flex-wrap items-center gap-2 p-2">
         <Badge variant="accent">{t("label")}</Badge>
-        <select
-          aria-label={t("jump")}
+        <Select
+          hideLabel
+          label={t("jump")}
+          wrapperClassName="min-w-[140px] flex-1"
           value={phase}
           onChange={(event) => onJump(event.target.value as GamePhase)}
-          className="min-h-[44px] min-w-[140px] flex-1 rounded-md border-2 border-field-border bg-field px-3 text-body font-bold text-on-field focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
           {PHASES.map((value) => (
             <option key={value} value={value}>
               {t(`phase.${value}`)}
             </option>
           ))}
-        </select>
+        </Select>
         <Button variant="neutral" aria-pressed={paused} onClick={() => onPausedChange(!paused)}>
           {paused ? t("resume") : t("pause")}
         </Button>

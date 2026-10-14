@@ -16,6 +16,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "next": "15.5.27",
     "next-intl": "^4.14.9",
+    "qrcode.react": "^4.2.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },

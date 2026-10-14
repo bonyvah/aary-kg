@@ -5,6 +5,26 @@
   "player": {
     "home": {
       "title": "Присоединяйся к игре!"
+    },
+    "join": {
+      "title": "Присоединяйся к игре!",
+      "pinLabel": "PIN-код игры",
+      "pinPlaceholder": "123 456",
+      "submit": "Войти"
+    },
+    "nickname": {
+      "title": "Введи имя",
+      "label": "Никнейм",
+      "placeholder": "Например, Айгерим",
+      "character": "Персонаж",
+      "characterOption": "Персонаж {number}",
+      "submit": "Войти"
+    },
+    "errors": {
+      "PIN_INVALID": "PIN-код состоит из 6 цифр.",
+      "GAME_NOT_FOUND": "Такой игры нет. Проверь PIN-код.",
+      "NICKNAME_INVALID": "Никнейм не должен быть пустым.",
+      "NICKNAME_TAKEN": "Это имя занято. Выбери другое."
     }
   },
   "staff": {

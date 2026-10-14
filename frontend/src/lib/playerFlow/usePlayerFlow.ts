@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import { randomCharacter, type Character } from "@/components/game/avatar/characters";
+import { isCharacter, randomCharacter, type Character } from "@/components/game/avatar/characters";
 import {
   MOCK_PIN_NOT_FOUND,
   MOCK_TAKEN_NICKNAMES,
@@ -14,7 +14,7 @@ import {
 import type { GamePhase } from "@/types/game";
 import { flowReducer, initialState } from "./reducer";
 
-const LOBBY_MS = 3000;
+const LOBBY_MS = 10000;
 const ANSWERED_CLOSE_MS = 2500;
 const RESULT_MS = 4000;
 const LEADERBOARD_MS = 5000;
@@ -114,6 +114,10 @@ export function usePlayerFlow() {
     if (target === "nickname") return;
     dispatch({ type: "NICKNAME_ACCEPTED", nickname: DEMO_NICKNAME, character: DEMO_CHARACTER });
     if (target === "lobby") return;
+    if (target === "character") {
+      dispatch({ type: "CHARACTER_OPENED" });
+      return;
+    }
     const first = mockQuestion(1);
     if (!first) return;
     dispatch({ type: "QUESTION_STARTED", question: first });
@@ -130,6 +134,14 @@ export function usePlayerFlow() {
     dispatch({ type: "GAME_ENDED" });
   }, []);
 
+  const openCharacter = useCallback(() => dispatch({ type: "CHARACTER_OPENED" }), []);
+  const closeCharacter = useCallback(() => dispatch({ type: "CHARACTER_CLOSED" }), []);
+
+  /** The server checks what a client sends: only ids from the fixed lists are accepted. */
+  const changeCharacter = useCallback((character: Character) => {
+    if (isCharacter(character)) dispatch({ type: "CHARACTER_CHANGED", character });
+  }, []);
+
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
 
   return {
@@ -140,6 +152,9 @@ export function usePlayerFlow() {
     submitPin,
     submitNickname,
     answer,
+    openCharacter,
+    changeCharacter,
+    closeCharacter,
     jumpTo,
     reset,
   };

@@ -22,6 +22,9 @@ export type FlowEvent =
   | { type: "PIN_ACCEPTED"; pin: string }
   | { type: "REJECTED"; error: ErrorCode }
   | { type: "NICKNAME_ACCEPTED"; nickname: string; character: Character }
+  | { type: "CHARACTER_OPENED" }
+  | { type: "CHARACTER_CHANGED"; character: Character }
+  | { type: "CHARACTER_CLOSED" }
   | { type: "QUESTION_STARTED"; question: PlayerQuestion }
   | { type: "TICK" }
   | { type: "ANSWER_SELECTED"; position: AnswerPosition }
@@ -56,6 +59,15 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
       return { ...state, error: event.error };
     case "NICKNAME_ACCEPTED":
       return { ...state, phase: "lobby", nickname: event.nickname, character: event.character, error: null };
+    // The player may open the builder from the lobby and change the character until the game starts.
+    case "CHARACTER_OPENED":
+      return state.phase === "lobby" ? { ...state, phase: "character" } : state;
+    case "CHARACTER_CHANGED":
+      return state.phase === "lobby" || state.phase === "character"
+        ? { ...state, character: event.character }
+        : state;
+    case "CHARACTER_CLOSED":
+      return state.phase === "character" ? { ...state, phase: "lobby" } : state;
     case "QUESTION_STARTED":
       return {
         ...state,

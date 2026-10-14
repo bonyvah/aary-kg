@@ -61,7 +61,8 @@
         "answered": "Ответ дан",
         "result": "Итог",
         "leaderboard": "Лидеры",
-        "podium": "Подиум"
+        "podium": "Подиум",
+        "character": "Персонаж"
       }
     },
     "character": {

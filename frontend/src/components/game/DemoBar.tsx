@@ -9,6 +9,7 @@ const PHASES: readonly GamePhase[] = [
   "join",
   "nickname",
   "lobby",
+  "character",
   "question",
   "answered",
   "result",

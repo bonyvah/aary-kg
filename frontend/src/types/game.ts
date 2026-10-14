@@ -23,6 +23,7 @@ export type GamePhase =
   | "join"
   | "nickname"
   | "lobby"
+  | "character"
   | "question"
   | "answered"
   | "result"

@@ -1,7 +1,7 @@
 // Reads design-system/tokens.json and writes src/styles/tokens.css:
 // CSS variables for both themes plus the Tailwind v4 @theme mapping.
-// Never edit the output by hand.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+// The output is committed so a pull always brings the matching CSS. Never edit it by hand.
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -79,6 +79,18 @@ for (const group of tokens.type.groups) {
 }
 out.push(`@theme inline {\n${theme.join("\n")}\n}`);
 
-mkdirSync(dirname(target), { recursive: true });
-writeFileSync(target, `${out.join("\n\n")}\n`);
-console.log(`tokens: wrote ${target}`);
+const css = `${out.join("\n\n")}\n`;
+
+// `--check` is for lint: fail when the committed tokens.css does not match tokens.json.
+if (process.argv.includes("--check")) {
+  const current = existsSync(target) ? readFileSync(target, "utf8") : "";
+  if (current !== css) {
+    console.error("tokens.css is out of date with design-system/tokens.json. Run: pnpm tokens");
+    process.exit(1);
+  }
+  console.log("tokens: tokens.css is up to date");
+} else {
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, css);
+  console.log(`tokens: wrote ${target}`);
+}

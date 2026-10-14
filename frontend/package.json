@@ -9,7 +9,8 @@
     "prebuild": "npm run tokens",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "tokens:check": "node scripts/generate-tokens.mjs --check",
+    "lint": "node scripts/generate-tokens.mjs --check && eslint"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

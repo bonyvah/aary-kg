@@ -71,7 +71,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 
 ### Source of truth: `design-system/` (read it before building any UI)
 - `design-system/README.md`: the brand book (content rules, visual foundations, where things live). Read it first.
-- `design-system/tokens.json`: every token. Colors come in two themes: `light` (staff screens) and `game` (live game screens, purple ground, set `data-theme="game"` on the screen root). Generate the Tailwind theme and CSS variables from this file; never retype values and never hardcode hex in components.
+- `design-system/tokens.json`: every token. Colors come in two themes: `game` (purple ground, set `data-theme="game"` on the screen root) is used by ALL screens, player, host and staff (login, dashboard, editor, report, admin, contests), as in the screen designs; `light` is kept for later and is not used by any screen yet. Generate the Tailwind theme and CSS variables from this file; never retype values and never hardcode hex in components.
 - `design-system/components/bundle.css`: the styles of every component (`ak-btn`, `ak-input`, `ak-tile`, `ak-timer`, `ak-badge`, `ak-card`, `ak-row`, `ak-podium`, `ak-avatar`, `ak-chip`), reading only tokens. Port them to Tailwind + React components with the same look, states and sizes.
 - `design-system/components/<Name>/preview.html` has the exact markup and states of each component, and `<Name>/README.md` has its rules. Components: Button, Input, AnswerTile, TimerBar, Badge, Card, LeaderboardRow, Podium, Avatar.
 - Not in the design system yet: Modal, Toast, Table, empty and loading states. Build them from the same tokens and the same flat, hard-edge style, show them on `/design`, and ask me before inventing anything visual.

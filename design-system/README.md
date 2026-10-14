@@ -13,7 +13,7 @@ aary kg is a live quiz platform for classrooms and contests: players join a game
 
 ## Visual foundations
 
-- **Themes.** `light` is for staff screens (dashboard, quiz editor, contests, admin). `game` is for live game screens (join, lobby, question, leaderboard, podium, host view): set `data-theme="game"` on the screen root and every semantic token follows.
+- **Themes.** `game` is used by every screen, player, host and staff (login, dashboard, quiz editor, report, contests, admin), as in the screen designs: set `data-theme="game"` on the screen root and every semantic token follows. `light` (grey ground, white panels, blue primary button) is kept for later and no screen uses it yet.
 - **Color.** Paint pages with `surface`, panels with `surface-raised`, text with `ink` and `ink-muted`. The four answer colors (`tile-red`, `tile-blue`, `tile-yellow`, `tile-green`) belong to answer tiles and nothing else. `accent` yellow is for the start-game button, first place and the timer.
 - **Flat and chunky.** Solid fills only. A pressable element has a hard bottom edge of 4px (6px on answer tiles) in its darker `-edge` color and drops onto it when pressed. No gradients, no blurred shadows, no glass, no neumorphism.
 - **Answer tiles carry a shape.** Red triangle, blue diamond, yellow circle, green square. Color is never the only signal.

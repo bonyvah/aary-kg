@@ -30,7 +30,7 @@ aary kg is a live quiz platform for classrooms and contests: players join a game
 
 - Phosphor icons in `bold` or `fill` weight. Never thin, light or regular outlines, and never lucide.
 - The signature set is custom SVG, drawn with `currentColor` so tokens set the color: AnswerTriangle, AnswerDiamond, AnswerCircle, AnswerSquare, Crown, Podium, Trophy, Timer, Medal. The four answer shapes and the crown in these previews are simple stand-ins; the final crown, trophy and medal are drawn in Figma or Inkscape.
-- Players are shown as shape characters, never photos: eight faces built from the four answer shapes in the answer colors (triangle, diamond, circle and square, each in two colors). Use the `Avatar` component. The character id (0–7) is assigned by the server or picked by the player on the join screen. Faces repeat within a game, so the nickname identifies the player. Staff lists use an initial in a circle instead.
+- Players are shown as characters, never photos: a shape (8), a color (8) and a facial expression (12) that the player can change in the lobby. Use the `Avatar` component. The server (or the client until the backend exists) gives a random one after the nickname. Store only the three ids. Faces repeat within a game, so the nickname identifies the player. Staff lists use an initial in a circle instead.
 - Icons that carry meaning get a translated `aria-label`. Decorative ones get `aria-hidden`.
 
 ## Where things live
@@ -38,7 +38,7 @@ aary kg is a live quiz platform for classrooms and contests: players join a game
 - `tokens.json`: every token (colors per theme, type, spacing, radius, shadow). Read it before choosing any value.
 - `components/bundle.css`: the styles of every component, as classes that read only tokens: `ak-btn`, `ak-input`, `ak-tile`, `ak-timer`, `ak-badge`, `ak-card`, `ak-row`, `ak-podium`, `ak-avatar`, `ak-chip`.
 - `components/<Name>/preview.html`: the exact markup of each component in its states; copy it. `components/<Name>/README.md`: the rules for it. Components: Button, Input, AnswerTile, TimerBar, Badge, Card, LeaderboardRow, Podium, Avatar.
-- `components/Avatar/avatars.svg`: the eight player characters as `<symbol id="av-tri-red">`, `av-tri-yellow`, `av-dia-blue`, `av-dia-green`, `av-cir-yellow`, `av-cir-red`, `av-sqr-green` and `av-sqr-blue`. Use these; never invent faces.
+- `components/Avatar/avatars.svg`: the earlier fixed set of eight characters, kept as history. The app builds characters from parts (see `components/Avatar/README.md`).
 - The answer shapes (triangle, diamond, circle, square) and the check and cross marks are symbols in `components/AnswerTile/preview.html`. The crown is in `components/Podium/preview.html`. The timer has no icon: use `TimerBar`.
 - There is no React bundle. Build screens as markup with these classes; the app ports them to React later.
 

@@ -79,9 +79,10 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - The four answer colors belong to answer tiles only. Montserrat 500 / 700 / 900 with latin + cyrillic + cyrillic-ext, self-hosted via next/font. Only the named type styles, `space-*` and `radius-*` tokens (4px grid).
 
 ### Avatars (players)
-- Players are one of 8 shape characters (triangle, diamond, circle and square faces in answer colors): `design-system/components/Avatar/avatars.svg`, ids `av-tri-red`, `av-tri-yellow`, `av-dia-blue`, `av-dia-green`, `av-cir-yellow`, `av-cir-red`, `av-sqr-green`, `av-sqr-blue`. Character id 0-7 in that order.
-- Build one `Avatar` React component that inlines the 8 SVGs. Never load them as image files, never invent faces or new characters.
-- Store only the character id per player (Redis game state). The server assigns it or the player picks one on the join screen. Faces repeat in a game, so the nickname is what identifies a player.
+- A player's character is built from three parts: shape (triangle, diamond, circle, square, hexagon, star, heart, pill), color (red, blue, yellow, green, orange, purple, pink, teal) and face (12 expressions). Ids and rules: `design-system/components/Avatar/README.md`.
+- After the nickname the player gets a random character and can change shape, color and face (or shuffle) in the lobby until the game starts.
+- Build one `Avatar` React component that draws the parts as inline SVG. Never load them as image files. Colors come from the `avatar-*` tokens.
+- Store only the three ids per player (Redis game state) and validate them against the fixed lists on the server. Faces repeat in a game, so the nickname is what identifies a player.
 - NO photo uploads, camera input or custom images, ever. Staff lists use an initial in a circle (`ak-avatar--initial`).
 
 ### Style rules

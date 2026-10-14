@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="aary.kg icon">
+  <!-- wings -->
+  <ellipse cx="100" cy="74" rx="16" ry="30" transform="rotate(-20 100 74)" fill="#fff"/>
+  <ellipse cx="128" cy="74" rx="16" ry="30" transform="rotate(20 128 74)" fill="#fff"/>
+
+  <!-- stinger -->
+  <polygon points="156,108 156,132 178,120" fill="#2B1B5A"/>
+
+  <!-- body -->
+  <ellipse cx="108" cy="120" rx="52" ry="36" fill="#FFC83D"/>
+
+  <!-- stripes: curved bands whose ends sit exactly on the body edge -->
+  <path d="M98 84.67 A52 36 0 0 1 112 84.11 Q104 120 112 155.89 A52 36 0 0 1 98 155.33 Q90 120 98 84.67 Z" fill="#2B1B5A"/>
+  <path d="M124 85.75 A52 36 0 0 1 138 90.60 Q130 120 138 149.40 A52 36 0 0 1 124 154.25 Q116 120 124 85.75 Z" fill="#2B1B5A"/>
+
+  <!-- head -->
+  <circle cx="58" cy="118" r="24" fill="#2B1B5A"/>
+  <circle cx="50" cy="112" r="5" fill="#fff"/>
+</svg>

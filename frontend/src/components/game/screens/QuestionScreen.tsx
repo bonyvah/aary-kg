@@ -2,7 +2,8 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion } from "@/types/game";
 import { AnswerTile, type AnswerPosition } from "../AnswerTile";
-import { Logo, PlayerScreen } from "../PlayerScreen";
+import { Logo } from "@/components/ui/Logo";
+import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
 
 const POSITIONS = [

@@ -3,11 +3,8 @@
     "name": "aary kg"
   },
   "player": {
-    "home": {
-      "title": "Присоединяйся к игре!"
-    },
     "join": {
-      "title": "Присоединяйся к игре!",
+      "title": "Заходи в игру!",
       "pinLabel": "PIN-код игры",
       "pinPlaceholder": "123 456",
       "submit": "Войти"
@@ -51,6 +48,40 @@
       "counter": "Вопрос {current} из {total}",
       "unit": "сек",
       "waiting": "Ответ принят. Ждём остальных."
+    },
+    "result": {
+      "points": "+{points, plural, one {# очко} few {# очка} many {# очков} other {# очка}}",
+      "correct": "Верно!",
+      "wrong": "Неверно",
+      "timeUp": "Время вышло"
+    },
+    "leaderboard": {
+      "title": "Лидеры",
+      "you": "Ты"
+    },
+    "podium": {
+      "title": "Победитель!",
+      "crown": "Победитель",
+      "yourPlace": "Ты на {rank}-м месте! {score, plural, one {# очко} few {# очка} many {# очков} other {# очка}}.",
+      "exit": "Выйти"
+    },
+    "next": "Следующий вопрос скоро появится",
+    "dev": {
+      "label": "Демо",
+      "pause": "Пауза",
+      "resume": "Продолжить",
+      "restart": "Заново",
+      "jump": "Перейти к экрану",
+      "phase": {
+        "join": "PIN",
+        "nickname": "Имя",
+        "lobby": "Лобби",
+        "question": "Вопрос",
+        "answered": "Ответ дан",
+        "result": "Итог",
+        "leaderboard": "Лидеры",
+        "podium": "Подиум"
+      }
     }
   },
   "staff": {

@@ -1,7 +1,6 @@
 {
   "_todo_review": [
     "app.name",
-    "player.home.title",
     "staff.login.title",
     "design",
     "common",
@@ -11,9 +10,6 @@
     "name": "aary kg"
   },
   "player": {
-    "home": {
-      "title": "Оюнга кошул!"
-    },
     "join": {
       "title": "Оюнга кошул!",
       "pinLabel": "Оюн PIN коду",
@@ -59,6 +55,40 @@
       "counter": "Суроо {current} / {total}",
       "unit": "сек",
       "waiting": "Жооп кабыл алынды. Калгандарды күтөбүз."
+    },
+    "result": {
+      "points": "+{points, number} упай",
+      "correct": "Туура!",
+      "wrong": "Туура эмес",
+      "timeUp": "Убакыт бүттү"
+    },
+    "leaderboard": {
+      "title": "Лидерлер",
+      "you": "Сен"
+    },
+    "podium": {
+      "title": "Жеңүүчү!",
+      "crown": "Жеңүүчү",
+      "yourPlace": "Сен {rank}-орундасың! {score, number} упай.",
+      "exit": "Чыгуу"
+    },
+    "next": "Кийинки суроо жакында чыгат",
+    "dev": {
+      "label": "Демо",
+      "pause": "Токтотуу",
+      "resume": "Улантуу",
+      "restart": "Кайра баштоо",
+      "jump": "Экранга өтүү",
+      "phase": {
+        "join": "PIN",
+        "nickname": "Ат",
+        "lobby": "Күтүү залы",
+        "question": "Суроо",
+        "answered": "Жооп берилди",
+        "result": "Жыйынтык",
+        "leaderboard": "Лидерлер",
+        "podium": "Подиум"
+      }
     }
   },
   "staff": {

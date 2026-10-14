@@ -30,6 +30,7 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { Toast } from "@/components/ui/Toast";
 import { mockLobbyPlayers, mockPlayers, mockStaff } from "@/mocks/design";
 import type { StaffRole } from "@/types/game";
+import { BuilderDemo } from "./BuilderDemo";
 import { ModalDemo } from "./ModalDemo";
 import { ToastDemo } from "./ToastDemo";
 
@@ -264,6 +265,10 @@ export function Gallery() {
           <AvatarInitial name="Өмүр" tone="yellow" />
           <AvatarInitial name="Гүлзат" tone="green" />
         </div>
+      </Section>
+
+      <Section title={t("section.builder")}>
+        <BuilderDemo />
       </Section>
 
       <Section title={t("section.leaderboard")}>

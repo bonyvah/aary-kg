@@ -9,6 +9,7 @@
     "prebuild": "npm run tokens",
     "build": "next build",
     "start": "next start",
+    "check:admin": "node --experimental-strip-types --no-warnings scripts/check-admin.mts",
     "check:scoring": "node --experimental-strip-types --no-warnings scripts/check-scoring.mts",
     "tokens:check": "node scripts/generate-tokens.mjs --check",
     "lint": "node scripts/generate-tokens.mjs --check && eslint"

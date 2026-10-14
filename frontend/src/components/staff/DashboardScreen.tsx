@@ -21,7 +21,18 @@ export function DashboardScreen() {
   const idBase = useId();
 
   return (
-    <StaffShell topRight={<StaffMenu name={mockCurrentUser.name} />}>
+    <StaffShell
+      topRight={
+        <div className="flex items-center gap-3">
+          {mockCurrentUser.role === "admin" ? (
+            <ButtonLink href="/admin" variant="neutral">
+              {t("admin")}
+            </ButtonLink>
+          ) : null}
+          <StaffMenu name={mockCurrentUser.name} />
+        </div>
+      }
+    >
       <h1 className="sr-only">{t("title")}</h1>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Tabs

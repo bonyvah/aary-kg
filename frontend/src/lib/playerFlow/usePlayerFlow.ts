@@ -47,6 +47,13 @@ export function usePlayerFlow() {
     return () => clearInterval(timer);
   }, [paused, phase]);
 
+  // Time ran out: the question closes whether or not the player answered.
+  useEffect(() => {
+    if (paused) return;
+    if ((phase === "question" || phase === "answered") && secondsLeft === 0) closeQuestion();
+  }, [paused, phase, secondsLeft, closeQuestion]);
+
+  // Phase timers. They must not depend on the clock ticks, or every tick would restart them.
   useEffect(() => {
     if (paused) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -56,8 +63,6 @@ export function usePlayerFlow() {
         const first = mockQuestion(1);
         if (first) dispatch({ type: "QUESTION_STARTED", question: first });
       }, LOBBY_MS);
-    } else if (phase === "question" && secondsLeft === 0) {
-      closeQuestion();
     } else if (phase === "answered") {
       timer = setTimeout(closeQuestion, ANSWERED_CLOSE_MS);
     } else if (phase === "result") {
@@ -71,7 +76,7 @@ export function usePlayerFlow() {
     }
 
     return () => clearTimeout(timer);
-  }, [paused, phase, secondsLeft, round, closeQuestion]);
+  }, [paused, phase, round, closeQuestion]);
 
   const submitPin = useCallback((pin: string) => {
     const clean = pin.replace(/\s/g, "");

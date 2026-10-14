@@ -3,6 +3,7 @@
 import { mockStandings, MOCK_TOTAL_QUESTIONS } from "@/mocks/playerFlow";
 import { usePlayerFlow } from "@/lib/playerFlow/usePlayerFlow";
 import { DemoBar } from "./DemoBar";
+import { CharacterScreen } from "./screens/CharacterScreen";
 import { JoinScreen } from "./screens/JoinScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
 import { LobbyScreen } from "./screens/LobbyScreen";
@@ -27,7 +28,21 @@ export function PlayerFlow() {
       case "nickname":
         return <NicknameScreen error={state.error} onSubmit={flow.submitNickname} />;
       case "lobby":
-        return <LobbyScreen nickname={state.nickname} character={state.character} />;
+        return (
+          <LobbyScreen
+            nickname={state.nickname}
+            character={state.character}
+            onChangeCharacter={flow.openCharacter}
+          />
+        );
+      case "character":
+        return (
+          <CharacterScreen
+            character={state.character}
+            onChange={flow.changeCharacter}
+            onDone={flow.closeCharacter}
+          />
+        );
       case "question":
       case "answered":
         return question ? (

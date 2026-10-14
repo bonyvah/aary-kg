@@ -308,6 +308,28 @@
       "players": "Ойноочулар",
       "waiting": "Ойноочулар күтүлүүдө…",
       "start": "Оюнду баштоо"
+    },
+    "live": {
+      "counter": "Суроо {current} / {total}",
+      "answered": "{count} / {total} жооп берди",
+      "unit": "сек",
+      "continue": "Улантуу",
+      "correct": "Туура жооп",
+      "count": "{count, plural, one {# ойноочу} other {# ойноочу}}",
+      "leaderboard": "Лидерлер",
+      "winner": "Жеңүүчү!",
+      "crown": "Жеңүүчү",
+      "viewReport": "Отчётту көрүү",
+      "toDashboard": "Башкы бетке"
+    },
+    "dev": {
+      "phase": {
+        "lobby": "Күтүү залы",
+        "question": "Суроо",
+        "counts": "Жооптор",
+        "leaderboard": "Лидерлер",
+        "podium": "Подиум"
+      }
     }
   }
 }

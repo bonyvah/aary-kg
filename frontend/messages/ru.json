@@ -299,6 +299,28 @@
       "players": "Игроки",
       "waiting": "Ждём игроков…",
       "start": "Начать игру"
+    },
+    "live": {
+      "counter": "Вопрос {current} из {total}",
+      "answered": "Ответили: {count} из {total}",
+      "unit": "сек",
+      "continue": "Продолжить",
+      "correct": "Правильный ответ",
+      "count": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
+      "leaderboard": "Лидеры",
+      "winner": "Победитель!",
+      "crown": "Победитель",
+      "viewReport": "Открыть отчёт",
+      "toDashboard": "На главную"
+    },
+    "dev": {
+      "phase": {
+        "lobby": "Лобби",
+        "question": "Вопрос",
+        "counts": "Ответы",
+        "leaderboard": "Лидеры",
+        "podium": "Подиум"
+      }
     }
   }
 }

@@ -140,6 +140,33 @@
       "errors": {
         "FIELD_REQUIRED": "Талааны толтуруңуз."
       }
+    },
+    "report": {
+      "toDashboard": "Башкы бетке",
+      "summary": "Жыйынтык",
+      "players": "Ойноочулар",
+      "accuracy": "Орточо тактык",
+      "questions": "Суроолор",
+      "duration": "Узактыгы",
+      "minutes": "{minutes} мүн.",
+      "playersTitle": "Ойноочулар",
+      "flagsNote": "Сигналдар — бул көмөкчү белгилер, далил эмес. Ойноочу автоматтык түрдө чыгарылбайт.",
+      "columns": {
+        "rank": "№",
+        "player": "Ойноочу",
+        "score": "Упай",
+        "correct": "Туура жооптор",
+        "signals": "Сигналдар"
+      },
+      "correctOf": "{correct} / {total}",
+      "noSignals": "Сигнал жок",
+      "flags": {
+        "TAB_BLUR": "Өтмөктү алмаштырды: {count, plural, one {# жолу} other {# жолу}}",
+        "PASTE": "Текст койду: {count, plural, one {# жолу} other {# жолу}}",
+        "FAST_ANSWERS": "Өтө тез жооптор: {count}",
+        "SAME_TIMING": "Башкалар менен бирдей убакыт: {count}"
+      },
+      "questionsTitle": "Суроолор боюнча тактык"
     }
   },
   "design": {

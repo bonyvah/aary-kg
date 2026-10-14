@@ -118,3 +118,15 @@ export function validateContest(draft: ContestDraft): ContestIssue[] {
   if (draft.jury.length === 0) issues.push({ code: "JURY_REQUIRED", field: "jury" });
   return issues;
 }
+
+export type ContestRole = "owner" | "jury";
+
+/** How a user relates to a contest. Null when they are neither (an admin still sees it). */
+export function contestRole(contest: Pick<Contest, "ownerId" | "jury">, userId: string): ContestRole | null {
+  if (contest.ownerId === userId) return "owner";
+  return contest.jury.some((member) => member.userId === userId) ? "jury" : null;
+}
+
+export function finishedCount(contest: Pick<Contest, "jury">): number {
+  return contest.jury.filter((member) => member.finished).length;
+}

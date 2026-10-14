@@ -162,3 +162,10 @@ export const mockContests: readonly Contest[] = [
 export function getMockContest(id: string): Contest | null {
   return mockContests.find((contest) => contest.id === id) ?? null;
 }
+
+/** The contests a user owns or judges. */
+export function contestsForUser(userId: string): Contest[] {
+  return mockContests.filter(
+    (contest) => contest.ownerId === userId || contest.jury.some((member) => member.userId === userId),
+  );
+}

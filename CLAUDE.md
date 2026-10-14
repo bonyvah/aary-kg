@@ -62,21 +62,20 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 
 Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, assets, copy, or CSS. Use our own name and brand.
 
-### Tokens (define once in tailwind config / CSS variables, use only these)
-- Colors:
-  - primary `#1368ce`
-  - error/red `#e21b3c`
-  - warning/orange `#eb670f`
-  - success/green `#26890c`
-  - purple brand `#46178f`, dark purple `#25076b`, light purple `#864cbf`
-  - yellow `#ffc00a`
-  - greys: `#ffffff #fafafa #f2f2f2 #e9e9e9 #ccc #b2b2b2 #6e6e6e #333`
-- Answer tile colors (always paired with a shape for accessibility):
-  red + triangle, blue + diamond, yellow + circle, green + square
-- Font: Montserrat, weights 500 / 700 / 900, subsets latin + cyrillic + cyrillic-ext. Self-host via next/font.
-- Spacing: 4px base grid only (4, 8, 12, 16, 20, 24, 32, 40, 48, 64). No arbitrary values.
-- Radii: 4, 8, 12, 16, 24, full.
-- Type scale (px): 11, 12, 14, 16, 20, 24, 32, 40, 48.
+### Source of truth: `design-system/` (read it before building any UI)
+- `design-system/README.md`: the brand book (content rules, visual foundations, where things live). Read it first.
+- `design-system/tokens.json`: every token. Colors come in two themes: `light` (staff screens) and `game` (live game screens, purple ground, set `data-theme="game"` on the screen root). Generate the Tailwind theme and CSS variables from this file; never retype values and never hardcode hex in components.
+- `design-system/components/bundle.css`: the styles of every component (`ak-btn`, `ak-input`, `ak-tile`, `ak-timer`, `ak-badge`, `ak-card`, `ak-row`, `ak-podium`, `ak-avatar`, `ak-chip`), reading only tokens. Port them to Tailwind + React components with the same look, states and sizes.
+- `design-system/components/<Name>/preview.html` has the exact markup and states of each component, and `<Name>/README.md` has its rules. Components: Button, Input, AnswerTile, TimerBar, Badge, Card, LeaderboardRow, Podium, Avatar.
+- Not in the design system yet: Modal, Toast, Table, empty and loading states. Build them from the same tokens and the same flat, hard-edge style, show them on `/design`, and ask me before inventing anything visual.
+- If `design-system/` and this file disagree on a visual value, `design-system/` wins. Tell me about the conflict.
+- The four answer colors belong to answer tiles only. Montserrat 500 / 700 / 900 with latin + cyrillic + cyrillic-ext, self-hosted via next/font. Only the named type styles, `space-*` and `radius-*` tokens (4px grid).
+
+### Avatars (players)
+- Players are one of 8 shape characters (triangle, diamond, circle and square faces in answer colors): `design-system/components/Avatar/avatars.svg`, ids `av-tri-red`, `av-tri-yellow`, `av-dia-blue`, `av-dia-green`, `av-cir-yellow`, `av-cir-red`, `av-sqr-green`, `av-sqr-blue`. Character id 0-7 in that order.
+- Build one `Avatar` React component that inlines the 8 SVGs. Never load them as image files, never invent faces or new characters.
+- Store only the character id per player (Redis game state). The server assigns it or the player picks one on the join screen. Faces repeat in a game, so the nickname is what identifies a player.
+- NO photo uploads, camera input or custom images, ever. Staff lists use an initial in a circle (`ak-avatar--initial`).
 
 ### Style rules
 - Buttons are chunky with a solid darker bottom edge (about 4px) and a press-down effect. Not soft shadows.
@@ -86,7 +85,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 
 ### Custom SVG rules
 - Custom icons live in `src/components/icons/` as React components (SVGR style), one file per icon, exported through an index.
-- Signature set: AnswerTriangle, AnswerDiamond, AnswerCircle, AnswerSquare, Crown, Podium, Trophy, Timer, Medal. Others only when approved.
+- Signature set: AnswerTriangle, AnswerDiamond, AnswerCircle, AnswerSquare, Crown, Trophy, Medal, plus the check and cross marks. The answer shapes, marks and a stand-in crown already exist as SVG in `design-system/components/AnswerTile/preview.html` and `Podium/preview.html`: reuse them. The Timer is the `TimerBar` component, not an icon. The final crown, trophy and medal are drawn by me; use the stand-in crown until I provide them. Others only when approved.
 - Draw on a 24x24 or 32x32 grid, chunky: thick strokes (min 2.5px at 24px) or solid fills, rounded joins, minimal detail.
 - Always use `currentColor` for fills/strokes so tokens control color. No hardcoded hex inside icons.
 - Simple geometric shapes are written directly as SVG code. Complex shapes are drawn by me in Figma/Inkscape and exported as SVG, then cleaned with SVGO. Do not invent complex illustrations in code.
@@ -99,11 +98,12 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 Its minimal soft look conflicts with this design language. Tokens above win over any skill guidance.
 
 ### Reference screenshots
-Put them in `/design-refs/` (join screen, lobby, question + 4 answer tiles, answer feedback, leaderboard, podium, quiz editor). Use them for layout and mood only. Never copy assets.
+`design-refs/` holds my screen designs (PDF/images, made in Claude Design from `design-system/`). They define which screens exist, their layout and flow. For colors, sizes, spacing, radii and component markup, `design-system/` is the authority, not the pictures. If a PDF is long, read it in chunks of at most 20 pages. Kahoot screenshots, if any, are mood only. Never copy Kahoot assets or text.
+- Placeholder content in the designs (names, scores, quiz titles) is sample data. Real text goes through next-intl in `ky` and `ru`. Sample Kyrgyz strings in the designs are unreviewed drafts.
 
 ## Build phases
 
-1. **Foundation**: tokens, Montserrat, base components (Button, Input, Card, Badge, AnswerTile, TimerBar, Avatar, Modal, Toast, Podium, LeaderboardRow, plus the Icon wrapper and custom SVG set) and a `/design` kitchen-sink route showing every component in every state. STOP and wait for my visual review.
+1. **Foundation**: generate the Tailwind theme and CSS variables from `design-system/tokens.json` (both themes), set up Montserrat, and port the components from `design-system/` to React + Tailwind: Button, Input, Card, Badge, AnswerTile, TimerBar, Avatar (8 characters), LeaderboardRow, Podium, lobby chip. Then add the ones the design system lacks (Modal, Toast, Table, empty and loading states) in the same style, plus the Icon wrapper and SVG set. Build a `/design` kitchen-sink route showing every component in every state in both themes, with long Kyrgyz and Russian strings. STOP and wait for my visual review.
 2. **Player flow** (mock data): join (PIN) -> nickname -> lobby -> question -> answered/wait -> result -> leaderboard -> podium.
 3. **Host + user screens** (mock data): login, dashboard, quiz editor, host lobby, host live view (question, answer counts, leaderboard), game report.
 4. **Admin + contest screens** (mock data): user management, contest create, jury scoring screen, contest results.
@@ -149,7 +149,8 @@ The server is the source of truth. The client is never trusted.
 aary-kg/
   CLAUDE.md
   README.md
-  design-refs/
+  design-system/ # tokens, component styles and markup, avatars (source of truth for UI)
+  design-refs/   # my screen designs (layout and flow)
   frontend/      # Next.js app
   backend/       # FastAPI app
   docs/          # decisions, protocol spec

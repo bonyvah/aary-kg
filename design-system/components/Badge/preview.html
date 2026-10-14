@@ -1,0 +1,36 @@
+<!-- @dsCard group="Display" height=240 subtitle="Roles and statuses" -->
+<!doctype html>
+<html lang="ky"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap">
+<style>
+body{margin:0;font-family:var(--font-sans)}
+.stage{padding:var(--space-6);background:var(--surface);color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}
+.cap{margin:0 0 var(--space-3);font:700 11px/14px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.gap{height:var(--space-6)}
+</style></head><body>
+<section class="stage">
+  <p class="cap">Roles</p>
+  <div class="row">
+    <span class="ak-badge">Админ</span>
+    <span class="ak-badge ak-badge--neutral">Колдонуучу</span>
+    <span class="ak-badge">Жюри</span>
+  </div>
+  <div class="gap"></div>
+  <p class="cap">Status</p>
+  <div class="row">
+    <span class="ak-badge ak-badge--accent">Жүрүп жатат</span>
+    <span class="ak-badge ak-badge--success">Аяктады</span>
+    <span class="ak-badge ak-badge--danger">Шектүү</span>
+    <span class="ak-badge ak-badge--neutral">Долбоор</span>
+  </div>
+</section>
+<section class="stage" data-theme="game">
+  <p class="cap">Game theme</p>
+  <div class="row">
+    <span class="ak-badge">Жюри</span>
+    <span class="ak-badge ak-badge--accent">Жүрүп жатат</span>
+    <span class="ak-badge ak-badge--neutral">Күтүүдө</span>
+  </div>
+</section>
+</body></html>

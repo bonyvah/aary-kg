@@ -1,0 +1,50 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="ky"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;900&display=swap">
+<style>
+html,body{margin:0}
+svg{display:block}
+.ground{fill:var(--surface)}
+.slab{fill:var(--brand);rx:var(--radius-2xl)}
+.unit{fill:var(--brand-dark)}
+.yellow{fill:var(--tile-yellow);rx:var(--radius-xl)}
+.red{fill:var(--tile-red);rx:var(--radius-xl)}
+.blue{fill:var(--tile-blue);rx:var(--radius-xl)}
+.green{fill:var(--tile-green);rx:var(--radius-xl)}
+.name{fill:var(--ink);font-family:var(--font-sans);font-weight:900;font-size:96px}
+.tag{fill:var(--ink-muted);font-family:var(--font-sans);font-weight:500;font-size:14px}
+</style></head><body>
+<!--
+blocks: brand slab 232x224 (radius-2xl), tile-yellow 104x104, tile-red 120x152 bleeding off the top right, tile-blue 136x104, tile-green 88x104 bleeding off the right (radius-xl); all at full value.
+arrangement: a staggered mosaic of unequal blocks right of x=480, 16px gaps (space-4), the slab spanning both rows.
+pattern: the four answer shapes (triangle, diamond, circle, square) cycling on a 40px grid, 25 units, in brand-dark on the slab; chosen because the answer shapes are this product's signature.
+steps and radii: space-4 gaps, space-6 insets inside the slab, radius-2xl on the slab and radius-xl on the other blocks.
+-->
+<svg width="960" height="288" viewBox="0 0 960 288" role="img" aria-label="aary kg">
+  <defs>
+    <path id="tri" d="M12 2 22 22H2Z"/>
+    <path id="dia" d="M12 1 23 12 12 23 1 12Z"/>
+    <circle id="cir" cx="12" cy="12" r="11"/>
+    <rect id="sqr" x="2" y="2" width="20" height="20" rx="3"/>
+  </defs>
+  <rect class="ground" width="960" height="288"/>
+
+  <rect class="slab" x="496" y="24" width="232" height="224"/>
+  <rect class="yellow" x="744" y="24" width="104" height="104"/>
+  <rect class="red" x="864" y="-24" width="120" height="152"/>
+  <rect class="blue" x="744" y="144" width="136" height="104"/>
+  <rect class="green" x="896" y="144" width="88" height="104"/>
+
+  <g class="unit">
+    <use href="#tri" x="520" y="48"/><use href="#dia" x="560" y="48"/><use href="#cir" x="600" y="48"/><use href="#sqr" x="640" y="48"/><use href="#tri" x="680" y="48"/>
+    <use href="#dia" x="520" y="88"/><use href="#cir" x="560" y="88"/><use href="#sqr" x="600" y="88"/><use href="#tri" x="640" y="88"/><use href="#dia" x="680" y="88"/>
+    <use href="#cir" x="520" y="128"/><use href="#sqr" x="560" y="128"/><use href="#tri" x="600" y="128"/><use href="#dia" x="640" y="128"/><use href="#cir" x="680" y="128"/>
+    <use href="#sqr" x="520" y="168"/><use href="#tri" x="560" y="168"/><use href="#dia" x="600" y="168"/><use href="#cir" x="640" y="168"/><use href="#sqr" x="680" y="168"/>
+    <use href="#tri" x="520" y="208"/><use href="#dia" x="560" y="208"/><use href="#cir" x="600" y="208"/><use href="#sqr" x="640" y="208"/><use href="#tri" x="680" y="208"/>
+  </g>
+
+  <text class="name" x="48" y="196">aary kg</text>
+  <text class="tag" x="48" y="232">Адилет оюн. Тез жооп.</text>
+</svg>
+</body></html>

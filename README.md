@@ -57,7 +57,7 @@ The server is authoritative. The client is never trusted.
 
 ## Design
 
-Kahoot-inspired in feel (bold colors, chunky buttons, shape-coded answer tiles), with its own branding and assets. See `CLAUDE.md` for the design tokens and style rules.
+Kahoot-inspired in feel (bold colors, chunky buttons, shape-coded answer tiles), with its own branding and assets. Players appear as one of eight shape characters (no photos). The design system lives in `design-system/` (tokens, component styles, avatars) and the screen designs in `design-refs/`. See `CLAUDE.md` for the rules.
 
 ## Roadmap
 
@@ -75,7 +75,8 @@ aary-kg/
   frontend/   # Next.js app
   backend/    # FastAPI app
   docs/       # decisions and protocol spec
-  design-refs/
+  design-system/  # tokens, component styles, avatars
+  design-refs/    # screen designs
 ```
 
 ## Getting started

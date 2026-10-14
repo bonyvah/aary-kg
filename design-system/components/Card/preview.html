@@ -1,0 +1,36 @@
+<!-- @dsCard group="Display" height=330 subtitle="Quiz card, flat with a hard edge" -->
+<!doctype html>
+<html lang="ky"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap">
+<style>
+body{margin:0;font-family:var(--font-sans)}
+.stage{padding:var(--space-6);background:var(--surface);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-4);max-width:720px}
+.card{display:flex;flex-direction:column;gap:var(--space-3)}
+.meta{margin:0}
+.badges{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.actions{margin-top:var(--space-2)}
+</style></head><body>
+<section class="stage">
+  <div class="grid">
+    <article class="ak-card card">
+      <div class="badges"><span class="ak-badge ak-badge--success">Жарыяланган</span></div>
+      <h3 class="h3" style="margin:0">Кыргызстандын тарыхы</h3>
+      <p class="body meta" style="color:var(--ink-muted)">12 суроо · 3 күн мурун өзгөртүлдү</p>
+      <div class="actions"><button class="ak-btn ak-btn--accent">Оюнду баштоо</button></div>
+    </article>
+    <article class="ak-card card">
+      <div class="badges"><span class="ak-badge ak-badge--neutral">Долбоор</span></div>
+      <h3 class="h3" style="margin:0">Математика, 7-класс</h3>
+      <p class="body meta" style="color:var(--ink-muted)">5 суроо · бүгүн өзгөртүлдү</p>
+      <div class="actions"><button class="ak-btn ak-btn--neutral">Түзөтүү</button></div>
+    </article>
+  </div>
+</section>
+<section class="stage" data-theme="game" style="padding-top:0">
+  <article class="ak-card card" style="max-width:340px">
+    <h3 class="h3" style="margin:0">Ойноочулар</h3>
+    <p class="body meta" style="color:var(--ink-muted)">24 киришти</p>
+  </article>
+</section>
+</body></html>

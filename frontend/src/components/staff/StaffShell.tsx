@@ -14,7 +14,7 @@ export function StaffShell({ topRight, children, className }: StaffShellProps) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="bg-surface-raised">
-        <div className="mx-auto flex min-h-[64px] w-full max-w-[1100px] items-center justify-between gap-4 px-4 py-2">
+        <div className="mx-auto flex min-h-[64px] w-full max-w-[1100px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
           <Logo />
           {topRight}
         </div>

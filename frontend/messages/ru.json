@@ -110,6 +110,27 @@
         "title": "Конкурсы скоро появятся",
         "description": "Создавать конкурсы можно будет в следующей версии."
       }
+    },
+    "editor": {
+      "back": "Назад",
+      "titleLabel": "Название викторины",
+      "save": "Сохранить",
+      "saved": "Викторина сохранена.",
+      "saveFailed": "Викторина не сохранена. Заполните пустые поля.",
+      "host": "Начать игру",
+      "questions": "Вопросы",
+      "addQuestion": "Добавить вопрос",
+      "removeQuestion": "Удалить вопрос",
+      "questionLabel": "Вопрос",
+      "emptyQuestion": "Новый вопрос",
+      "answerLabel": "Ответ: {shape}",
+      "correctGroup": "Правильный ответ",
+      "correctOption": "Отметить правильным: {shape}",
+      "timeLabel": "Время на ответ",
+      "timeOption": "{seconds} сек",
+      "errors": {
+        "FIELD_REQUIRED": "Заполните поле."
+      }
     }
   },
   "design": {

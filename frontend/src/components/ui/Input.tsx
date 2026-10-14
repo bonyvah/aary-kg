@@ -7,9 +7,13 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   helper?: string;
   error?: string;
   pin?: boolean;
+  /** Keep the label for assistive tech only (a compact field with context around it). */
+  hideLabel?: boolean;
+  /** Class for the wrapper, e.g. to let the field fill a flex row. */
+  wrapperClassName?: string;
 };
 
-export function Input({ label, helper, error, pin = false, id, className, ...rest }: InputProps) {
+export function Input({ label, helper, error, pin = false, hideLabel = false, wrapperClassName, id, className, ...rest }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const helperId = helper ? `${inputId}-help` : undefined;
@@ -17,8 +21,8 @@ export function Input({ label, helper, error, pin = false, id, className, ...res
   const describedBy = [errorId, helperId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="text-body font-bold text-ink">
+    <div className={cx("flex flex-col gap-2", wrapperClassName)}>
+      <label htmlFor={inputId} className={hideLabel ? "sr-only" : "text-body font-bold text-ink"}>
         {label}
       </label>
       <input

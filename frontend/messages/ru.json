@@ -23,6 +23,23 @@
       "NICKNAME_INVALID": "Никнейм не должен быть пустым.",
       "NICKNAME_TAKEN": "Это имя занято. Выбери другое."
     },
+    "result": {
+      "points": "+{points, plural, one {# очко} few {# очка} many {# очков} other {# очка}}",
+      "correct": "Верно!",
+      "wrong": "Неверно",
+      "timeUp": "Время вышло"
+    },
+    "leaderboard": {
+      "title": "Лидеры",
+      "you": "Ты"
+    },
+    "podium": {
+      "title": "Победитель!",
+      "crown": "Победитель",
+      "yourPlace": "Ты на {rank}-м месте! {score, plural, one {# очко} few {# очка} many {# очков} other {# очка}}.",
+      "exit": "Выйти"
+    },
+    "next": "Следующий вопрос скоро появится"
     "lobby": {
       "badge": "Ожидание",
       "hint": "Ты в игре. Видишь своё имя на экране?"

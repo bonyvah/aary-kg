@@ -19,3 +19,31 @@
     }
   }
 }
+
+/* Motion: short and punchy (150-250ms). Reduced motion is handled in the base layer. */
+@theme {
+  --animate-pop: pop 200ms ease-out both;
+  --animate-reveal: reveal 200ms ease-out both;
+
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

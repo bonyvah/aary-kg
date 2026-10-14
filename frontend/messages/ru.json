@@ -79,7 +79,16 @@
   },
   "staff": {
     "login": {
-      "title": "Вход"
+      "title": "Вход",
+      "joinGame": "Присоединиться к игре",
+      "loginLabel": "Логин",
+      "loginPlaceholder": "aizhan.m",
+      "passwordLabel": "Пароль",
+      "submit": "Войти",
+      "errors": {
+        "CREDENTIALS_REQUIRED": "Введите логин и пароль.",
+        "INVALID_CREDENTIALS": "Неверный логин или пароль. Попробуйте ещё раз."
+      }
     },
     "menu": {
       "open": "Открыть меню",

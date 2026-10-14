@@ -130,3 +130,20 @@ export function contestRole(contest: Pick<Contest, "ownerId" | "jury">, userId: 
 export function finishedCount(contest: Pick<Contest, "jury">): number {
   return contest.jury.filter((member) => member.finished).length;
 }
+
+type Viewer = { id: string; role: "admin" | "user" };
+
+/** Owner and admins manage a contest: open scoring, close it. */
+export function canManage(contest: Pick<Contest, "ownerId">, viewer: Viewer): boolean {
+  return viewer.role === "admin" || contest.ownerId === viewer.id;
+}
+
+/** A jury member can score while the contest is open. */
+export function canScore(contest: Pick<Contest, "status" | "jury">, userId: string): boolean {
+  return contest.status === "open" && contest.jury.some((member) => member.userId === userId);
+}
+
+/** How many entries this jury member has fully scored (every criterion). */
+export function scoredEntryCount(contest: Pick<Contest, "criteria" | "entries" | "scores">, userId: string): number {
+  return contest.entries.filter((entry) => jurorEntryScore(contest.criteria, contest.scores[userId]?.[entry.id]) !== null).length;
+}

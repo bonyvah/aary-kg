@@ -1,6 +1,6 @@
 // Checks the contest scoring model of docs/contest-scoring.md against numbers worked out by hand.
 // Run: pnpm check:scoring (Node 22.6+ strips the types itself).
-import { jurorEntryScore, rankEntries, round2, validateContest, weightsTotal } from "../src/lib/contestScoring.ts";
+import { canManage, canScore, contestRole, finishedCount, jurorEntryScore, rankEntries, round2, scoredEntryCount, validateContest, weightsTotal } from "../src/lib/contestScoring.ts";
 import { getMockContest } from "../src/mocks/contests.ts";
 
 let failed = 0;
@@ -37,6 +37,13 @@ check("weights 90 -> WEIGHTS_NOT_100", codes({ ...base, criteria: [{ id: "a", na
 check("weight 0 or decimal -> WEIGHTS_NOT_100", codes({ ...base, criteria: [{ id: "a", name: "A", weight: 100 }, { id: "b", name: "B", weight: 0 }] }) === "WEIGHTS_NOT_100" && codes({ ...base, criteria: [{ id: "a", name: "A", weight: 60.5 }, { id: "b", name: "B", weight: 39.5 }] }) === "WEIGHTS_NOT_100");
 check("empty title, no criteria, no entries, no jury", codes({ title: " ", criteria: [], entries: [], jury: [] }) === "FIELD_REQUIRED,CRITERIA_REQUIRED,ENTRIES_REQUIRED,JURY_REQUIRED");
 check("blank criterion and entry names are FIELD_REQUIRED", validateContest({ ...base, criteria: [{ id: "a", name: "", weight: 100 }], entries: [{ id: "e", name: " ", description: "" }] }).map((i) => i.field).join(",") === "criterion:a:name,entry:e:name");
+
+const school = getMockContest("school-concert")!;
+check("the owner and an admin manage a contest, another user does not", canManage(school, { id: "u-aizhan", role: "user" }) && canManage(school, { id: "x", role: "admin" }) && !canManage(school, { id: "u-ulan", role: "user" }));
+check("a jury member scores only while it is open", canScore(photo, "u-omur") && !canScore(singers, "u-omur") && !canScore(school, "u-ulan") && !canScore(photo, "u-aizhan"));
+check("contestRole tells owner, jury and neither", contestRole(photo, "u-aizhan") === "owner" && contestRole(english, "u-aizhan") === "jury" && contestRole(english, "u-gulzat") === null);
+check("scoredEntryCount counts fully scored entries", scoredEntryCount(photo, "u-ulan") === 3 && scoredEntryCount(photo, "u-omur") === 0 && scoredEntryCount(singers, "u-gulzat") === 5);
+check("finishedCount counts finished jury members", finishedCount(photo) === 1 && finishedCount(singers) === 3 && finishedCount(english) === 0);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

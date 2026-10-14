@@ -7,7 +7,9 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { mockCurrentUser } from "@/mocks/staff";
+import { contestsForUser } from "@/mocks/contests";
 import { mockQuizSummaries } from "@/mocks/quizzes";
+import { ContestCard } from "./ContestCard";
 import { QuizCard } from "./QuizCard";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -19,6 +21,7 @@ export function DashboardScreen() {
   const t = useTranslations("staff.dashboard");
   const [tab, setTab] = useState<Tab>("quizzes");
   const idBase = useId();
+  const contests = contestsForUser(mockCurrentUser.id);
 
   return (
     <StaffShell
@@ -47,7 +50,11 @@ export function DashboardScreen() {
           <ButtonLink href="/quizzes/new" variant="accent">
             {t("createQuiz")}
           </ButtonLink>
-        ) : null}
+        ) : (
+          <ButtonLink href="/contests/new" variant="accent">
+            {t("createContest")}
+          </ButtonLink>
+        )}
       </div>
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
@@ -56,6 +63,16 @@ export function DashboardScreen() {
               <li key={quiz.id} className="flex">
                 <div className="flex-1">
                   <QuizCard quiz={quiz} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : contests.length > 0 ? (
+          <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+            {contests.map((contest) => (
+              <li key={contest.id} className="flex">
+                <div className="flex-1">
+                  <ContestCard contest={contest} userId={mockCurrentUser.id} />
                 </div>
               </li>
             ))}

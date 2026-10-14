@@ -7,7 +7,8 @@
     "player",
     "staff",
     "host",
-    "admin"
+    "admin",
+    "contest"
   ],
   "app": {
     "name": "aary kg"
@@ -120,7 +121,8 @@
         "title": "Сынактар жакында чыгат",
         "description": "Сынактарды кийинки версияда түзө аласыз."
       },
-      "admin": "Админ"
+      "admin": "Админ",
+      "createContest": "Сынак түзүү"
     },
     "editor": {
       "back": "Артка",
@@ -446,6 +448,33 @@
       "disabled": "Колдонуучу өчүрүлдү.",
       "copied": "Сырсөз көчүрүлдү.",
       "copyFailed": "Көчүрүү мүмкүн болбоду. Сырсөздү кол менен белгилеп алыңыз."
+    },
+    "tabsLabel": "Бөлүмдөр",
+    "tabs": {
+      "users": "Колдонуучулар",
+      "contests": "Сынактар"
+    },
+    "contests": {
+      "title": "Аталышы",
+      "owner": "Уюштуруучу",
+      "status": "Абалы",
+      "entries": "Катышуучулар",
+      "jury": "Жюри"
     }
+  },
+  "contest": {
+    "status": {
+      "draft": "Долбоор",
+      "open": "Баалоо жүрүүдө",
+      "closed": "Аяктады"
+    },
+    "role": {
+      "owner": "Уюштуруучу",
+      "jury": "Жюри"
+    },
+    "entryCount": "{count, plural, one {# катышуучу} other {# катышуучу}}",
+    "juryCount": "{count, plural, one {# жюри мүчөсү} other {# жюри мүчөсү}}",
+    "summary": "{entries, plural, one {# катышуучу} other {# катышуучу}} · {jury, plural, one {# жюри мүчөсү} other {# жюри мүчөсү}}",
+    "progress": "{finished} / {total} баалады"
   }
 }

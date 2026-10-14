@@ -87,7 +87,16 @@
   },
   "staff": {
     "login": {
-      "title": "Кирүү"
+      "title": "Кирүү",
+      "joinGame": "Оюнга кошулуу",
+      "loginLabel": "Логин",
+      "loginPlaceholder": "aizhan.m",
+      "passwordLabel": "Сырсөз",
+      "submit": "Кирүү",
+      "errors": {
+        "CREDENTIALS_REQUIRED": "Логин менен сырсөздү жазыңыз.",
+        "INVALID_CREDENTIALS": "Логин же сырсөз туура эмес. Кайра аракет кылыңыз."
+      }
     },
     "menu": {
       "open": "Менюну ачуу",

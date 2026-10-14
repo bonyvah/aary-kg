@@ -1,6 +1,5 @@
-import { useTranslations } from "next-intl";
+import { LoginScreen } from "@/components/staff/LoginScreen";
 
 export default function LoginPage() {
-  const t = useTranslations("staff.login");
-  return <h1>{t("title")}</h1>;
+  return <LoginScreen />;
 }

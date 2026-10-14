@@ -12,11 +12,13 @@ type ModalProps = {
   children?: ReactNode;
   /** Buttons for the bottom row, e.g. a neutral cancel and a danger confirm. */
   actions?: ReactNode;
+  /** Room for a table: up to 760px instead of 480px. */
+  wide?: boolean;
   className?: string;
 };
 
 /** Native <dialog>: focus trap, Esc to close and inert background come from the browser. */
-export function Modal({ open, onClose, title, children, actions, className }: ModalProps) {
+export function Modal({ open, onClose, title, children, actions, wide = false, className }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -36,7 +38,8 @@ export function Modal({ open, onClose, title, children, actions, className }: Mo
         if (event.target === event.currentTarget) onClose();
       }}
       className={cx(
-        "m-auto w-[calc(100%-var(--space-8))] max-w-[480px] rounded-lg border-2 border-border bg-surface-raised p-6 text-ink",
+        "m-auto w-[calc(100%-var(--space-8))] rounded-lg border-2 border-border bg-surface-raised p-6 text-ink",
+        wide ? "max-w-[760px]" : "max-w-[480px]",
         "shadow-[0_4px_0_0_var(--border)] backdrop:bg-brand-dark/80",
         className,
       )}

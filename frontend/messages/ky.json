@@ -4,7 +4,8 @@
     "player.home.title",
     "staff.login.title",
     "design",
-    "common"
+    "common",
+    "player"
   ],
   "app": {
     "name": "aary kg"
@@ -12,6 +13,26 @@
   "player": {
     "home": {
       "title": "Оюнга кошул!"
+    },
+    "join": {
+      "title": "Оюнга кошул!",
+      "pinLabel": "Оюн PIN коду",
+      "pinPlaceholder": "123 456",
+      "submit": "Кирүү"
+    },
+    "nickname": {
+      "title": "Атыңды жаз",
+      "label": "Никнейм",
+      "placeholder": "Мисалы, Айгерим",
+      "character": "Каарман",
+      "characterOption": "Каарман {number}",
+      "submit": "Кирүү"
+    },
+    "errors": {
+      "PIN_INVALID": "PIN код 6 цифрадан турат.",
+      "GAME_NOT_FOUND": "Мындай оюн жок. PIN кодду текшер.",
+      "NICKNAME_INVALID": "Никнейм бош болбошу керек.",
+      "NICKNAME_TAKEN": "Бул ат ээленген. Башка ат танда."
     }
   },
   "staff": {

@@ -10,6 +10,12 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - Before inventing any visual decision not covered here, ask me.
 - Use plan mode for each phase, show the plan, wait for approval.
 - Keep changes small and reviewable. One component or one screen per task.
+- Git workflow:
+  - Never commit to `main`. Work on a branch per task (`feat/<short-name>`, `fix/<short-name>`, `chore/<short-name>`).
+  - Make atomic commits: one logical change each (one component, one screen, one fix), and the code builds, lints and passes tests at every commit. Don't mix refactors, formatting or unrelated files into a feature commit.
+  - Commit messages: conventional style (`feat(ui): add AnswerTile`), imperative, with a body when the why isn't obvious.
+  - Open a pull request for every finished task with `gh pr create`. Keep PRs small. The description says what changed, why, and how to check it (the route to open, the command to run). UI changes include a screenshot.
+  - Don't merge PRs yourself and don't force-push shared branches. I review and merge.
 - After building UI, tell me which route to open so I can check it visually. Do not claim a UI is "polished" without me seeing it.
 
 ## Product
@@ -93,9 +99,6 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - Motion: short and punchy (150-250ms). Timer bar, score count-up, podium reveal. Respect `prefers-reduced-motion`.
 - Player screens: portrait phone layout first. Host screen: landscape, projector-friendly, very large type.
 - Every interactive element needs hover, active, focus-visible and disabled states.
-
-### Do NOT use the apple-design skill for this project
-Its minimal soft look conflicts with this design language. Tokens above win over any skill guidance.
 
 ### Reference screenshots
 `design-refs/` holds my screen designs (PDF/images, made in Claude Design from `design-system/`). They define which screens exist, their layout and flow. For colors, sizes, spacing, radii and component markup, `design-system/` is the authority, not the pictures. If a PDF is long, read it in chunks of at most 20 pages. Kahoot screenshots, if any, are mood only. Never copy Kahoot assets or text.

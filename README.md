@@ -83,6 +83,12 @@ aary-kg/
 
 Not available yet. Setup instructions will be added once the frontend and backend are scaffolded.
 
+## Workflow
+
+- Work happens on feature branches, never directly on `main`.
+- Commits are atomic: one logical change each, building and passing tests at every commit.
+- Every finished task goes through a small pull request that says what changed, why, and how to check it, with a screenshot for UI changes.
+
 ## License
 
 TBD

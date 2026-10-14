@@ -9,7 +9,7 @@ type LogoMarkProps = {
 };
 
 // The bee from public/logo.svg. Brand artwork: it keeps its own colors, tokens do not recolor it.
-export function LogoMark({ size = 32, label, className }: LogoMarkProps) {
+export function LogoMark({ size = 44, label, className }: LogoMarkProps) {
   return (
     <svg
       viewBox="0 0 200 200"
@@ -42,7 +42,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2 whitespace-nowrap", className)}>
       <LogoMark />
-      <span className="text-h3 font-black lowercase text-ink">{t("name")}</span>
+      <span className="text-h2 font-black lowercase text-ink">{t("name")}</span>
     </span>
   );
 }

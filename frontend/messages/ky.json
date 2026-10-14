@@ -103,6 +103,21 @@
       "title": "Жөндөөлөр",
       "close": "Жабуу",
       "signOut": "Чыгуу"
+    },
+    "dashboard": {
+      "title": "Башкы бет",
+      "tabsLabel": "Бөлүмдөр",
+      "tabs": {
+        "quizzes": "Викториналар",
+        "contests": "Сынактар"
+      },
+      "createQuiz": "Викторина түзүү",
+      "draft": "Жасалууда",
+      "questionCount": "{count, plural, one {# суроо} other {# суроо}}",
+      "contestsEmpty": {
+        "title": "Сынактар жакында чыгат",
+        "description": "Сынактарды кийинки версияда түзө аласыз."
+      }
     }
   },
   "design": {

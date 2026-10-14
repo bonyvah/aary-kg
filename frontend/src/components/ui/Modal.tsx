@@ -37,7 +37,7 @@ export function Modal({ open, onClose, title, children, actions, className }: Mo
       }}
       className={cx(
         "m-auto w-[calc(100%-var(--space-8))] max-w-[480px] rounded-lg border-2 border-border bg-surface-raised p-6 text-ink",
-        "shadow-[0_4px_0_0_var(--border)] backdrop:bg-ink/60",
+        "shadow-[0_4px_0_0_var(--border)] backdrop:bg-brand-dark/80",
         className,
       )}
     >

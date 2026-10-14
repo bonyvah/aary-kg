@@ -4,7 +4,8 @@ import { cx } from "@/lib/cx";
 
 export type AnswerPosition = 1 | 2 | 3 | 4;
 
-const positions = {
+/** Color, shape and edge of the four answer positions. Also used by the quiz editor. */
+export const answerPositions = {
   1: { Shape: AnswerTriangle, tone: "bg-tile-red text-on-tile [--tile-e:var(--tile-red-edge)]" },
   2: { Shape: AnswerDiamond, tone: "bg-tile-blue text-on-tile [--tile-e:var(--tile-blue-edge)]" },
   3: { Shape: AnswerCircle, tone: "bg-tile-yellow text-on-tile-yellow [--tile-e:var(--tile-yellow-edge)]" },
@@ -43,7 +44,7 @@ export function AnswerTile(props: AnswerTileProps) {
   } = props;
   // `children` only exists on the text variant; the shapes-only variant has none.
   const { children, ...buttonProps } = rest as typeof rest & { children?: ReactNode };
-  const { Shape, tone } = positions[position];
+  const { Shape, tone } = answerPositions[position];
 
   return (
     <button

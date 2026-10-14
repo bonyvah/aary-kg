@@ -23,6 +23,30 @@ const sizes: Record<ButtonSize, string> = {
   lg: "min-h-[56px] px-8 py-4 text-h3 font-black",
 };
 
+type ButtonLook = {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  block?: boolean;
+  className?: string;
+};
+
+/** The look of a button, shared by `Button` and `ButtonLink`. */
+export function buttonClasses({ variant = "primary", size = "default", block = false, className }: ButtonLook) {
+  return cx(
+    "items-center justify-center gap-2 rounded-md text-center",
+    "cursor-pointer transition-[transform,box-shadow] duration-150 ease-out",
+    "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--edge-c)]",
+    "active:translate-y-1 active:shadow-[0_0_0_0_var(--edge-c)]",
+    "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+    "disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-on-disabled",
+    "disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:active:translate-y-0",
+    block ? "flex w-full" : "inline-flex",
+    variants[variant],
+    sizes[size],
+    className,
+  );
+}
+
 export function Button({
   variant = "primary",
   size = "default",
@@ -31,23 +55,5 @@ export function Button({
   className,
   ...rest
 }: ButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cx(
-        "items-center justify-center gap-2 rounded-md text-center",
-        "cursor-pointer transition-[transform,box-shadow] duration-150 ease-out",
-        "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--edge-c)]",
-        "active:translate-y-1 active:shadow-[0_0_0_0_var(--edge-c)]",
-        "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-        "disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-on-disabled",
-        "disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:active:translate-y-0",
-        block ? "flex w-full" : "inline-flex",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
-      {...rest}
-    />
-  );
+  return <button type={type} className={buttonClasses({ variant, size, block, className })} {...rest} />;
 }

@@ -1,19 +1,19 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Shuffle } from "@phosphor-icons/react/ssr";
 import { Check } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
+import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { Avatar } from "./Avatar";
 import { COLORS, FACES, SHAPES, randomCharacter, type Character } from "./avatar/characters";
 import { colorClasses } from "./avatar/colors";
 
-const TABS = ["shape", "color", "face"] as const;
-type Tab = (typeof TABS)[number];
+const TAB_ITEMS = ["shape", "color", "face"] as const;
+type Tab = (typeof TAB_ITEMS)[number];
 
 type CharacterBuilderProps = {
   value: Character;
@@ -34,15 +34,6 @@ export function CharacterBuilder({ value, onChange, className }: CharacterBuilde
   const [tab, setTab] = useState<Tab>("shape");
   const baseId = useId();
 
-  function onTabKeyDown(event: KeyboardEvent, index: number) {
-    const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-    if (step === 0) return;
-    event.preventDefault();
-    const next = TABS[(index + step + TABS.length) % TABS.length] as Tab;
-    setTab(next);
-    document.getElementById(`${baseId}-tab-${next}`)?.focus();
-  }
-
   return (
     <div className={cx("flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between gap-4">
@@ -53,29 +44,18 @@ export function CharacterBuilder({ value, onChange, className }: CharacterBuilde
         </Button>
       </div>
 
-      <div role="tablist" aria-label={t("title")} className="flex gap-2">
-        {TABS.map((id, index) => (
-          <Button
-            key={id}
-            id={`${baseId}-tab-${id}`}
-            role="tab"
-            aria-selected={tab === id}
-            aria-controls={`${baseId}-panel`}
-            tabIndex={tab === id ? 0 : -1}
-            variant={tab === id ? "primary" : "neutral"}
-            className="min-w-0 flex-1 px-2"
-            onClick={() => setTab(id)}
-            onKeyDown={(event) => onTabKeyDown(event, index)}
-          >
-            {t(`tab.${id}`)}
-          </Button>
-        ))}
-      </div>
+      <Tabs
+        tabs={TAB_ITEMS.map((id) => ({ id, label: t(`tab.${id}`) }))}
+        value={tab}
+        onChange={setTab}
+        label={t("title")}
+        idBase={baseId}
+      />
 
       <div
-        id={`${baseId}-panel`}
+        id={panelId(baseId)}
         role="tabpanel"
-        aria-labelledby={`${baseId}-tab-${tab}`}
+        aria-labelledby={tabId(baseId, tab)}
         className="grid min-h-[232px] grid-cols-4 content-start gap-2"
       >
         {tab === "shape"

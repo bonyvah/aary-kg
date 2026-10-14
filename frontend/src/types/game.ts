@@ -1,12 +1,12 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { AvatarId } from "@/components/game/Avatar";
+import type { Character } from "@/components/game/avatar/characters";
 
 /** Shape of a player in a live game. Mock data uses it now, the API will return the same. */
 export type Player = {
   id: string;
   nickname: string;
   score: number;
-  avatar: AvatarId;
+  character: Character;
 };
 
 export type StaffRole = "admin" | "user" | "jury";

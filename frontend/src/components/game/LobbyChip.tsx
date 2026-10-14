@@ -1,16 +1,17 @@
 import { cx } from "@/lib/cx";
-import { Avatar, type AvatarId } from "./Avatar";
+import { Avatar } from "./Avatar";
+import type { Character } from "./avatar/characters";
 
 type LobbyChipProps = {
   nickname: string;
-  avatar: AvatarId;
+  character: Character;
   /** Pop-in for the host's lobby wall. */
   animate?: boolean;
   className?: string;
 };
 
 /** One joined player: avatar plus nickname on a white pill. */
-export function LobbyChip({ nickname, avatar, animate = false, className }: LobbyChipProps) {
+export function LobbyChip({ nickname, character, animate = false, className }: LobbyChipProps) {
   return (
     <span
       className={cx(
@@ -20,7 +21,7 @@ export function LobbyChip({ nickname, avatar, animate = false, className }: Lobb
         className,
       )}
     >
-      <Avatar avatar={avatar} />
+      <Avatar character={character} />
       <span className="min-w-0 [overflow-wrap:anywhere]">{nickname}</span>
     </span>
   );

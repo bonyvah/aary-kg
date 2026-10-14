@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { AvatarId } from "@/components/game/Avatar";
+import { randomCharacter, type Character } from "@/components/game/avatar/characters";
 import {
   MOCK_PIN_NOT_FOUND,
   MOCK_TAKEN_NICKNAMES,
@@ -19,6 +19,7 @@ const ANSWERED_CLOSE_MS = 2500;
 const RESULT_MS = 4000;
 const LEADERBOARD_MS = 5000;
 const DEMO_NICKNAME = "Мырзабек";
+const DEMO_CHARACTER: Character = { shape: "star", color: "yellow", face: "stars" };
 const PIN_LENGTH = 6;
 
 /**
@@ -89,14 +90,15 @@ export function usePlayerFlow() {
     }
   }, []);
 
-  const submitNickname = useCallback((nickname: string, avatar: AvatarId) => {
+  const submitNickname = useCallback((nickname: string) => {
     const clean = nickname.trim();
     if (clean.length === 0) {
       dispatch({ type: "REJECTED", error: "NICKNAME_INVALID" });
     } else if (MOCK_TAKEN_NICKNAMES.some((taken) => taken.toLocaleLowerCase() === clean.toLocaleLowerCase())) {
       dispatch({ type: "REJECTED", error: "NICKNAME_TAKEN" });
     } else {
-      dispatch({ type: "NICKNAME_ACCEPTED", nickname: clean, avatar });
+      // The server gives every new player a random character; the lobby lets them change it.
+      dispatch({ type: "NICKNAME_ACCEPTED", nickname: clean, character: randomCharacter() });
     }
   }, []);
 
@@ -110,7 +112,7 @@ export function usePlayerFlow() {
     if (target === "join") return;
     dispatch({ type: "PIN_ACCEPTED", pin: "123456" });
     if (target === "nickname") return;
-    dispatch({ type: "NICKNAME_ACCEPTED", nickname: DEMO_NICKNAME, avatar: 0 });
+    dispatch({ type: "NICKNAME_ACCEPTED", nickname: DEMO_NICKNAME, character: DEMO_CHARACTER });
     if (target === "lobby") return;
     const first = mockQuestion(1);
     if (!first) return;

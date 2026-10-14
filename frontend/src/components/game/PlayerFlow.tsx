@@ -18,7 +18,7 @@ export function PlayerFlow() {
   const { phase, question, selected, reveal } = state;
   const round = question?.index ?? MOCK_TOTAL_QUESTIONS;
   const standings = () =>
-    mockStandings(round, { nickname: state.nickname, avatar: state.avatar, score: state.score });
+    mockStandings(round, { nickname: state.nickname, character: state.character, score: state.score });
 
   function screen() {
     switch (phase) {
@@ -27,7 +27,7 @@ export function PlayerFlow() {
       case "nickname":
         return <NicknameScreen error={state.error} onSubmit={flow.submitNickname} />;
       case "lobby":
-        return <LobbyScreen nickname={state.nickname} avatar={state.avatar} />;
+        return <LobbyScreen nickname={state.nickname} character={state.character} />;
       case "question":
       case "answered":
         return question ? (

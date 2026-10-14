@@ -13,8 +13,6 @@
       "title": "Введи имя",
       "label": "Никнейм",
       "placeholder": "Например, Айгерим",
-      "character": "Персонаж",
-      "characterOption": "Персонаж {number}",
       "submit": "Войти"
     },
     "errors": {
@@ -188,6 +186,12 @@
       "custom": "Набор собственных SVG",
       "phosphor": "Phosphor (bold и fill)",
       "note": "Корона временная, финальную рисуете вы."
+    },
+    "characters": {
+      "shapes": "Формы",
+      "colors": "Цвета",
+      "faces": "Лица",
+      "matrix": "Все формы со всеми лицами"
     }
   },
   "common": {

@@ -1,12 +1,12 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { AvatarId } from "@/components/game/Avatar";
+import type { Character } from "@/components/game/avatar/characters";
 import type { ErrorCode, GamePhase, PlayerQuestion, RevealPayload } from "@/types/game";
 
 export type FlowState = {
   phase: GamePhase;
   pin: string;
   nickname: string;
-  avatar: AvatarId;
+  character: Character;
   question: PlayerQuestion | null;
   secondsLeft: number;
   selected: AnswerPosition | null;
@@ -21,7 +21,7 @@ export type FlowState = {
 export type FlowEvent =
   | { type: "PIN_ACCEPTED"; pin: string }
   | { type: "REJECTED"; error: ErrorCode }
-  | { type: "NICKNAME_ACCEPTED"; nickname: string; avatar: AvatarId }
+  | { type: "NICKNAME_ACCEPTED"; nickname: string; character: Character }
   | { type: "QUESTION_STARTED"; question: PlayerQuestion }
   | { type: "TICK" }
   | { type: "ANSWER_SELECTED"; position: AnswerPosition }
@@ -31,11 +31,14 @@ export type FlowEvent =
   | { type: "JUMPED"; phase: GamePhase }
   | { type: "RESET" };
 
+// A fixed starting character keeps the server render and the first client render identical.
+export const INITIAL_CHARACTER: Character = { shape: "circle", color: "blue", face: "smile" };
+
 export const initialState: FlowState = {
   phase: "join",
   pin: "",
   nickname: "",
-  avatar: 0,
+  character: INITIAL_CHARACTER,
   question: null,
   secondsLeft: 0,
   selected: null,
@@ -52,7 +55,7 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
     case "REJECTED":
       return { ...state, error: event.error };
     case "NICKNAME_ACCEPTED":
-      return { ...state, phase: "lobby", nickname: event.nickname, avatar: event.avatar, error: null };
+      return { ...state, phase: "lobby", nickname: event.nickname, character: event.character, error: null };
     case "QUESTION_STARTED":
       return {
         ...state,

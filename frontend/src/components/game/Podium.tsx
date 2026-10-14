@@ -1,9 +1,10 @@
 import { useFormatter } from "next-intl";
 import { Crown } from "@/components/icons";
 import { cx } from "@/lib/cx";
-import { Avatar, type AvatarId } from "./Avatar";
+import { Avatar } from "./Avatar";
+import type { Character } from "./avatar/characters";
 
-export type PodiumPlayer = { nickname: string; score: number; avatar: AvatarId };
+export type PodiumPlayer = { nickname: string; score: number; character: Character };
 
 type PodiumProps = {
   /** Top players in rank order: 1st, 2nd, 3rd. Fewer than three leaves steps out. */
@@ -41,7 +42,7 @@ export function Podium({ players, crownLabel, className }: PodiumProps) {
           )}
         >
           {rank === 1 ? <Crown aria-label={crownLabel} className="size-10 text-accent" /> : null}
-          <Avatar avatar={player.avatar} size="lg" />
+          <Avatar character={player.character} size="lg" />
           <span title={player.nickname} className="max-w-full truncate text-body-lg font-black">
             {player.nickname}
           </span>

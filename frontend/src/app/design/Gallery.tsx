@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Gear, Trash } from "@phosphor-icons/react/ssr";
-import { Avatar, AvatarInitial, type AvatarId } from "@/components/game/Avatar";
+import { Avatar, AvatarInitial } from "@/components/game/Avatar";
+import { COLORS, FACES, SHAPES, type Character } from "@/components/game/avatar/characters";
 import { AnswerTile } from "@/components/game/AnswerTile";
 import { LeaderboardRow } from "@/components/game/LeaderboardRow";
 import { LobbyChip } from "@/components/game/LobbyChip";
@@ -31,7 +32,6 @@ import type { StaffRole } from "@/types/game";
 import { ModalDemo } from "./ModalDemo";
 import { ToastDemo } from "./ToastDemo";
 
-const AVATAR_IDS: readonly AvatarId[] = [0, 1, 2, 3, 4, 5, 6, 7];
 const CARD_COUNTS = [1, 2, 5, 21] as const;
 const roleBadge: Record<StaffRole, "brand" | "neutral"> = { admin: "brand", jury: "brand", user: "neutral" };
 
@@ -213,15 +213,43 @@ export function Gallery() {
       </Section>
 
       <Section title={t("section.avatars")}>
-        <div className={wrap}>
-          {AVATAR_IDS.map((id) => (
-            <Avatar key={id} avatar={id} size="xl" />
-          ))}
-        </div>
+        <Case label={t("characters.shapes")}>
+          <div className={wrap}>
+            {SHAPES.map((shape, index) => (
+              <Avatar key={shape} size="xl" character={{ shape, color: COLORS[index], face: "smile" }} />
+            ))}
+          </div>
+        </Case>
+        <Case label={t("characters.colors")}>
+          <div className={wrap}>
+            {COLORS.map((color) => (
+              <Avatar key={color} size="xl" character={{ shape: "circle", color, face: "grin" }} />
+            ))}
+          </div>
+        </Case>
+        <Case label={t("characters.faces")}>
+          <div className={wrap}>
+            {FACES.map((face, index) => (
+              <Avatar key={face} size="xl" character={{ shape: "square", color: COLORS[index % COLORS.length], face }} />
+            ))}
+          </div>
+        </Case>
+        <Case label={t("characters.matrix")}>
+          <div className="flex flex-col gap-2 overflow-x-auto pb-2">
+            {SHAPES.map((shape, row) => (
+              <div key={shape} className="flex gap-2">
+                {FACES.map((face) => {
+                  const character: Character = { shape, color: COLORS[row], face };
+                  return <Avatar key={face} size="lg" character={character} />;
+                })}
+              </div>
+            ))}
+          </div>
+        </Case>
         <div className={`${wrap} items-center`}>
-          <Avatar avatar={0} />
-          <Avatar avatar={2} size="lg" />
-          <Avatar avatar={4} size="xl" />
+          <Avatar character={{ shape: "heart", color: "pink", face: "shy" }} />
+          <Avatar size="lg" character={{ shape: "star", color: "yellow", face: "happy" }} />
+          <Avatar size="xl" character={{ shape: "pill", color: "teal", face: "cool" }} />
           <AvatarInitial name="Асель" />
           <AvatarInitial name="Улан" tone="red" />
           <AvatarInitial name="Өмүр" tone="yellow" />
@@ -237,7 +265,7 @@ export function Gallery() {
               rank={index + 1}
               nickname={player.nickname}
               score={player.score}
-              avatar={player.avatar}
+              character={player.character}
             />
           ))}
         </div>
@@ -251,7 +279,7 @@ export function Gallery() {
       <Section title={t("section.chips")}>
         <div className={wrap}>
           {mockLobbyPlayers.map((player) => (
-            <LobbyChip key={player.id} nickname={player.nickname} avatar={player.avatar} />
+            <LobbyChip key={player.id} nickname={player.nickname} character={player.character} />
           ))}
         </div>
       </Section>

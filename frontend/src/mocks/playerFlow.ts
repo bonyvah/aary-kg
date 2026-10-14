@@ -1,5 +1,5 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { AvatarId } from "@/components/game/Avatar";
+import type { Character } from "@/components/game/avatar/characters";
 import type { PlayerQuestion, Standing } from "@/types/game";
 import { mockPlayers } from "./design";
 
@@ -42,7 +42,7 @@ const OPPONENT_SCALE = 0.25;
 /** Opponents grow round by round; the player sits among them by their own score. */
 export function mockStandings(
   round: number,
-  you: { nickname: string; avatar: AvatarId; score: number },
+  you: { nickname: string; character: Character; score: number },
 ): Standing[] {
   const progress = Math.min(1, round / MOCK_TOTAL_QUESTIONS);
   const rows = [
@@ -51,7 +51,7 @@ export function mockStandings(
       score: Math.round(player.score * OPPONENT_SCALE * progress),
       isYou: false,
     })),
-    { id: "you", nickname: you.nickname, avatar: you.avatar, score: you.score, isYou: true },
+    { id: "you", nickname: you.nickname, character: you.character, score: you.score, isYou: true },
   ];
   rows.sort((a, b) => b.score - a.score || Number(b.isYou) - Number(a.isYou));
   return rows.map((row, index) => ({ ...row, rank: index + 1 }));

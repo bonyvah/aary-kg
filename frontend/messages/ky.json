@@ -20,8 +20,6 @@
       "title": "Атыңды жаз",
       "label": "Никнейм",
       "placeholder": "Мисалы, Айгерим",
-      "character": "Каарман",
-      "characterOption": "Каарман {number}",
       "submit": "Кирүү"
     },
     "errors": {
@@ -194,6 +192,12 @@
       "custom": "Өзгөчө SVG топтому",
       "phosphor": "Phosphor (bold жана fill)",
       "note": "Таажы убактылуу, акыркысын сиз тартасыз."
+    },
+    "characters": {
+      "shapes": "Формалар",
+      "colors": "Түстөр",
+      "faces": "Жүздөр",
+      "matrix": "Бардык формалар бардык жүз менен"
     }
   },
   "common": {

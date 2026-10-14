@@ -37,7 +37,7 @@ export function LeaderboardScreen({ question, standings }: LeaderboardScreenProp
               rank={row.rank}
               nickname={row.nickname}
               score={row.score}
-              avatar={row.avatar}
+              character={row.character}
               badge={row.isYou ? <Badge>{t("leaderboard.you")}</Badge> : undefined}
             />
           </li>

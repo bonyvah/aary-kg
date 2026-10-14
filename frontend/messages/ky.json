@@ -5,7 +5,8 @@
     "design",
     "common",
     "player",
-    "staff"
+    "staff",
+    "host"
   ],
   "app": {
     "name": "aary kg"
@@ -290,6 +291,23 @@
         "stars": "Жылдыз көздөр",
         "shy": "Уялуу"
       }
+    }
+  },
+  "host": {
+    "bar": {
+      "players": "{count, plural, one {# ойноочу} other {# ойноочу}}",
+      "soundMute": "Үндү өчүрүү",
+      "soundUnmute": "Үндү күйгүзүү",
+      "settings": "Жөндөөлөр",
+      "fullscreen": "Толук экран",
+      "exitFullscreen": "Толук экрандан чыгуу"
+    },
+    "lobby": {
+      "joinAt": "{site} сайтына кирип оюнга кошул",
+      "qrLabel": "QR код",
+      "players": "Ойноочулар",
+      "waiting": "Ойноочулар күтүлүүдө…",
+      "start": "Оюнду баштоо"
     }
   }
 }

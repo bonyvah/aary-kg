@@ -283,5 +283,22 @@
         "shy": "Смущение"
       }
     }
+  },
+  "host": {
+    "bar": {
+      "players": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
+      "soundMute": "Выключить звук",
+      "soundUnmute": "Включить звук",
+      "settings": "Настройки",
+      "fullscreen": "Полный экран",
+      "exitFullscreen": "Выйти из полноэкранного режима"
+    },
+    "lobby": {
+      "joinAt": "Зайди на {site} и присоединяйся к игре",
+      "qrLabel": "QR-код",
+      "players": "Игроки",
+      "waiting": "Ждём игроков…",
+      "start": "Начать игру"
+    }
   }
 }

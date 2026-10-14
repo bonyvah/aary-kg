@@ -57,6 +57,7 @@ const wrap = "flex flex-wrap items-start gap-4";
 
 export function Gallery() {
   const t = useTranslations("design");
+  const tc = useTranslations("common");
   const topThree = mockPlayers.slice(0, 3);
 
   return (
@@ -174,6 +175,31 @@ export function Gallery() {
             <AnswerTile position={4} dim>{t("tile.a4")}</AnswerTile>
           </div>
         </Case>
+      </Section>
+
+      <Section title={t("tile.shapesOnly")}>
+        <div className="flex max-w-[360px] flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4 pb-2">
+            <AnswerTile shapeOnly position={1} aria-label={tc("answerShape.red")} />
+            <AnswerTile shapeOnly position={2} aria-label={tc("answerShape.blue")} />
+            <AnswerTile shapeOnly position={3} aria-label={tc("answerShape.yellow")} />
+            <AnswerTile shapeOnly position={4} aria-label={tc("answerShape.green")} />
+          </div>
+          <Case label={t("state.locked")}>
+            <div className="grid grid-cols-2 gap-4 pb-2">
+              <AnswerTile shapeOnly pressed position={1} aria-label={tc("answerShape.red")} />
+              <AnswerTile shapeOnly position={2} aria-label={tc("answerShape.blue")} />
+            </div>
+          </Case>
+          <Case label={t("state.afterReveal")}>
+            <div className="grid grid-cols-2 gap-4 pb-2">
+              <AnswerTile shapeOnly dim position={1} aria-label={tc("answerShape.red")} />
+              <AnswerTile shapeOnly position={2} result="ok" resultLabel={t("tile.correct")} aria-label={tc("answerShape.blue")} />
+              <AnswerTile shapeOnly position={3} result="no" resultLabel={t("tile.wrong")} aria-label={tc("answerShape.yellow")} />
+              <AnswerTile shapeOnly dim position={4} aria-label={tc("answerShape.green")} />
+            </div>
+          </Case>
+        </div>
       </Section>
 
       <Section title={t("section.timer")}>

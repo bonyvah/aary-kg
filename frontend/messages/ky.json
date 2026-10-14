@@ -119,6 +119,27 @@
         "title": "Сынактар жакында чыгат",
         "description": "Сынактарды кийинки версияда түзө аласыз."
       }
+    },
+    "editor": {
+      "back": "Артка",
+      "titleLabel": "Викторинанын аталышы",
+      "save": "Сактоо",
+      "saved": "Викторина сакталды.",
+      "saveFailed": "Викторина сакталган жок. Бош талааларды толтуруңуз.",
+      "host": "Оюнду баштоо",
+      "questions": "Суроолор",
+      "addQuestion": "Суроо кошуу",
+      "removeQuestion": "Суроону өчүрүү",
+      "questionLabel": "Суроо",
+      "emptyQuestion": "Жаңы суроо",
+      "answerLabel": "Жооп: {shape}",
+      "correctGroup": "Туура жооп",
+      "correctOption": "Туура жооп катары белгилөө: {shape}",
+      "timeLabel": "Жооп берүү убактысы",
+      "timeOption": "{seconds} сек",
+      "errors": {
+        "FIELD_REQUIRED": "Талааны толтуруңуз."
+      }
     }
   },
   "design": {

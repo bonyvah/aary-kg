@@ -164,5 +164,5 @@ aary-kg/
 ## Open decisions (ask me, do not decide silently)
 - Hosting is deferred. Do not plan or suggest hosting until I bring it up. Local dev via docker compose (Postgres + Redis).
 - Default locale (ky or ru)
-- Contest scoring model details (criteria, weights, tie-breaks)
+- ~~Contest scoring model details~~ decided, see `docs/contest-scoring.md` (weighted criteria, 1 to 5, ties share the rank).
 - Product branding (logo, final wording)

@@ -1,0 +1,6 @@
+{
+  "_todo_review": ["app.name", "player.home.title", "staff.login.title"],
+  "app": { "name": "aary kg" },
+  "player": { "home": { "title": "Оюнга кошул!" } },
+  "staff": { "login": { "title": "Кирүү" } }
+}

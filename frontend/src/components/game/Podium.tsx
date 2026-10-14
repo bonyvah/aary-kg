@@ -36,7 +36,7 @@ export function Podium({ players, crownLabel, className }: PodiumProps) {
         <div
           key={rank}
           className={cx(
-            "flex w-[112px] flex-col items-center gap-2 text-center animate-reveal",
+            "flex min-w-0 max-w-[112px] flex-1 flex-col items-center gap-2 text-center animate-reveal",
             steps[rank].delay,
           )}
         >

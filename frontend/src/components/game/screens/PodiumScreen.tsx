@@ -23,7 +23,7 @@ export function PodiumScreen({ standings, onExit }: PodiumScreenProps) {
     >
       <h1 className="text-center text-display font-black">{t("title")}</h1>
       <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        <Podium players={standings.slice(0, 3)} crownLabel={t("crown")} />
+        <Podium className="w-full" players={standings.slice(0, 3)} crownLabel={t("crown")} />
         {you ? <p className="text-center text-body-lg font-bold">{t("yourPlace", { rank: you.rank, score: you.score })}</p> : null}
       </div>
     </PlayerScreen>

@@ -124,6 +124,17 @@
       },
       "gamePlayers": "{count, plural, one {# оюнчу} other {# оюнчу}}"
     },
+    "quizView": {
+      "back": "Артка",
+      "edit": "Түзөтүү",
+      "start": "Оюнду баштоо",
+      "questions": "{count} суроо",
+      "question": "{number}-суроо",
+      "seconds": "{seconds} сек",
+      "expandAll": "Баарын ачуу",
+      "collapseAll": "Баарын жабуу",
+      "correct": "Туура жооп"
+    },
     "editor": {
       "back": "Артка",
       "titleLabel": "Викторинанын аталышы",

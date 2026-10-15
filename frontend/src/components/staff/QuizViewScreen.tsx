@@ -1,0 +1,116 @@
+"use client";
+
+import { useId, useState } from "react";
+import { CaretDown } from "@phosphor-icons/react/ssr";
+import { useTranslations } from "next-intl";
+import { answerPositions, type AnswerPosition } from "@/components/game/AnswerTile";
+import { Check } from "@/components/icons";
+import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Card } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
+import { cx } from "@/lib/cx";
+import type { Quiz } from "@/types/quiz";
+import { StaffMenu } from "./StaffMenu";
+import { StaffShell } from "./StaffShell";
+
+const POSITIONS: readonly AnswerPosition[] = [1, 2, 3, 4];
+
+/** A quiz to read before hosting it: the questions, with their answers hidden until opened. */
+export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
+  const t = useTranslations("staff.quizView");
+  const baseId = useId();
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  const allOpen = open.size === quiz.questions.length;
+
+  function toggle(id: string) {
+    const next = new Set(open);
+    if (!next.delete(id)) next.add(id);
+    setOpen(next);
+  }
+
+  return (
+    <StaffShell topRight={<StaffMenu />}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <h1 className="min-w-0 flex-1 text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href="/dashboard" variant="secondary">
+            {t("back")}
+          </ButtonLink>
+          <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
+            {t("edit")}
+          </ButtonLink>
+          <ButtonLink href={`/host/${quiz.id}`} variant="accent">
+            {t("start")}
+          </ButtonLink>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-h3 font-bold">{t("questions", { count: quiz.questions.length })}</h2>
+        <Button
+          variant="secondary"
+          onClick={() => setOpen(allOpen ? new Set() : new Set(quiz.questions.map((q) => q.id)))}
+        >
+          {allOpen ? t("collapseAll") : t("expandAll")}
+        </Button>
+      </div>
+
+      <ol className="flex flex-col gap-4">
+        {quiz.questions.map((question, index) => {
+          const isOpen = open.has(question.id);
+          const panelId = `${baseId}-${question.id}`;
+          return (
+            <li key={question.id}>
+              <Card className="flex flex-col gap-4 p-0">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => toggle(question.id)}
+                  className={cx(
+                    "flex w-full cursor-pointer items-center gap-4 rounded-lg p-4 text-left md:p-6",
+                    "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+                  )}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-body font-bold text-ink-muted">
+                      {t("question", { number: index + 1 })} · {t("seconds", { seconds: question.seconds })}
+                    </span>
+                    <span className="block text-body-lg font-bold [overflow-wrap:anywhere]">{question.text}</span>
+                  </span>
+                  <Icon icon={CaretDown} className={cx("shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
+                </button>
+                {isOpen ? (
+                  <div id={panelId} className="grid gap-3 px-4 pb-4 sm:grid-cols-2 md:px-6 md:pb-6">
+                    {POSITIONS.map((position) => {
+                      const text = question.answers[position - 1] ?? "";
+                      if (text.trim() === "") return null;
+                      const { Shape, tone } = answerPositions[position];
+                      const correct = question.correct === position;
+                      return (
+                        <div
+                          key={position}
+                          className={cx("flex items-center gap-3 rounded-md p-3 shadow-[0_4px_0_0_var(--tile-e)]", tone)}
+                        >
+                          <Shape className="size-8 flex-none" />
+                          <span className="min-w-0 flex-1 text-body-lg font-bold [overflow-wrap:anywhere]">{text}</span>
+                          {correct ? (
+                            <>
+                              <Check width={28} height={28} className="flex-none" aria-hidden />
+                              <span className="sr-only">{t("correct")}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </Card>
+            </li>
+          );
+        })}
+      </ol>
+    </StaffShell>
+  );
+}

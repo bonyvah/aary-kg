@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { createQuiz, updateQuiz } from "@/lib/api/quizzes";
@@ -11,6 +12,7 @@ import { editorReducer, initialEditorState, NEW_QUIZ_ID, validateQuiz } from "./
 export function useQuizEditor(quiz: Quiz) {
   const [state, dispatch] = useReducer(editorReducer, quiz, initialEditorState);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   const save = useCallback(async () => {
     dispatch({ type: "VALIDATED" });
@@ -21,8 +23,7 @@ export function useQuizEditor(quiz: Quiz) {
     try {
       const saved = isNew ? await createQuiz(input) : await updateQuiz(state.quiz.id, input);
       dispatch({ type: "SAVE_SUCCEEDED", quiz: saved });
-      // The address now names the saved quiz, without reloading the editor under the user's hands.
-      if (isNew) window.history.replaceState(null, "", `/quizzes/${saved.id}`);
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof ApiRequestError && error.code === "QUIZ_INVALID") {
         dispatch({ type: "SAVE_REJECTED", keys: error.issues.map((issue) => issue.field) });
@@ -32,7 +33,7 @@ export function useQuizEditor(quiz: Quiz) {
     } finally {
       setSaving(false);
     }
-  }, [state.quiz]);
+  }, [state.quiz, router]);
 
   return {
     state,

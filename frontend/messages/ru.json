@@ -112,6 +112,17 @@
       },
       "gamePlayers": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}"
     },
+    "quizView": {
+      "back": "Назад",
+      "edit": "Редактировать",
+      "start": "Начать игру",
+      "questions": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+      "question": "Вопрос {number}",
+      "seconds": "{seconds} сек",
+      "expandAll": "Раскрыть все",
+      "collapseAll": "Свернуть все",
+      "correct": "Правильный ответ"
+    },
     "editor": {
       "back": "Назад",
       "titleLabel": "Название викторины",

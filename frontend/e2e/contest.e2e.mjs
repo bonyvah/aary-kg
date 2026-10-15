@@ -16,9 +16,9 @@ export default async function run(browser, t) {
   gulzat.password = await make(gulzat.login, gulzat.name);
 
   // --- quiz editor ---
-  await admin.goto(`${BASE}/quizzes/new`);
+  await admin.goto(`${BASE}/quizzes/manage/new`);
   await admin.getByRole("button", { name: "Сохранить" }).click();
-  await waitText(admin, "Викторина не сохранена");
+  await waitText(admin, "Заполните пустые поля");
   t.ok("an empty quiz is not sent (fields are marked)", true);
   await admin.getByLabel("Название викторины").fill(`География ${tag}`);
   await admin.getByLabel("Вопрос", { exact: true }).fill("Столица Кыргызстана?");
@@ -26,12 +26,14 @@ export default async function run(browser, t) {
   for (const [i, answer] of ["Ош", "Бишкек", "Нарын", "Каракол"].entries()) await admin.getByLabel(`Ответ: ${shapes[i]}`).fill(answer);
   await admin.getByRole("radio", { name: /Синий ромб/ }).click();
   await admin.getByRole("button", { name: "Сохранить" }).click();
-  await admin.waitForFunction(() => /\/quizzes\/[0-9a-f-]{36}/.test(location.pathname));
-  t.ok("a saved quiz gets its real address", true, admin.url());
-  await admin.reload();
+  await admin.waitForURL(/\/dashboard/);
+  t.ok("saving a quiz returns to the dashboard", true, admin.url());
+  await admin.getByRole("link", { name: `География ${tag}` }).click();
+  await admin.waitForURL(/\/quizzes\/view\/[0-9a-f-]{36}/);
+  await admin.getByRole("link", { name: "Редактировать" }).click();
   await admin.getByLabel("Название викторины").waitFor();
   await admin.waitForTimeout(500);
-  t.ok("a reload keeps the quiz", (await admin.getByLabel("Название викторины").inputValue()) === `География ${tag}`);
+  t.ok("the saved quiz opens again for editing", (await admin.getByLabel("Название викторины").inputValue()) === `География ${tag}`);
 
   // --- contest form: weights must add up to 100 ---
   await admin.goto(`${BASE}/contests/new`);

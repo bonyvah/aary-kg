@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
 import { knownCode } from "@/lib/api/client";
-import { answerKey, MAX_SECONDS, MIN_SECONDS, NEW_QUIZ_ID, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import { answerKey, MAX_SECONDS, MIN_SECONDS, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Quiz } from "@/types/quiz";
@@ -78,16 +78,6 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
               error={state.errors.has("title") ? required : undefined}
             />
           </div>
-          {/* There is nothing to host until the quiz is saved. */}
-          {state.quiz.id === NEW_QUIZ_ID ? (
-            <Button variant="accent" disabled>
-              {t("host")}
-            </Button>
-          ) : (
-            <ButtonLink href={`/host/${state.quiz.id}`} variant="accent">
-              {t("host")}
-            </ButtonLink>
-          )}
           <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
             {t("save")}
           </Button>

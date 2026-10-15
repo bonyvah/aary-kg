@@ -17,7 +17,7 @@ export default async function run(browser, t) {
   t.ok("an admin lands on /admin", true);
   await p.waitForSelector("table");
   t.ok("the admin is not in the user list", (await p.locator("tbody tr", { hasText: ADMIN_LOGIN }).count()) === 0);
-  for (const path of ["/dashboard", "/quizzes/new", "/contests/new"]) {
+  for (const path of ["/dashboard", "/quizzes/manage/new", "/contests/new"]) {
     await p.goto(`${BASE}${path}`);
     await p.waitForURL("**/admin");
   }

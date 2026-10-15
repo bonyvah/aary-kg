@@ -22,7 +22,7 @@ export function QuizCard({ quiz }: { quiz: QuizSummary }) {
         </div>
       ) : null}
       <h2 className="text-h3 font-bold [overflow-wrap:anywhere]">
-        <Link href={`/quizzes/${quiz.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
+        <Link href={`/quizzes/view/${quiz.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
           {quiz.title}
         </Link>
       </h2>

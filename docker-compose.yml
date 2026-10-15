@@ -20,5 +20,61 @@ services:
       interval: 3s
       timeout: 3s
       retries: 20
+
+  # The backend and the web app run from your source folders (bind mounts) and reload on every save.
+  # The backend image is the production one; only the command and the mounted code differ.
+  backend:
+    build: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      AARY_ENV: dev
+      AARY_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aary
+      AARY_REDIS_URL: redis://redis:6379/0
+      AARY_JWT_SECRET: change-me-change-me-change-me-change-me
+      AARY_COOKIE_SECURE: "false"
+      AARY_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      AARY_TRUSTED_PROXY_HOPS: "0"
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app --no-proxy-headers
+    ports: ["${BACKEND_PORT:-8000}:8000"]
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_URL: http://backend:8000
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Files saved on the host do not send events into the container reliably everywhere.
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_next:/app/.next
+    command:
+      - sh
+      - -c
+      - corepack enable && corepack prepare pnpm@10.28.0 --activate && pnpm install --frozen-lockfile && exec pnpm exec next dev -H 0.0.0.0 -p 3000
+    ports: ["${FRONTEND_PORT:-3000}:3000"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
 volumes:
   pgdata:
+  frontend_node_modules:
+  frontend_next:

@@ -769,8 +769,8 @@
   },
   "errorPage": {
     "notFound": {
-      "title": "Бет табылган жок",
-      "description": "Мындай бет жок."
+      "title": "Мындай бет табылган жок",
+      "description": ""
     },
     "error": {
       "title": "Бир нерсе бузулду",

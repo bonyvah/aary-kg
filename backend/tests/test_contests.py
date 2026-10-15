@@ -130,14 +130,14 @@ async def test_visibility_owner_jury_admin_only(as_user):
     assert (await owner.get("/admin/contests")).status_code == 403
 
 
-async def test_directory_lists_active_users_names_only(as_user):
+async def test_directory_lists_active_users_without_roles_or_secrets(as_user):
     c, _ = await as_user("ulan")
     admin, _ = await as_user("root", role="admin")
     dis = (await admin.post("/admin/users", json={"name": "Gone", "login": "gone"})).json()["user"]["id"]
     await admin.post(f"/admin/users/{dis}/disable")
     rows = (await c.get("/users/directory")).json()
     assert sorted(r["name"] for r in rows) == ["Root", "Ulan"]
-    assert all(set(r) == {"id", "name"} for r in rows)
+    assert all(set(r) == {"id", "name", "login"} for r in rows)
 
 
 # --- lifecycle --------------------------------------------------------------------------------

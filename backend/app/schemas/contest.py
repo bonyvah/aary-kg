@@ -95,3 +95,5 @@ class ResultsOut(CamelModel):
 class DirectoryUser(CamelModel):
     id: uuid.UUID
     name: str
+    # Two people can share a name; the login tells them apart. It is not a secret.
+    login: str

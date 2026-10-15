@@ -165,6 +165,7 @@ export function ContestForm() {
                   <li key={person.id}>
                     <Checkbox
                       label={person.name}
+                      hint={person.login}
                       checked={state.juryIds.includes(person.id)}
                       onChange={() => send({ type: "JURY_TOGGLED", userId: person.id })}
                     />

@@ -1,1 +1,5 @@
 CLAUDE.local.md
+# secrets and local state
+.env
+.env.prod
+dump.rdb

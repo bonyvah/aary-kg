@@ -134,6 +134,7 @@ async def report(session: AsyncSession, user: User, game_id: uuid.UUID) -> GameR
             "finishedAt": game.finished_at,
             "durationSeconds": game.duration_seconds,
             "questionCount": len(game.questions),
+            "editCount": sum(1 for e in game.audit if e.get("type") == "admin.edit"),
             "players": [
                 {
                     "id": str(r.id),

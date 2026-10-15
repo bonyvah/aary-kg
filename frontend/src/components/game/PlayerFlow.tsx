@@ -41,18 +41,18 @@ export function PlayerFlow() {
     case "nickname":
       return <NicknameScreen error={state.error} onSubmit={flow.submitNickname} />;
     case "lobby":
-      return <LobbyScreen nickname={state.nickname} character={state.character} onChangeCharacter={flow.openCharacter} />;
+      return <LobbyScreen nickname={state.nickname} character={state.character} onChangeCharacter={flow.openCharacter} onLeave={flow.reset} />;
     case "character":
-      return <CharacterScreen character={state.character} onChange={flow.changeCharacter} onDone={flow.closeCharacter} />;
+      return <CharacterScreen character={state.character} onChange={flow.changeCharacter} onDone={flow.closeCharacter} onLeave={flow.reset} />;
     case "question":
     case "answered":
       return question ? (
-        <QuestionScreen question={question} secondsLeft={state.secondsLeft} selected={selected} onAnswer={flow.answer} />
+        <QuestionScreen question={question} secondsLeft={state.secondsLeft} selected={selected} onAnswer={flow.answer} onLeave={flow.reset} />
       ) : null;
     case "result":
-      return question && reveal ? <ResultScreen question={question} selected={selected} reveal={reveal} /> : null;
+      return question && reveal ? <ResultScreen question={question} selected={selected} reveal={reveal} onLeave={flow.reset} /> : null;
     case "leaderboard":
-      return question ? <LeaderboardScreen question={question} standings={state.standings} /> : null;
+      return question ? <LeaderboardScreen question={question} standings={state.standings} onLeave={flow.reset} /> : null;
     case "podium":
       return <PodiumScreen standings={state.standings} onExit={flow.reset} />;
   }

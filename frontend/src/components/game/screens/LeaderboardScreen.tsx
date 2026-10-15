@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion, Standing } from "@/types/game";
 import { LeaderboardRow } from "../LeaderboardRow";
-import { Logo } from "@/components/ui/Logo";
 import { PlayerScreen } from "../PlayerScreen";
 
 const TOP_COUNT = 5;
@@ -19,15 +18,16 @@ export function visibleStandings(standings: readonly Standing[]): Standing[] {
 type LeaderboardScreenProps = {
   question: PlayerQuestion;
   standings: readonly Standing[];
+  onLeave: () => void;
 };
 
-export function LeaderboardScreen({ question, standings }: LeaderboardScreenProps) {
+export function LeaderboardScreen({ question, standings, onLeave }: LeaderboardScreenProps) {
   const t = useTranslations("player");
 
   return (
     <PlayerScreen
       topLeft={<Badge>{t("question.counter", { current: question.index, total: question.total })}</Badge>}
-      topRight={<Logo />}
+      onLeave={onLeave}
       footer={<p className="text-center text-body text-ink-muted">{t("next")}</p>}
     >
       <h1 className="sr-only">{t("leaderboard.title")}</h1>

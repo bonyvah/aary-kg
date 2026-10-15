@@ -15,6 +15,7 @@ export function PodiumScreen({ standings, onExit }: PodiumScreenProps) {
 
   return (
     <PlayerScreen
+      onLeave={onExit}
       footer={
         <Button block size="lg" variant="neutral" onClick={onExit}>
           {t("exit")}

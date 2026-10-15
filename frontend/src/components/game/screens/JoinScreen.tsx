@@ -5,7 +5,6 @@ import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { errorMessageKey } from "@/lib/playerFlow/errors";
 import type { ErrorCode } from "@/types/game";
 import { PlayerScreen } from "../PlayerScreen";
@@ -27,13 +26,7 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
   }
 
   return (
-    <PlayerScreen
-      topRight={
-        <div className="shrink-0">
-          <LocaleSwitcher />
-        </div>
-      }
-    >
+    <PlayerScreen>
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
         <div className="flex flex-1 flex-col justify-center gap-6">
           <h1 className="text-display font-black [overflow-wrap:anywhere]">{t("join.title")}</h1>

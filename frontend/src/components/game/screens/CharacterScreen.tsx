@@ -10,14 +10,16 @@ type CharacterScreenProps = {
   character: Character;
   onChange: (character: Character) => void;
   onDone: () => void;
+  onLeave: () => void;
 };
 
 /** Opened from the lobby. Changes apply at once; «done» goes back to the lobby. */
-export function CharacterScreen({ character, onChange, onDone }: CharacterScreenProps) {
+export function CharacterScreen({ character, onChange, onDone, onLeave }: CharacterScreenProps) {
   const t = useTranslations("player.character");
 
   return (
     <PlayerScreen
+      onLeave={onLeave}
       footer={
         <Button block size="lg" onClick={onDone}>
           {t("done")}

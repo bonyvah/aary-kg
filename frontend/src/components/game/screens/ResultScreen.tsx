@@ -7,7 +7,6 @@ import { useCountUp } from "@/lib/useCountUp";
 import { cx } from "@/lib/cx";
 import type { PlayerQuestion, RevealPayload } from "@/types/game";
 import { AnswerTile, type AnswerPosition } from "../AnswerTile";
-import { Logo } from "@/components/ui/Logo";
 import { PlayerScreen } from "../PlayerScreen";
 
 const POSITIONS = [
@@ -22,9 +21,10 @@ type ResultScreenProps = {
   /** What the player locked, or null when time ran out. */
   selected: AnswerPosition | null;
   reveal: RevealPayload;
+  onLeave: () => void;
 };
 
-export function ResultScreen({ question, selected, reveal }: ResultScreenProps) {
+export function ResultScreen({ question, selected, reveal, onLeave }: ResultScreenProps) {
   const t = useTranslations("player");
   const tc = useTranslations("common");
   const points = useCountUp(reveal.points);
@@ -34,7 +34,7 @@ export function ResultScreen({ question, selected, reveal }: ResultScreenProps) 
   return (
     <PlayerScreen
       topLeft={<Badge>{t("question.counter", { current: question.index, total: question.total })}</Badge>}
-      topRight={<Logo />}
+      onLeave={onLeave}
       footer={<p className="text-center text-body text-ink-muted">{t("next")}</p>}
     >
       <div className="flex flex-col gap-2">

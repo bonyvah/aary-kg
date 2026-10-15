@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion } from "@/types/game";
 import { AnswerTile, type AnswerPosition } from "../AnswerTile";
-import { Logo } from "@/components/ui/Logo";
 import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
 
@@ -19,10 +18,11 @@ type QuestionScreenProps = {
   /** The locked answer. While it is set, the tiles do not react and the player waits. */
   selected: AnswerPosition | null;
   onAnswer: (position: AnswerPosition) => void;
+  onLeave: () => void;
 };
 
 /** Open question and, once an answer is locked, the waiting state. Shapes only: answers are read on the host screen. */
-export function QuestionScreen({ question, secondsLeft, selected, onAnswer }: QuestionScreenProps) {
+export function QuestionScreen({ question, secondsLeft, selected, onAnswer, onLeave }: QuestionScreenProps) {
   const t = useTranslations("player.question");
   const tc = useTranslations("common");
   const locked = selected !== null;
@@ -30,7 +30,7 @@ export function QuestionScreen({ question, secondsLeft, selected, onAnswer }: Qu
   return (
     <PlayerScreen
       topLeft={<Badge>{t("counter", { current: question.index, total: question.total })}</Badge>}
-      topRight={<Logo />}
+      onLeave={onLeave}
     >
       <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
       <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>

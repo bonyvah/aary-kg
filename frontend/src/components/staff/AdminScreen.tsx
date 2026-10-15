@@ -13,15 +13,16 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/useToast";
 import * as api from "@/lib/api/adminUsers";
+import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { mockContests } from "@/mocks/contests";
 import { WarningCircle } from "@phosphor-icons/react";
 import type { ManagedUser, UserRole } from "@/types/user";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
 import { PasswordModal } from "./PasswordModal";
+import { ResourceView, useResource } from "./Resource";
 import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -40,6 +41,7 @@ export function AdminScreen() {
   const router = useRouter();
   const me = useCurrentUser();
   const [tab, setTab] = useState<Tab>("users");
+  const allContests = useResource(listAllContests);
   const idBase = useId();
   const format = useFormatter();
   const { toast, show } = useToast();
@@ -141,7 +143,9 @@ export function AdminScreen() {
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "contests" ? (
-          <ContestsTable contests={mockContests} />
+          <ResourceView resource={allContests} inline>
+            {(items) => <ContestsTable contests={items} />}
+          </ResourceView>
         ) : loadError ? (
           <EmptyState
             icon={WarningCircle}

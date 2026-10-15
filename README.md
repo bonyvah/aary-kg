@@ -2,7 +2,7 @@
 
 A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based contest mode. Built for a small community: a handful of admins, a limited number of users, and players who just join with a PIN.
 
-> Status: Phase 5 in progress. All screens exist; the backend is being built slice by slice and the screens are wired to it as each piece lands (auth, admin users, quizzes and contests are live; live games are next).
+> Status: all six build phases are done. What is left is yours to decide (hosting, branding, the final Kyrgyz wording) and a first real run of the container images, see `docs/deploy.md`.
 
 ## What it does
 
@@ -70,7 +70,6 @@ uv sync
 uv run alembic upgrade head
 uv run python -m app.cli create-admin --login aizhan --name "Your Name"   # prints a password once
 uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers   # always with --no-proxy-headers, see backend/.env.example
-uv run pytest                             # needs Postgres (database aary_test) running
 
 cd ../frontend
 pnpm install
@@ -79,14 +78,43 @@ pnpm dev                                  # http://localhost:3000, /api is proxi
 
 Set `API_URL` for the frontend if the backend is not on `http://localhost:8000`.
 
+## Checks
+
+```bash
+# one time: the tests use their own database (and Redis db 15) and empty them, never your dev data
+docker compose exec postgres createdb -U postgres aary_test
+
+cd backend
+uv run ruff check . && uv run ruff format --check . && uv run pytest
+
+cd ../frontend
+pnpm lint && pnpm exec tsc --noEmit && pnpm check && pnpm build && pnpm check:bundle
+
+# with a whole stack running (see frontend/e2e/README.md): real browsers, host and phone-sized players
+E2E_LOGIN=<admin login> E2E_PASSWORD=<password> pnpm e2e
+# and a game with up to 200 players (see docs/load-test.md)
+```
+
+GitHub Actions runs the first two groups on every push to `main`.
+
+## Documents
+
+| | |
+|---|---|
+| `CLAUDE.md` | the rules of the project |
+| `docs/protocol.md` | how a live game talks (WebSocket messages, scoring, anti-cheat, rate limits) |
+| `docs/contest-scoring.md` | how a contest is scored and ranked |
+| `docs/deploy.md` | running it in containers, what a proxy in front must do, backups |
+| `docs/load-test.md` | the load test and its results |
+
 ## Roadmap
 
-1. Design foundation and component kitchen sink (`/design`)
-2. Player flow screens (mock data)
-3. Host and user screens (mock data)
-4. Admin and contest screens (mock data)
-5. Backend: DB, auth, REST, WebSocket game engine, anti-cheat
-6. Hardening and deployment
+1. Design foundation and component kitchen sink (`/design`): done
+2. Player flow screens: done
+3. Host and user screens: done
+4. Admin and contest screens: done
+5. Backend: DB, auth, REST, WebSocket game engine, anti-cheat: done
+6. Hardening, tests, containers, CI: done
 
 ## Project structure
 

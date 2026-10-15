@@ -1,0 +1,65 @@
+# The whole app in containers. Start it with:
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+# See docs/deploy.md. Only the web app's port is published (to this machine only, by default): put
+# your own HTTPS reverse proxy in front of it.
+name: aary-kg
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aary
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: aary
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aary -d aary"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    # Live game state only: nothing in here is the source of truth, so nothing is saved to disk.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      AARY_ENV: production
+      AARY_DATABASE_URL: postgresql+asyncpg://aary:${POSTGRES_PASSWORD}@postgres:5432/aary
+      AARY_REDIS_URL: redis://redis:6379/0
+      AARY_JWT_SECRET: ${AARY_JWT_SECRET:?set AARY_JWT_SECRET in .env.prod}
+      AARY_COOKIE_SECURE: "true"
+      AARY_ALLOWED_ORIGINS: ${AARY_PUBLIC_ORIGIN:?set AARY_PUBLIC_ORIGIN in .env.prod}
+      AARY_TRUSTED_PROXY_HOPS: ${AARY_TRUSTED_PROXY_HOPS:-1}
+    # No published port: only the web app talks to the backend.
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://backend:8000
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  pgdata:

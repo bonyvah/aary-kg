@@ -35,6 +35,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The container image runs a self-contained server (`node server.js`). Only the image build
+  // sets this: `next start` does not work with a standalone output.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

@@ -91,7 +91,9 @@ async def test_jury_must_be_real_active_users(as_user):
     owner, _ = await as_user("ulan")
     admin, _ = await as_user("root", role="admin")
     _, j = await as_user("omur")
-    disabled_id = (await admin.post("/admin/users", json={"name": "D", "login": "dis"})).json()["user"]["id"]
+    disabled_id = (
+        await admin.post("/admin/users", json={"firstName": "D", "lastName": "X", "login": "dis"})
+    ).json()["user"]["id"]
     await admin.post(f"/admin/users/{disabled_id}/disable")
     for ids in (["00000000-0000-0000-0000-000000000000"], [disabled_id], [str(j.id), disabled_id]):
         r = await owner.post("/contests", json={**payload([j]), "juryIds": ids})
@@ -133,7 +135,9 @@ async def test_visibility_owner_jury_admin_only(as_user):
 async def test_directory_lists_active_users_without_roles_or_secrets(as_user):
     c, _ = await as_user("ulan")
     admin, _ = await as_user("root", role="admin")
-    dis = (await admin.post("/admin/users", json={"name": "Gone", "login": "gone"})).json()["user"]["id"]
+    dis = (
+        await admin.post("/admin/users", json={"firstName": "Gone", "lastName": "X", "login": "gone"})
+    ).json()["user"]["id"]
     await admin.post(f"/admin/users/{dis}/disable")
     rows = (await c.get("/users/directory")).json()
     assert sorted(r["name"] for r in rows) == ["Root", "Ulan"]

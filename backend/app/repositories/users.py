@@ -16,7 +16,7 @@ async def get_by_login(session: AsyncSession, login: str) -> User | None:
 
 
 async def list_all(session: AsyncSession, *, exclude: uuid.UUID | None = None) -> list[User]:
-    stmt = select(User).order_by(User.created_at, User.name)
+    stmt = select(User).order_by(User.created_at, User.first_name, User.last_name)
     if exclude is not None:
         stmt = stmt.where(User.id != exclude)
     result = await session.execute(stmt)
@@ -37,5 +37,7 @@ async def get_many_active(session: AsyncSession, user_ids: list[uuid.UUID]) -> l
 
 
 async def list_active(session: AsyncSession) -> list[User]:
-    result = await session.execute(select(User).where(User.active.is_(True)).order_by(User.name))
+    result = await session.execute(
+        select(User).where(User.active.is_(True)).order_by(User.first_name, User.last_name)
+    )
     return list(result.scalars())

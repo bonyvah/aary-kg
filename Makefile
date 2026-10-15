@@ -35,7 +35,7 @@ up: db install env migrate ## start everything: Postgres, Redis, backend, web ap
 	@echo "  web app   http://localhost:$(FRONTEND_PORT)"
 	@echo "  API docs  http://localhost:$(BACKEND_PORT)/docs"
 	@echo ""
-	@echo "  first time? create an admin:  make admin LOGIN=aizhan NAME=\"Your Name\""
+	@echo "  first time? create an admin:  make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova"
 	@echo "  logs: make logs      stop: make down"
 
 down: stop-servers ## stop the backend and the web app, and Postgres + Redis (data is kept)
@@ -88,9 +88,9 @@ env: ## create backend/.env from the example, once
 migrate: ## apply database migrations
 	@cd backend && uv run alembic upgrade head
 
-admin: ## create an admin: make admin LOGIN=aizhan NAME="Your Name" (prints a password once)
-	@test -n "$(LOGIN)" -a -n "$(NAME)" || { echo 'usage: make admin LOGIN=aizhan NAME="Your Name"'; exit 2; }
-	@cd backend && uv run python -m app.cli create-admin --login "$(LOGIN)" --name "$(NAME)"
+admin: ## create an admin: make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova (prints a password once)
+	@test -n "$(LOGIN)" -a -n "$(FIRST)" -a -n "$(LAST)" || { echo 'usage: make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova'; exit 2; }
+	@cd backend && uv run python -m app.cli create-admin --login "$(LOGIN)" --first-name "$(FIRST)" --last-name "$(LAST)"
 
 # --- checks ----------------------------------------------------------------------------------------
 

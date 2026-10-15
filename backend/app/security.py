@@ -29,8 +29,12 @@ def verify_password(hashed: str, password: str) -> bool:
 
 def generate_password() -> str:
     """Three groups of 4, like k7Tm-Qp3x-Zs9w. secrets.choice is unbiased."""
-    groups = ("".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(4)) for _ in range(3))
-    return "-".join(groups)
+    while True:
+        groups = ("".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(4)) for _ in range(3))
+        password = "-".join(groups)
+        # It has to pass the same rule as a chosen password: a digit, and (always) letters.
+        if any(ch.isdigit() for ch in password):
+            return password
 
 
 class TokenClaims(NamedTuple):

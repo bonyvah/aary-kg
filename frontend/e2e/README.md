@@ -9,7 +9,7 @@ resort: they only pass when the frontend, the backend, Postgres and Redis all wo
 
 1. Start Postgres and Redis, the backend and the web app (see the README at the repo root). Run the
    backend with `AARY_ALLOWED_ORIGINS=http://localhost:3000`, which `backend/.env.example` already has.
-2. Make sure an admin exists (it only manages users and games; the tests create the regular users they need): `cd backend && uv run python -m app.cli create-admin --login qa --name "QA"`
+2. Make sure an admin exists (it only manages users and games; the tests create the regular users they need): `cd backend && uv run python -m app.cli create-admin --login qa --first-name QA --last-name Admin`
    (it prints a password once).
 3. Once: `cd frontend && pnpm exec playwright install chromium`
 4. `cd frontend && E2E_LOGIN=qa E2E_PASSWORD='...' pnpm e2e`

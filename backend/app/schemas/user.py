@@ -17,6 +17,9 @@ class LoginIn(CamelModel):
 
 class ManagedUser(CamelModel):
     id: uuid.UUID
+    first_name: str
+    last_name: str
+    # First name, then last name: what lists and messages show.
     name: str
     login: str
     role: UserRole
@@ -29,7 +32,8 @@ class ManagedUser(CamelModel):
 
 
 class CreateUserIn(CamelModel):
-    name: str = ""
+    first_name: str = ""
+    last_name: str = ""
     login: str = ""
     # An admin can only create regular users. The first admin comes from the command line
     # (python -m app.cli create-admin); anything but "user" here is refused.
@@ -43,3 +47,14 @@ class UserWithPassword(CamelModel):
 
 class PasswordOut(CamelModel):
     password: str
+
+
+class ChangeLoginIn(CamelModel):
+    # Asked again so a stolen open session can't take the account over.
+    current_password: str = ""
+    login: str = ""
+
+
+class ChangePasswordIn(CamelModel):
+    current_password: str = ""
+    new_password: str = ""

@@ -28,7 +28,7 @@ machine itself: your HTTPS proxy goes there.
 cp .env.prod.example .env.prod          # then fill it in (see the table below)
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 docker compose --env-file .env.prod -f docker-compose.prod.yml exec backend \
-    python -m app.cli create-admin --login <login> --name "<Full Name>"    # prints a password once
+    python -m app.cli create-admin --login <login> --first-name "<First>" --last-name "<Last>"    # prints a password once
 ```
 
 Open the site (through your proxy) and sign in at `/login`. The admin creates everybody else.

@@ -13,11 +13,17 @@ from app.security import generate_password, hash_password
 LOGIN_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,31}$")
 
 
-async def create_user(session: AsyncSession, name: str, login: str, role: str) -> tuple[User, str]:
-    name = name.strip()
+async def create_user(
+    session: AsyncSession, first_name: str, last_name: str, login: str, role: str
+) -> tuple[User, str]:
+    first_name, last_name = first_name.strip(), last_name.strip()
     login = login.strip().lower()
-    if not name:
-        raise ApiError(400, "FIELD_REQUIRED", "name")
+    if not first_name:
+        raise ApiError(400, "FIELD_REQUIRED", "firstName")
+    if not last_name:
+        raise ApiError(400, "FIELD_REQUIRED", "lastName")
+    if len(first_name) > 60 or len(last_name) > 60:
+        raise ApiError(400, "VALIDATION_ERROR", "firstName" if len(first_name) > 60 else "lastName")
     if not login:
         raise ApiError(400, "FIELD_REQUIRED", "login")
     if not LOGIN_RE.match(login):
@@ -25,7 +31,13 @@ async def create_user(session: AsyncSession, name: str, login: str, role: str) -
     if await repo.get_by_login(session, login):
         raise ApiError(409, "LOGIN_TAKEN", "login")
     password = generate_password()
-    user = User(name=name, login=login, role=role, password_hash=hash_password(password))
+    user = User(
+        first_name=first_name,
+        last_name=last_name,
+        login=login,
+        role=role,
+        password_hash=hash_password(password),
+    )
     repo.add(session, user)
     try:
         await session.commit()

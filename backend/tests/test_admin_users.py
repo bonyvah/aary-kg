@@ -17,10 +17,14 @@ async def test_requires_login_and_admin(client):
 
 async def test_create_user_returns_password_once_and_it_works(client):
     await admin_client(client)
-    r = await client.post("/admin/users", json={"name": " Ulan K ", "login": " Ulan.K ", "role": "user"})
+    r = await client.post(
+        "/admin/users",
+        json={"firstName": " Ulan ", "lastName": " Kasymov ", "login": " Ulan.K ", "role": "user"},
+    )
     assert r.status_code == 201
     body = r.json()
-    assert body["user"]["login"] == "ulan.k" and body["user"]["name"] == "Ulan K"
+    assert body["user"]["login"] == "ulan.k" and body["user"]["name"] == "Ulan Kasymov"
+    assert (body["user"]["firstName"], body["user"]["lastName"]) == ("Ulan", "Kasymov")
     assert body["user"]["active"] is True and len(body["user"]["createdAt"]) == 10
     listing = (await client.get("/admin/users")).text
     assert body["password"] not in listing and "password" not in listing.lower()
@@ -32,12 +36,14 @@ async def test_create_user_returns_password_once_and_it_works(client):
 async def test_create_user_validation(client):
     await admin_client(client)
     cases = [
-        ({"name": "", "login": "abc"}, 400, "FIELD_REQUIRED", "name"),
-        ({"name": "A", "login": ""}, 400, "FIELD_REQUIRED", "login"),
-        ({"name": "A", "login": "ab"}, 400, "LOGIN_INVALID", "login"),
-        ({"name": "A", "login": "-abc"}, 400, "LOGIN_INVALID", "login"),
-        ({"name": "A", "login": "ab cd"}, 400, "LOGIN_INVALID", "login"),
-        ({"name": "A", "login": "x" * 33}, 400, "LOGIN_INVALID", "login"),
+        ({"firstName": "", "lastName": "B", "login": "abc"}, 400, "FIELD_REQUIRED", "firstName"),
+        ({"firstName": "A", "lastName": " ", "login": "abc"}, 400, "FIELD_REQUIRED", "lastName"),
+        ({"firstName": "A" * 61, "lastName": "B", "login": "abc"}, 400, "VALIDATION_ERROR", "firstName"),
+        ({"firstName": "A", "lastName": "B", "login": ""}, 400, "FIELD_REQUIRED", "login"),
+        ({"firstName": "A", "lastName": "B", "login": "ab"}, 400, "LOGIN_INVALID", "login"),
+        ({"firstName": "A", "lastName": "B", "login": "-abc"}, 400, "LOGIN_INVALID", "login"),
+        ({"firstName": "A", "lastName": "B", "login": "ab cd"}, 400, "LOGIN_INVALID", "login"),
+        ({"firstName": "A", "lastName": "B", "login": "x" * 33}, 400, "LOGIN_INVALID", "login"),
     ]
     for body, status, code, field in cases:
         r = await client.post("/admin/users", json=body)
@@ -46,14 +52,16 @@ async def test_create_user_validation(client):
 
 async def test_login_taken_is_case_insensitive(client):
     await admin_client(client)
-    await client.post("/admin/users", json={"name": "A", "login": "ulan"})
-    r = await client.post("/admin/users", json={"name": "B", "login": "ULAN"})
+    await client.post("/admin/users", json={"firstName": "A", "lastName": "B", "login": "ulan"})
+    r = await client.post("/admin/users", json={"firstName": "B", "lastName": "B", "login": "ULAN"})
     assert (r.status_code, r.json()["code"]) == (409, "LOGIN_TAKEN")
 
 
 async def test_bad_role_is_validation_error(client):
     await admin_client(client)
-    r = await client.post("/admin/users", json={"name": "A", "login": "abc", "role": "root"})
+    r = await client.post(
+        "/admin/users", json={"firstName": "A", "lastName": "B", "login": "abc", "role": "root"}
+    )
     assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR")
 
 

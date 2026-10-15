@@ -17,10 +17,13 @@ async def test_the_users_list_leaves_out_the_admin_asking_but_shows_other_admins
 
 async def test_an_admin_can_only_create_regular_users(as_user):
     admin, _ = await as_user("root", role="admin")
-    ok = await admin.post("/admin/users", json={"name": "Ulan", "login": "ulan"})
+    ok = await admin.post("/admin/users", json={"firstName": "Ulan", "lastName": "X", "login": "ulan"})
     assert ok.status_code == 201 and ok.json()["user"]["role"] == "user"  # the default
     for role in ("admin", "root", ""):
-        r = await admin.post("/admin/users", json={"name": "X", "login": f"x{len(role)}abc", "role": role})
+        r = await admin.post(
+            "/admin/users",
+            json={"firstName": "X", "lastName": "X", "login": f"x{len(role)}abc", "role": role},
+        )
         assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR"), role
     assert {r["login"] for r in (await admin.get("/admin/users")).json()} == {"ulan"}
 

@@ -54,7 +54,8 @@ async def client():
 async def make_user(login: str, role: str = "user", password: str = "pw-12345", active=True):
     async with SessionLocal() as s:
         user = User(
-            name=login.title(),
+            first_name=login.title(),
+            last_name="",
             login=login,
             role=role,
             active=active,

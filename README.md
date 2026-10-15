@@ -65,7 +65,7 @@ Needs Docker (with compose), [uv](https://docs.astral.sh/uv/), pnpm and Node 22.
 
 ```bash
 make up                                          # Postgres + Redis, migrations, backend, web app
-make admin LOGIN=aizhan NAME="Your Name"         # first time: prints a password once
+make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova # first time: prints a password once
 ```
 
 The admin only manages: sign in at `/login`, create a user (Admin area, Users tab), then sign in as that user to build quizzes and host games.
@@ -83,7 +83,7 @@ cd backend
 cp .env.example .env                              # development settings
 uv sync
 uv run alembic upgrade head
-uv run python -m app.cli create-admin --login aizhan --name "Your Name"   # prints a password once
+uv run python -m app.cli create-admin --login aizhan --first-name Aizhan --last-name Bekova   # prints a password once
 uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers       # always with --no-proxy-headers
 
 cd ../frontend

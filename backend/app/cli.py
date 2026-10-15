@@ -1,4 +1,7 @@
-"""Management commands. First admin: python -m app.cli create-admin --login aizhan --name "Name"."""
+"""Management commands.
+
+First admin: python -m app.cli create-admin --login aizhan --first-name Aizhan --last-name Bekova
+"""
 
 import argparse
 import asyncio
@@ -8,10 +11,10 @@ from app.errors import ApiError
 from app.services import users as service
 
 
-async def create_admin(login: str, name: str) -> int:
+async def create_admin(login: str, first_name: str, last_name: str) -> int:
     async with SessionLocal() as session:
         try:
-            _, password = await service.create_user(session, name, login, "admin")
+            _, password = await service.create_user(session, first_name, last_name, login, "admin")
         except ApiError as e:
             print(f"error: {e.code}" + (f" ({e.field})" if e.field else ""))
             return 1
@@ -25,9 +28,10 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("create-admin")
     p.add_argument("--login", required=True)
-    p.add_argument("--name", required=True)
+    p.add_argument("--first-name", required=True)
+    p.add_argument("--last-name", required=True)
     args = parser.parse_args()
-    raise SystemExit(asyncio.run(create_admin(args.login, args.name)))
+    raise SystemExit(asyncio.run(create_admin(args.login, args.first_name, args.last_name)))
 
 
 if __name__ == "__main__":

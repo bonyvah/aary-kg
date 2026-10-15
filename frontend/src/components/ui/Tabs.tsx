@@ -43,7 +43,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
   }
 
   return (
-    <div role="tablist" aria-label={label} className={cx("flex gap-2", className)}>
+    <div role="tablist" aria-label={label} className={cx("flex flex-wrap gap-2", className)}>
       {tabs.map((tab, index) => (
         <Button
           key={tab.id}
@@ -53,7 +53,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
           aria-controls={panelId(idBase)}
           tabIndex={value === tab.id ? 0 : -1}
           variant={value === tab.id ? "primary" : "neutral"}
-          className="min-w-0 flex-1 px-2 text-body"
+          className="flex-auto px-3 text-body"
           onClick={() => onChange(tab.id)}
           onKeyDown={(event) => onKeyDown(event, index)}
         >

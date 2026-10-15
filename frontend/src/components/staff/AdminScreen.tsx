@@ -124,7 +124,7 @@ export function AdminScreen() {
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[360px] flex-1"
+          className="max-w-[520px] flex-1"
         />
         {tab === "users" ? (
           <Button variant="accent" onClick={() => setCreating(true)}>

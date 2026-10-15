@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/aary"
     redis_url: str = "redis://localhost:6379/0"
+    # Connections this process may hold open to Redis. Requests wait for a free one.
+    redis_max_connections: int = Field(default=100, ge=2, le=2000)
     jwt_secret: str = Field(min_length=32)
     jwt_ttl_minutes: int = 720
     cookie_secure: bool = False

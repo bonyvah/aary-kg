@@ -9,7 +9,6 @@ one instance or many.
 
 import asyncio
 import logging
-import random
 import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -90,7 +89,7 @@ class GameEngine:
 
     # --- before the game ---------------------------------------------------------------------
 
-    async def create_game(self, owner_id: str, quiz: dict[str, Any], shuffle: bool = False) -> GameState:
+    async def create_game(self, owner_id: str, quiz: dict[str, Any]) -> GameState:
         """`quiz` is {id, title, questions: [{id, text, answers[4], correct, seconds}]}: a snapshot,
         so editing the quiz later does not change a game that is running."""
         game_id = uuid.uuid4().hex
@@ -99,11 +98,10 @@ class GameEngine:
             owner_id=owner_id,
             quiz_id=str(quiz["id"]),
             pin=await self.repo.reserve_pin(game_id),
-            shuffle=shuffle,
             created_ms=await self.repo.now_ms(),
         )
         await self.repo.create_game(state, quiz)
-        await self.audit(game_id, "game.created", owner=owner_id, quiz=str(quiz["id"]), shuffle=shuffle)
+        await self.audit(game_id, "game.created", owner=owner_id, quiz=str(quiz["id"]))
         return state
 
     async def lookup_pin(self, pin: str) -> GameState:
@@ -152,15 +150,6 @@ class GameEngine:
         player.character = {k: character[k] for k in ("shape", "color", "face")}
         await self.repo.save_players(game_id, [player])
         await self._lobby_updated(game_id)
-
-    async def set_shuffle(self, game_id: str, shuffle: bool) -> None:
-        """Host setting: play the questions in a random order. Only before the game starts."""
-        async with self.repo.lock(game_id):
-            state = await self._game(game_id)
-            if state.phase != "lobby":
-                raise GameError("INVALID_STATE")
-            state.shuffle = shuffle
-            await self.repo.save_game(state)
 
     async def kick(self, game_id: str, player_id: str) -> None:
         player = await self.repo.get_player(game_id, player_id)
@@ -212,7 +201,6 @@ class GameEngine:
         event = p.HostStateEvent(
             game_id=state.id,
             pin=state.pin,
-            shuffle=state.shuffle,
             phase=state.phase,
             total=len(quiz["questions"]),
             players=self._public(players),
@@ -248,8 +236,6 @@ class GameEngine:
                 raise GameError("NO_PLAYERS")
             quiz = await self.repo.get_quiz(game_id)
             order = list(range(len(quiz["questions"])))
-            if state.shuffle:
-                random.SystemRandom().shuffle(order)
             state.order = order
             state.started_ms = await self.repo.now_ms()
             await self.audit(game_id, "game.started", order=order)

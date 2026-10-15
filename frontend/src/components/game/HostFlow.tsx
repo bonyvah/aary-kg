@@ -76,8 +76,6 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
           <HostLobbyScreen
             pin={state.pin}
             players={state.players}
-            shuffle={state.shuffle}
-            onShuffleChange={flow.setShuffle}
             onKick={flow.kick}
             onStart={flow.start}
           />

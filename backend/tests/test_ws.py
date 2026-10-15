@@ -430,15 +430,6 @@ async def test_hosting_from_two_screens_keeps_the_newest(room):
     assert "replaced" not in second.types()
 
 
-async def test_host_shuffle_setting_over_the_socket(room):
-    host = await room.host()
-    assert (await host.wait("host.state"))["shuffle"] is False
-    await host.send(type="settings", shuffleQuestions=True)
-    await host.send(type="settings", shuffleQuestions="yes")  # not a boolean: refused
-    await host.wait("error")
-    assert (await ws_module.get_engine().repo.get_game(room.game["gameId"])).shuffle is True
-
-
 async def test_a_double_click_on_continue_moves_the_game_one_step(room):
     host = await room.host()
     pa = await room.play((await room.join("Aida"))["token"])

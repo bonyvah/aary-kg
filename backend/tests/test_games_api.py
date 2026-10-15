@@ -20,10 +20,10 @@ def quiz_body(n=2, seconds=20):
     }
 
 
-async def make_game(as_user, shuffle=False, n=2):
+async def make_game(as_user, n=2):
     host, user = await as_user("host1")
     quiz = (await host.post("/quizzes", json=quiz_body(n))).json()
-    r = await host.post("/games", json={"quizId": quiz["id"], "shuffleQuestions": shuffle})
+    r = await host.post("/games", json={"quizId": quiz["id"]})
     assert r.status_code == 201, r.text
     return host, user, quiz, r.json()
 

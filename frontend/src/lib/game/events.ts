@@ -42,7 +42,6 @@ export type HostEvent =
       type: "host.state";
       gameId: string;
       pin: string;
-      shuffle: boolean;
       phase: ServerPhase;
       total: number;
       players: PlayerPublic[];
@@ -73,5 +72,4 @@ export type HostMessage =
   /** `fromPhase`: the screen it was pressed on. The server ignores a press that is out of date. */
   | { type: "next"; fromPhase: "question" | "counts" | "leaderboard" }
   | { type: "end" }
-  | { type: "kick"; playerId: string }
-  | { type: "settings"; shuffleQuestions: boolean };
+  | { type: "kick"; playerId: string };

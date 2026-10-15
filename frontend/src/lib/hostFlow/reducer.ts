@@ -9,8 +9,6 @@ export type HostState = {
   phase: HostPhase;
   gameId: string;
   pin: string;
-  /** Play the questions in a random order. Can only be changed in the lobby. */
-  shuffle: boolean;
   /** The question being played, from 1. 0 in the lobby. */
   round: number;
   totalQuestions: number;
@@ -38,7 +36,6 @@ export const initialHostState: HostState = {
   phase: "lobby",
   gameId: "",
   pin: "",
-  shuffle: false,
   round: 0,
   totalQuestions: 0,
   players: [],
@@ -72,7 +69,6 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         phase: PHASE[event.phase],
         gameId: event.gameId,
         pin: event.pin,
-        shuffle: event.shuffle,
         round: event.question?.index ?? (event.phase === "ended" || event.phase === "leaderboard" ? event.total : 0),
         totalQuestions: event.total,
         players: toPlayers(event.players),

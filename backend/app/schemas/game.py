@@ -9,8 +9,6 @@ from app.schemas.base import CamelModel
 
 class CreateGameIn(CamelModel):
     quiz_id: uuid.UUID
-    # One question order for everybody (the host screen shows each question to the whole room).
-    shuffle_questions: bool = False
 
 
 class CreateGameOut(CamelModel):

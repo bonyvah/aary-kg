@@ -30,7 +30,6 @@ async def persist_finished(finished: FinishedGame) -> None:
         quiz_id=uuid.UUID(state.quiz_id),
         quiz_title=quiz["title"],
         questions=played,
-        shuffle=state.shuffle,
         started_at=_at(state.started_ms),
         finished_at=_at(state.finished_ms),
         duration_seconds=max(0, (state.finished_ms - state.started_ms) // 1000),

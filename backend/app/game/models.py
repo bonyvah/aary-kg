@@ -20,7 +20,6 @@ class GameState:
     owner_id: str
     quiz_id: str
     pin: str
-    shuffle: bool = False
     phase: Phase = "lobby"
     round: int = -1  # index into `order`; -1 while in the lobby
     order: list[int] = field(default_factory=list)  # question indexes in the order they are played

@@ -1,4 +1,4 @@
-// A live game with a host and phone-sized players: join by link, refused names, kick, shuffle,
+// A live game with a host and phone-sized players: join by link, refused names, kick,
 // answers, a refresh in the middle, early close, podium, the saved report and the Games tab.
 import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, PHONE, api, createUser, page, signIn, text, unique, waitText } from "./helpers.mjs";
 
@@ -70,7 +70,6 @@ export default async function run(browser, t) {
   t.ok("a kicked player is told, and a refresh does not bring them back", (await p3.getByText("Ты в игре").count()) === 0);
 
   // --- play ---
-  await host.getByText("Перемешать вопросы").click();
   await host.getByRole("button", { name: "Начать игру" }).click();
   await waitText(p1, "Вопрос номер");
   t.ok("players see the question but none of the answer texts", !(await text(p1)).includes("Четыре"));
@@ -120,7 +119,7 @@ export default async function run(browser, t) {
   await waitText(host, "Победитель");
   await waitText(p1, "Победитель");
   t.ok("host and players reach the podium", true);
-  t.ok("shuffled: every question was asked once", [...asked].sort().join() === "1,2,3", asked.join());
+  t.ok("the questions came in the quiz order", asked.join() === "1,2,3", asked.join());
   t.ok("the winner sees their place", /на 1-м месте/.test(await text(p1)));
 
   // --- report and the Games tab ---

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Cross } from "@/components/icons";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { IconButton } from "@/components/ui/IconButton";
 import { formatPin, JOIN_HOST, joinUrl } from "@/lib/joinLink";
 import type { Player } from "@/types/game";
@@ -14,8 +13,6 @@ import { LobbyChip } from "./LobbyChip";
 type HostLobbyScreenProps = {
   pin: string;
   players: readonly Player[];
-  shuffle: boolean;
-  onShuffleChange: (shuffle: boolean) => void;
   /** Removes a player from the lobby. */
   onKick: (playerId: string) => void;
   onStart: () => void;
@@ -24,7 +21,7 @@ type HostLobbyScreenProps = {
 const plate = "rounded-lg bg-field text-on-field shadow-[0_4px_0_0_var(--border)]";
 
 /** What the projector shows before the game: how to join, who has joined, and the start button. */
-export function HostLobbyScreen({ pin, players, shuffle, onShuffleChange, onKick, onStart }: HostLobbyScreenProps) {
+export function HostLobbyScreen({ pin, players, onKick, onStart }: HostLobbyScreenProps) {
   const t = useTranslations("host.lobby");
   // The QR code opens the site the host screen is on.
   const [origin, setOrigin] = useState<string | undefined>(undefined);
@@ -55,7 +52,6 @@ export function HostLobbyScreen({ pin, players, shuffle, onShuffleChange, onKick
       {players.length === 0 ? <p className="text-body-lg text-ink-muted">{t("waiting")}</p> : null}
 
       <div className="mt-auto flex flex-col items-center gap-4 pb-4">
-        <Checkbox label={t("shuffle")} checked={shuffle} onChange={(event) => onShuffleChange(event.target.checked)} />
         <Button variant="accent" size="lg" disabled={players.length === 0} onClick={onStart}>
           {t("start")}
         </Button>

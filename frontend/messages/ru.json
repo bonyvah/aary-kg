@@ -436,8 +436,7 @@
       "players": "Игроки",
       "waiting": "Ждём игроков…",
       "start": "Начать игру",
-      "kick": "Убрать игрока {name}",
-      "shuffle": "Перемешать вопросы"
+      "kick": "Убрать игрока {name}"
     },
     "live": {
       "counter": "Вопрос {current} из {total}",

@@ -114,8 +114,6 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
                         await engine.kick(game_id, message.player_id)
                     case p.End():
                         await engine.end(game_id)
-                    case p.Settings():
-                        await engine.set_shuffle(game_id, message.shuffle_questions)
             except GameError as e:
                 await conn.send(p.dump(p.ErrorEvent(code=e.code)))
     except WebSocketDisconnect:

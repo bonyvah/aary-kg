@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -21,7 +21,6 @@ class Game(Base):
     quiz_title: Mapped[str] = mapped_column(String(200))
     # The questions as they were played, in that order, with the right answers.
     questions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
-    shuffle: Mapped[bool] = mapped_column(Boolean, default=False)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     duration_seconds: Mapped[int] = mapped_column(Integer)

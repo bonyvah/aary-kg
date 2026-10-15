@@ -2,7 +2,7 @@
 
 Real browsers against a real stack: sign-in, user management and an admin correcting a finished game, a quiz and a whole contest with two
 jury members, and a live game with a host and phone-sized players (join by link, refused names,
-kick, shuffle, refresh in the middle, early close, podium, report). They are the checks of last
+kick, refresh in the middle, early close, podium, report). They are the checks of last
 resort: they only pass when the frontend, the backend, Postgres and Redis all work together.
 
 ## Run

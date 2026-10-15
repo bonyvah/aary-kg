@@ -63,7 +63,7 @@ async def create_game(body: CreateGameIn, user: CurrentUser, session: Session) -
         raise ApiError(403, "FORBIDDEN")  # admins don't host games, they manage the data of finished ones
     quiz = await quizzes_service.get_editable(session, user, body.quiz_id)
     snapshot = {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
-    state = await get_engine().create_game(str(user.id), snapshot, body.shuffle_questions)
+    state = await get_engine().create_game(str(user.id), snapshot)
     return CreateGameOut(game_id=state.id, pin=state.pin)
 
 

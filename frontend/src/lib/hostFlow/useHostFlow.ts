@@ -80,6 +80,5 @@ export function useHostFlow(quiz: Quiz) {
       if (phase === "question" || phase === "counts" || phase === "leaderboard") send({ type: "next", fromPhase: phase });
     }, [send, phase]),
     kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
-    setShuffle: useCallback((shuffleQuestions: boolean) => send({ type: "settings", shuffleQuestions }), [send]),
   };
 }

@@ -72,8 +72,8 @@ def of(events, type_):
     return [e for e in events if e["type"] == type_]
 
 
-async def new_game(env, players=("Aida", "Bek", "Cholpon"), n=3, seconds=20, shuffle=False):
-    state = await env.engine.create_game("owner-1", make_quiz(n, seconds), shuffle)
+async def new_game(env, players=("Aida", "Bek", "Cholpon"), n=3, seconds=20):
+    state = await env.engine.create_game("owner-1", make_quiz(n, seconds))
     host = await connect(env, state.id, "host")
     joined, feeds = [], []
     for name in players:
@@ -208,19 +208,10 @@ async def test_start_needs_players_and_only_works_once(env):
     assert e.value.code == "GAME_STARTED"
 
 
-async def test_question_order_is_the_quiz_order_unless_shuffled(env):
+async def test_question_order_is_the_quiz_order(env):
     plain, *_ = await new_game(env, players=("A1",), n=8)
     await env.engine.start(plain.id)
     assert (await env.repo.get_game(plain.id)).order == list(range(8))
-
-    seen = set()
-    for _ in range(6):  # 8! orders: six runs are all identity with probability ~0
-        shuffled, *_ = await new_game(env, players=("A1",), n=8, shuffle=True)
-        await env.engine.start(shuffled.id)
-        order = (await env.repo.get_game(shuffled.id)).order
-        assert sorted(order) == list(range(8))
-        seen.add(tuple(order))
-    assert seen != {tuple(range(8))}
 
 
 async def test_the_correct_answer_is_not_sent_before_the_reveal(env):
@@ -512,19 +503,6 @@ async def test_events_reach_players_connected_to_another_instance(env):
         assert of(events, "question.closed")[0]["reveal"]["correct"] == 1
     finally:
         await other_instance.detach(state.id, conn)
-
-
-async def test_host_can_switch_shuffle_in_the_lobby_only(env):
-    state, *_ = await new_game(env, players=("A1",), n=8)
-    assert (await env.engine.host_snapshot(state.id)).shuffle is False
-    await env.engine.set_shuffle(state.id, True)
-    assert (await env.engine.host_snapshot(state.id)).shuffle is True
-    await env.engine.set_shuffle(state.id, False)
-    assert (await env.repo.get_game(state.id)).shuffle is False
-    await env.engine.start(state.id)
-    with pytest.raises(GameError) as e:
-        await env.engine.set_shuffle(state.id, True)
-    assert e.value.code == "INVALID_STATE"
 
 
 # --- a stale «continue» ---------------------------------------------------------------------

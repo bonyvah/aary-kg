@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.game.models import GameError
 
@@ -35,11 +36,20 @@ GAME_STATUS = {
 }
 
 
+HTTP_CODES = {404: "NOT_FOUND", 405: "METHOD_NOT_ALLOWED", 413: "PAYLOAD_TOO_LARGE"}
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(GameError)
     async def _game_error(_: Request, exc: GameError) -> JSONResponse:
         status = GAME_STATUS.get(exc.code, 400)
         return JSONResponse({"code": exc.code, "field": None}, status_code=status)
+
+    @app.exception_handler(StarletteHTTPException)
+    async def _http_error(_: Request, exc: StarletteHTTPException) -> JSONResponse:
+        # Errors raised by the framework itself (no such route, a body too big): a code, never English text.
+        code = HTTP_CODES.get(exc.status_code, "HTTP_ERROR")
+        return JSONResponse({"code": code, "field": None}, status_code=exc.status_code, headers=exc.headers)
 
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, exc: ApiError) -> JSONResponse:

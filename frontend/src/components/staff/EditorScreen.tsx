@@ -105,10 +105,10 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
         <main
           className="flex min-w-0 flex-col gap-6 p-4 md:p-6"
           onKeyDown={(event) => {
-            // Enter in the question or an answer text saves, like the Save button. The time field handles its own Enter.
+            // Enter in the question or an answer text adds the next question (the same check as the add button). The time field handles its own Enter.
             if (event.key !== "Enter" || !(event.target instanceof HTMLInputElement) || event.target.closest("[role=listbox]")) return;
             event.preventDefault();
-            if (!editor.saving) void editor.save();
+            editor.addQuestion();
           }}
         >
           <Input

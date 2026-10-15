@@ -31,7 +31,21 @@ export type GamePhase =
   | "podium";
 
 /** Stable error codes. The frontend turns them into translated text. */
-export type ErrorCode = "PIN_INVALID" | "GAME_NOT_FOUND" | "NICKNAME_INVALID" | "NICKNAME_TAKEN";
+export type ErrorCode =
+  | "PIN_INVALID"
+  | "GAME_NOT_FOUND"
+  | "GAME_STARTED"
+  | "GAME_FULL"
+  | "NICKNAME_INVALID"
+  | "NICKNAME_TAKEN"
+  | "RATE_LIMITED"
+  | "NETWORK"
+  | "UNKNOWN"
+  // Shown on the join screen after a game ends for the player.
+  | "KICKED"
+  | "GAME_CLOSED"
+  | "REPLACED"
+  | "DISCONNECTED";
 
 /**
  * What a player is sent when a question starts: the question text and the time.

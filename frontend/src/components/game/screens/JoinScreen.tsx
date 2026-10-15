@@ -12,12 +12,14 @@ import { PlayerScreen } from "../PlayerScreen";
 
 type JoinScreenProps = {
   error: ErrorCode | null;
+  /** A PIN from the link or QR code the host showed (`/?pin=123456`). */
+  initialPin?: string;
   onSubmit: (pin: string) => void;
 };
 
-export function JoinScreen({ error, onSubmit }: JoinScreenProps) {
+export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps) {
   const t = useTranslations("player");
-  const [pin, setPin] = useState("");
+  const [pin, setPin] = useState(initialPin);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();

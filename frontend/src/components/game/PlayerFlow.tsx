@@ -1,10 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { mockStandings, MOCK_TOTAL_QUESTIONS } from "@/mocks/playerFlow";
+import { Spinner } from "@/components/ui/Spinner";
 import { usePlayerFlow } from "@/lib/playerFlow/usePlayerFlow";
-import { DemoBar } from "./DemoBar";
-import type { GamePhase } from "@/types/game";
 import { CharacterScreen } from "./screens/CharacterScreen";
 import { JoinScreen } from "./screens/JoinScreen";
 import { LeaderboardScreen } from "./screens/LeaderboardScreen";
@@ -14,82 +13,47 @@ import { PodiumScreen } from "./screens/PodiumScreen";
 import { QuestionScreen } from "./screens/QuestionScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 
-const DEMO_PHASES: readonly GamePhase[] = [
-  "join",
-  "nickname",
-  "lobby",
-  "character",
-  "question",
-  "answered",
-  "result",
-  "leaderboard",
-  "podium",
-];
-
-/** The whole player flow on mock data. The screens only read `state` and call the actions. */
+/** The player's whole game. The screens only read `state` and call the actions. */
 export function PlayerFlow() {
   const flow = usePlayerFlow();
-  const tDev = useTranslations("player.dev.phase");
-  const { state } = flow;
+  const t = useTranslations("common");
+  const { state, resuming } = flow;
   const { phase, question, selected, reveal } = state;
-  const round = question?.index ?? MOCK_TOTAL_QUESTIONS;
-  const standings = () =>
-    mockStandings(round, { nickname: state.nickname, character: state.character, score: state.score });
 
-  function screen() {
-    switch (phase) {
-      case "join":
-        return <JoinScreen error={state.error} onSubmit={flow.submitPin} />;
-      case "nickname":
-        return <NicknameScreen error={state.error} onSubmit={flow.submitNickname} />;
-      case "lobby":
-        return (
-          <LobbyScreen
-            nickname={state.nickname}
-            character={state.character}
-            onChangeCharacter={flow.openCharacter}
-          />
-        );
-      case "character":
-        return (
-          <CharacterScreen
-            character={state.character}
-            onChange={flow.changeCharacter}
-            onDone={flow.closeCharacter}
-          />
-        );
-      case "question":
-      case "answered":
-        return question ? (
-          <QuestionScreen
-            question={question}
-            secondsLeft={state.secondsLeft}
-            selected={selected}
-            onAnswer={flow.answer}
-          />
-        ) : null;
-      case "result":
-        return question && reveal ? (
-          <ResultScreen question={question} selected={selected} reveal={reveal} />
-        ) : null;
-      case "leaderboard":
-        return question ? <LeaderboardScreen question={question} standings={standings()} /> : null;
-      case "podium":
-        return <PodiumScreen standings={standings()} onExit={flow.reset} />;
-    }
+  // The host's QR code and link carry the PIN: `/?pin=123456` fills it in.
+  const [linkedPin, setLinkedPin] = useState("");
+  useEffect(() => {
+    const pin = new URLSearchParams(window.location.search).get("pin") ?? "";
+    if (/^\d{6}$/.test(pin)) setLinkedPin(pin);
+  }, []);
+
+  if (resuming) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <Spinner label={t("loading")} />
+      </div>
+    );
   }
 
-  return (
-    <>
-      <DemoBar
-        phases={DEMO_PHASES.map((value) => ({ value, label: tDev(value) }))}
-        phase={phase}
-        paused={flow.paused}
-        onPausedChange={flow.setPaused}
-        onJump={flow.jumpTo}
-        onRestart={flow.reset}
-      />
-      {screen()}
-    </>
-  );
+  switch (phase) {
+    case "join":
+      return <JoinScreen key={linkedPin} initialPin={linkedPin} error={state.error} onSubmit={flow.submitPin} />;
+    case "nickname":
+      return <NicknameScreen error={state.error} onSubmit={flow.submitNickname} />;
+    case "lobby":
+      return <LobbyScreen nickname={state.nickname} character={state.character} onChangeCharacter={flow.openCharacter} />;
+    case "character":
+      return <CharacterScreen character={state.character} onChange={flow.changeCharacter} onDone={flow.closeCharacter} />;
+    case "question":
+    case "answered":
+      return question ? (
+        <QuestionScreen question={question} secondsLeft={state.secondsLeft} selected={selected} onAnswer={flow.answer} />
+      ) : null;
+    case "result":
+      return question && reveal ? <ResultScreen question={question} selected={selected} reveal={reveal} /> : null;
+    case "leaderboard":
+      return question ? <LeaderboardScreen question={question} standings={state.standings} /> : null;
+    case "podium":
+      return <PodiumScreen standings={state.standings} onExit={flow.reset} />;
+  }
 }

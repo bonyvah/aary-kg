@@ -75,8 +75,19 @@ class End(_In):
     type: Literal["end"]
 
 
+Ruling = Literal["kick", "zero", "void_last", "mercy"]
+
+
+class Rule(_In):
+    """Host, on the podium: what to do about a suspected cheater."""
+
+    type: Literal["rule"]
+    player_id: str = Field(max_length=64)
+    action: Ruling
+
+
 PlayerMessage = Annotated[Hello | Answer | Signal | Pong | SetCharacter, Field(discriminator="type")]
-HostMessage = Annotated[Start | Next | Kick | End, Field(discriminator="type")]
+HostMessage = Annotated[Start | Next | Kick | End | Rule, Field(discriminator="type")]
 
 _player = TypeAdapter(PlayerMessage)
 _host = TypeAdapter(HostMessage)
@@ -89,7 +100,7 @@ def parse_player(data: Any) -> Hello | Answer | Signal | Pong | SetCharacter | N
         return None
 
 
-def parse_host(data: Any) -> Start | Next | Kick | End | None:
+def parse_host(data: Any) -> Start | Next | Kick | End | Rule | None:
     try:
         return _host.validate_python(data)
     except ValidationError:
@@ -148,6 +159,19 @@ class StateEvent(_Out):
     top: list[Standing] | None = None
 
 
+class CheaterFlag(CamelModel):
+    kind: str
+    count: int
+
+
+class Cheater(CamelModel):
+    """A player the server's anti-cheat rules flagged, with the reasons."""
+
+    player_id: str
+    nickname: str
+    flags: list[CheaterFlag]
+
+
 class HostStateEvent(_Out):
     type: Literal["host.state"] = "host.state"
     game_id: str
@@ -161,6 +185,7 @@ class HostStateEvent(_Out):
     counts: list[int] | None = None
     correct: Position | None = None
     standings: list[Standing] | None = None
+    cheaters: list[Cheater] | None = None
 
 
 class LobbyUpdated(_Out):
@@ -223,6 +248,7 @@ class HostGameEnded(_Out):
     type: Literal["game.ended"] = "game.ended"
     game_id: str
     standings: list[Standing]
+    cheaters: list[Cheater] = []
 
 
 class Ping(_Out):

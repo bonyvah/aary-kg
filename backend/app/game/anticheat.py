@@ -17,6 +17,10 @@ SAME_MIN_QUESTIONS = 2
 STEADY_MIN_ANSWERS = 5
 STEADY_MAX_STDEV_MS = 120
 
+# What makes a player a suspect on the host's podium. The browser signals (tab left, paste) are easy
+# to trigger by accident, so on their own they never do: they are only listed beside these.
+PATTERN_KINDS = ("FAST_ANSWERS", "SAME_TIMING", "STEADY_TIMING")
+
 KINDS = ("TAB_BLUR", "PASTE", "FAST_ANSWERS", "SAME_TIMING", "STEADY_TIMING")
 
 

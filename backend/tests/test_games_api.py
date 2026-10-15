@@ -171,6 +171,22 @@ async def test_finished_game_is_saved_and_reported(client, as_user):
     assert shares == {"q1": 2 / 3, "q2": 1 / 3}
 
 
+async def test_a_ruling_on_the_podium_replaces_the_saved_game(client, as_user):
+    host, _, quiz, game = await make_game(as_user)
+    aida = (await join(client, game["pin"], "Aida")).json()["player"]["id"]
+    bek = (await join(client, game["pin"], "Bek")).json()["player"]["id"]
+    await play_to_the_end(game, [(aida, [1, 2]), (bek, [1, 2])])
+    await asyncio.sleep(0.1)
+    url = f"/games/{game['gameId']}/report"
+    assert len((await host.get(url)).json()["players"]) == 2
+
+    await get_engine().rule(game["gameId"], aida, "zero")
+    await get_engine().rule(game["gameId"], bek, "kick")
+    report = (await host.get(url)).json()
+    assert [(p["nickname"], p["score"]) for p in report["players"]] == [("Aida", 0)]
+    assert len((await host.get("/games")).json()) == 1  # still one game, not two
+
+
 async def test_report_is_for_the_owner_and_admins_only(client, as_user):
     host, _, quiz, game = await make_game(as_user)
     pid = (await join(client, game["pin"], "Aida")).json()["player"]["id"]

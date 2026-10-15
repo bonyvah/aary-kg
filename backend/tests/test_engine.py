@@ -381,6 +381,62 @@ async def test_full_game_to_the_podium_and_into_the_finished_record(env):
     assert e.value.code == "INVALID_STATE"
 
 
+async def instant_game(env):
+    """Four players who answer every question right, at once: the server flags all of them as too fast."""
+    state, host, players, feeds = await new_game(env, players=("Aida", "Bek", "Cholpon", "Dana"))
+    await env.engine.start(state.id)
+    for right in (1, 2, 3):
+        await play_round(env, state, [(player, right) for player in players])
+        await env.engine.next(state.id)
+    await settle()
+    return state, host, players, feeds
+
+
+async def test_the_podium_lists_the_players_the_pattern_rules_flagged(env):
+    state, host, players, _ = await instant_game(env)
+    ended = of(host, "game.ended")[0]
+    assert {c["playerId"] for c in ended["cheaters"]} == {x.id for x in players}
+    assert {f["kind"] for f in ended["cheaters"][0]["flags"]} >= {"FAST_ANSWERS"}
+    snapshot = await env.engine.host_snapshot(state.id)
+    assert len(snapshot.cheaters) == 4
+
+
+async def test_host_rulings_change_the_score_the_podium_and_the_saved_game(env):
+    state, host, (aida, bek, chol, dana), feeds = await instant_game(env)
+    before = {s["id"]: s["score"] for s in of(host, "game.ended")[0]["standings"]}
+    assert before[aida.id] > 0
+
+    await env.engine.rule(state.id, aida.id, "zero")
+    await env.engine.rule(state.id, bek.id, "void_last")
+    await env.engine.rule(state.id, chol.id, "kick")
+    await env.engine.rule(state.id, dana.id, "mercy")
+    await settle()
+
+    last = of(host, "game.ended")[-1]
+    scores = {s["id"]: s["score"] for s in last["standings"]}
+    assert scores[aida.id] == 0
+    assert scores[bek.id] < before[bek.id]  # the last question no longer counts
+    assert chol.id not in scores and scores[dana.id] == before[dana.id]
+    assert last["cheaters"] == []  # every one of them has been ruled on
+    assert of(feeds[2], "kicked")
+    saved = env.finished[-1]
+    assert chol.id not in {x.id for x in saved.players}
+    assert {e["action"] for e in saved.audit if e["type"] == "player.ruled"} == {
+        "zero",
+        "void_last",
+        "kick",
+        "mercy",
+    }
+
+
+async def test_rulings_only_after_the_game_ended(env):
+    state, _, (aida, *_), _ = await new_game(env)
+    await env.engine.start(state.id)
+    with pytest.raises(GameError) as e:
+        await env.engine.rule(state.id, aida.id, "zero")
+    assert e.value.code == "INVALID_STATE"
+
+
 async def test_next_walks_question_results_leaderboard_in_order(env):
     state, *_ = await new_game(env, n=2)
     phases = []

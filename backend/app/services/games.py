@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import SessionLocal
@@ -56,6 +56,8 @@ async def persist_finished(finished: FinishedGame) -> None:
             )
         )
     async with SessionLocal() as session:
+        # A ruling on the podium saves the game again: the new copy replaces the one before it.
+        await session.execute(delete(Game).where(Game.id == game.id))
         session.add(game)
         await session.flush()
         session.add_all(players)

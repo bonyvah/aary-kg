@@ -1,10 +1,10 @@
 """The live game: rules and transitions. No FastAPI and no sockets in here, only a state repository
 (Redis) and a hub to tell people what happened. That is what makes it unit-testable.
 
-Who drives: the host sends start/next/kick/end. The server owns the clock: a timer closes the
-question at its deadline, and the last answer closes it early. Every transition takes the game's
-lock and re-checks the phase, so the timer, an early close and a host `next` can race safely, on
-one instance or many.
+Who drives: the host sends start/next/kick/end, and on the podium rules on suspected cheaters. The
+server owns the clock: a timer closes the question at its deadline, and the last answer closes it
+early. Every transition takes the game's lock and re-checks the phase, so the timer, an early close
+and a host `next` can race safely, on one instance or many.
 """
 
 import asyncio
@@ -13,7 +13,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from app.game import nicknames
+from app.game import anticheat, nicknames
 from app.game import protocol as p
 from app.game.characters import is_character, random_character
 from app.game.hub import Hub
@@ -218,6 +218,8 @@ class GameEngine:
                 event.correct = self._question(quiz, state, state.round)["correct"]
         elif state.phase in ("leaderboard", "ended"):
             event.standings = self._standings(players)
+            if state.phase == "ended":
+                event.cheaters = await self._cheaters(state, players)
         return event
 
     @staticmethod
@@ -374,33 +376,99 @@ class GameEngine:
             await self._close_locked(state)  # players still get the points of the open question
         game_id = state.id
         players = await self.repo.get_players(game_id)
-        standings = self._standings(players)
         state.phase = "ended"
         state.finished_ms = await self.repo.now_ms()
         await self.repo.save_game(state)
         await self.audit(game_id, "game.ended", players=len(players))
+        await self._save_finished(state)
+        await self._publish_ended(state)
 
-        if self.on_finished is not None:
-            quiz = await self.repo.get_quiz(game_id)
-            results = {r: await self.repo.get_results(game_id, r) for r in range(state.round + 1)}
-            finished = FinishedGame(
-                game=state,
-                quiz=quiz,
-                players=players,
-                standings=[{"id": s.id, "rank": s.rank, "score": s.score} for s in standings],
-                results=results,
-                signals=await self.repo.signal_counts(game_id),
-                audit=await self.repo.get_audit(game_id),
-            )
-            try:
-                await self.on_finished(finished)
-            except Exception:
-                # The players still get their podium. Redis keeps the game for its TTL.
-                log.exception("saving finished game %s failed", game_id)
+    async def _results(self, state: GameState) -> dict[int, dict[str, dict[str, Any]]]:
+        return {r: await self.repo.get_results(state.id, r) for r in range(state.round + 1)}
 
+    async def _save_finished(self, state: GameState) -> None:
+        """Writes the game to the database (again, after a ruling: the write replaces the earlier one)."""
+        if self.on_finished is None:
+            return
+        players = await self.repo.get_players(state.id)
+        standings = self._standings(players)
+        finished = FinishedGame(
+            game=state,
+            quiz=await self.repo.get_quiz(state.id),
+            players=players,
+            standings=[{"id": s.id, "rank": s.rank, "score": s.score} for s in standings],
+            results=await self._results(state),
+            signals=await self.repo.signal_counts(state.id),
+            audit=await self.repo.get_audit(state.id),
+        )
+        try:
+            await self.on_finished(finished)
+        except Exception:
+            # The players still get their podium. Redis keeps the game for its TTL.
+            log.exception("saving finished game %s failed", state.id)
+
+    async def _publish_ended(self, state: GameState) -> None:
+        players = await self.repo.get_players(state.id)
+        standings = self._standings(players)
         for s in standings:
-            await self._emit(game_id, f"p:{s.id}", p.GameEnded(top=standings[:PODIUM], you=s))
-        await self._emit(game_id, "host", p.HostGameEnded(game_id=game_id, standings=standings))
+            await self._emit(state.id, f"p:{s.id}", p.GameEnded(top=standings[:PODIUM], you=s))
+        cheaters = await self._cheaters(state, players)
+        await self._emit(
+            state.id, "host", p.HostGameEnded(game_id=state.id, standings=standings, cheaters=cheaters)
+        )
+
+    async def _cheaters(self, state: GameState, players: list[PlayerState]) -> list[p.Cheater]:
+        """Players the pattern rules flagged and the host has not ruled on yet, with every reason."""
+        flags = anticheat.flags_from_results(
+            await self._results(state), await self.repo.signal_counts(state.id)
+        )
+        suspects = []
+        for player in players:
+            reasons = flags.get(player.id, [])
+            if player.ruling is None and any(f["kind"] in anticheat.PATTERN_KINDS for f in reasons):
+                suspects.append(
+                    p.Cheater(
+                        player_id=player.id,
+                        nickname=player.nickname,
+                        flags=[p.CheaterFlag(kind=str(f["kind"]), count=int(f["count"])) for f in reasons],
+                    )
+                )
+        return suspects
+
+    async def rule(self, game_id: str, player_id: str, action: str) -> None:
+        """Host, on the podium: remove a suspected cheater, zero their score, void the last question's
+        points, or let them off. The database copy of the game and everybody's podium follow."""
+        async with self.repo.lock(game_id):
+            state = await self._game(game_id)
+            if state.phase != "ended":
+                raise GameError("INVALID_STATE")
+            player = await self.repo.get_player(game_id, player_id)
+            if player is None:
+                raise GameError("UNKNOWN_PLAYER")
+            if action == "kick":
+                await self._emit(game_id, f"p:{player_id}", p.Kicked())
+                await self.repo.remove_player(game_id, player_id, nicknames.skeleton(player.nickname))
+            elif action == "zero":
+                player.score, player.ruling = 0, "zeroed"
+                await self.repo.save_players(game_id, [player])
+            elif action == "void_last":
+                last = (await self.repo.get_results(game_id, state.round)).get(player_id)
+                if last is not None:
+                    player.score -= int(last["points"])
+                    last["points"] = 0
+                    await self.repo.put_results(game_id, state.round, {player_id: last})
+                player.ruling = "last_voided"
+                await self.repo.save_players(game_id, [player])
+            elif action == "mercy":
+                player.ruling = "mercy"
+                await self.repo.save_players(game_id, [player])
+            else:
+                raise GameError("BAD_MESSAGE")
+            await self.audit(
+                game_id, "player.ruled", player=player_id, nickname=player.nickname, action=action
+            )
+            await self._save_finished(state)
+            await self._publish_ended(state)
 
     # --- player actions -------------------------------------------------------------------------
 

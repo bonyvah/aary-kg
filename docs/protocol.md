@@ -44,13 +44,13 @@ Player (after `hello`):
 | `pong` | `n` | answer to the server's `ping`. The server halves the round trip to estimate the delay (max 300 ms) and takes it off the answer time. |
 | `character.set` | `character {shape, color, face}` | lobby only; the three ids must come from the fixed lists |
 
-Host: `start`, `next {fromPhase}`, `kick {playerId}`, `end`, `settings {shuffleQuestions}` (lobby only).
+Host: `start`, `next {fromPhase}`, `kick {playerId}`, `end`, and on the podium `rule {playerId, action}` with `action` one of `kick` (remove the player), `zero` (score becomes 0), `void_last` (the last question's points are taken away) or `mercy` (no change). A ruling saves the game again and sends everyone a fresh `game.ended`.
 
 ## Server -> client
 
 To a player: `state`, `lobby.updated {players}`, `question.started {question}`, `answer.accepted {position}`, `question.closed {reveal {correct, points}, score, rank}`, `leaderboard {top (best 5), you}`, `game.ended {top (best 3), you}`, `ping {n}`, `kicked`, `replaced`, `game.closed`, `error {code}`.
 
-To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `game.ended {gameId, standings}`, `replaced`, `error {code}`.
+To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players the server-measured rules `FAST_ANSWERS`, `SAME_TIMING` or `STEADY_TIMING` flagged and the host has not ruled on; `TAB_BLUR` and `PASTE` are listed with them but never make a player a suspect alone), `replaced`, `error {code}`.
 
 A `question` for players is `{index (from 1), total, text, seconds}`. For the host it also has `answers`.
 

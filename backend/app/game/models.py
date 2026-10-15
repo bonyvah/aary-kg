@@ -46,6 +46,8 @@ class PlayerState:
     correct: int = 0
     # Total time of the correct answers: breaks ties on the leaderboard (faster wins).
     time_ms: int = 0
+    # What the host decided about this player at the podium: zeroed, last_voided or mercy.
+    ruling: str | None = None
 
     def dump(self) -> dict[str, Any]:
         return asdict(self)

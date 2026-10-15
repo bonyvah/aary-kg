@@ -3,7 +3,7 @@
 Decided for Phase 4. The backend (Phase 5) implements exactly this.
 
 ## Who does what
-- A **user** creates a contest and is its owner. An **admin** sees and manages every contest.
+- A **user** creates a contest and is its owner. An **admin** sees and manages every contest but does not create one.
 - The owner defines **criteria**, adds **entries** (the things being judged: a name and a short description, no photos or uploads) and picks the **jury** from the users list (at least one).
 - Jury members are users. A user can be the owner of one contest and a jury member of another.
 

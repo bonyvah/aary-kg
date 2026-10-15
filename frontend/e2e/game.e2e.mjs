@@ -1,13 +1,14 @@
 // A live game with a host and phone-sized players: join by link, refused names, kick, shuffle,
 // answers, a refresh in the middle, early close, podium, the saved report and the Games tab.
-import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, PHONE, api, page, signIn, text, unique, waitText } from "./helpers.mjs";
+import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, PHONE, api, createUser, page, signIn, text, unique, waitText } from "./helpers.mjs";
 
 const SHAPES = ["Красный треугольник", "Синий ромб", "Жёлтый круг", "Зелёный квадрат"];
 
 export default async function run(browser, t) {
-  const host = await page(browser, t, "host");
-  await signIn(host, ADMIN_LOGIN, ADMIN_PASSWORD);
   const tag = unique();
+  const account = await createUser(browser, t, `host.${tag}`, `Ведущий ${tag}`);
+  const host = await page(browser, t, "host");
+  await signIn(host, account.login, account.password);
   const question = (n, correct) => ({
     id: `q${n}`,
     text: `Вопрос номер ${n}?`,
@@ -123,6 +124,7 @@ export default async function run(browser, t) {
   await host.getByRole("link", { name: "Открыть отчёт" }).click();
   await host.waitForURL(/\/reports\/[0-9a-f]{32}/);
   await waitText(host, `Игра ${tag}`);
+  const gameId = host.url().match(/\/reports\/([0-9a-f]{32})/)[1];
   const report = await text(host);
   t.ok("the report lists both players", report.includes(names.aidana) && report.includes(names.bek));
   t.ok("the tab-switch hint shows up for the player who left the tab", /Переключил вкладку/.test(report));
@@ -133,4 +135,30 @@ export default async function run(browser, t) {
   await p1.getByRole("button", { name: "Выйти" }).click();
   await p1.locator("input").first().waitFor();
   t.ok("leaving the podium returns to the PIN screen", true);
+
+  // --- an admin corrects the finished game; the host sees it and cannot do the same ---
+  const admin = await page(browser, t, "admin");
+  await signIn(admin, ADMIN_LOGIN, ADMIN_PASSWORD, "admin");
+  await admin.goto(`${BASE}/admin`);
+  await admin.getByRole("tab", { name: "Игры" }).click();
+  await admin.getByRole("link", { name: `Игра ${tag}` }).click();
+  await admin.waitForURL(/\/admin\/games\//);
+  await waitText(admin, "Журнал исправлений");
+  const row = admin.locator("tbody tr", { hasText: names.aidana });
+  await row.getByRole("button", { name: "Изменить", exact: true }).click();
+  await admin.getByLabel("Изменить на").fill("100");
+  await admin.getByRole("button", { name: "Применить" }).click();
+  await waitText(admin, "Сохранено.");
+  t.ok("an admin can add points to a player", /правка: \+100/.test(await admin.locator("tbody").innerText()));
+  await admin.getByRole("button", { name: "Готово" }).click();
+  await waitText(admin, "очки +100");
+  t.ok("the correction is in the log", true);
+
+  await host.goto(`${BASE}/reports/${gameId}`);
+  await waitText(host, "Администратор исправил данные игры");
+  t.ok("the host sees that an admin corrected the game", true);
+  const attempt = await api(host, "POST", `/admin/games/${gameId}/players/${gameId}/adjust`, { delta: 1 });
+  t.ok("the host cannot edit the game", attempt.status === 403, String(attempt.status));
+  const hosting = await api(admin, "POST", "/games", { quizId: quiz.id });
+  t.ok("an admin cannot host a game", hosting.status === 403, String(hosting.status));
 }

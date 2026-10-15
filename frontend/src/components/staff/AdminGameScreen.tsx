@@ -148,7 +148,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="neutral" disabled={busy} onClick={() => setEditingId(player.id)}>
-                      {t("edit")}
+                      {t("editPlayer")}
                     </Button>
                     <Button variant="neutral" disabled={busy} onClick={() => setPending({ kind: "removePlayer", player })}>
                       {t("removePlayer")}

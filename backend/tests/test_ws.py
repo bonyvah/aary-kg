@@ -14,7 +14,10 @@ from app.routers import ws as ws_module
 
 @pytest.fixture
 async def server():
-    config = uvicorn.Config(app, host="127.0.0.1", port=0, log_level="warning", lifespan="off")
+    # proxy_headers=False is how the app is run for real (see app/netutil.py): the tests must match.
+    config = uvicorn.Config(
+        app, host="127.0.0.1", port=0, log_level="warning", lifespan="off", proxy_headers=False
+    )
     srv = uvicorn.Server(config)
     task = asyncio.create_task(srv.serve())
     while not srv.started:

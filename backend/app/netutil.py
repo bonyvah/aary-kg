@@ -12,6 +12,11 @@ def client_ip(conn: HTTPConnection) -> str:
     Rate limits and the audit trail depend on this. A client can send any X-Forwarded-For it likes,
     so the header counts only when AARY_TRUSTED_PROXY_HOPS says how many proxies are in front:
     each of them appended the address it saw, so the client is that many entries from the right.
+
+    Run uvicorn with --no-proxy-headers. Its own proxy handling is on by default for connections from
+    localhost and rewrites the client address from X-Forwarded-For before this code runs, which would
+    let anyone pick their own address (checked: with it, 64 requests with 64 invented addresses were
+    never rate limited).
     """
     peer = conn.client.host if conn.client else "unknown"
     hops = get_settings().trusted_proxy_hops

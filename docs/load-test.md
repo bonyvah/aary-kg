@@ -12,7 +12,7 @@ would.
 
 ```bash
 cd backend
-AARY_TRUSTED_PROXY_HOPS=1 uv run uvicorn app.main:app --port 8000      # in one terminal
+AARY_TRUSTED_PROXY_HOPS=1 uv run uvicorn app.main:app --port 8000 --no-proxy-headers   # one terminal
 uv run python scripts/loadtest.py --login <staff login> --password '<password>' \
     --players 60 --questions 5                                          # in another
 ```

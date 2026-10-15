@@ -69,7 +69,7 @@ cp .env.example .env                      # set AARY_JWT_SECRET (32+ chars)
 uv sync
 uv run alembic upgrade head
 uv run python -m app.cli create-admin --login aizhan --name "Your Name"   # prints a password once
-uv run uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers   # always with --no-proxy-headers, see backend/.env.example
 uv run pytest                             # needs Postgres (database aary_test) running
 
 cd ../frontend

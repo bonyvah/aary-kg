@@ -2,7 +2,13 @@ import os
 
 # Must be set before app modules import settings.
 os.environ["AARY_JWT_SECRET"] = "test-secret-test-secret-test-secret-123"
-os.environ.setdefault("AARY_DATABASE_URL", "postgresql+asyncpg://postgres@localhost:5432/aary_test")
+# The tests empty their databases before and after every test, so they must never inherit the
+# AARY_DATABASE_URL / AARY_REDIS_URL of a dev shell: they take their own, or the defaults below.
+os.environ["AARY_DATABASE_URL"] = os.environ.get(
+    "AARY_TEST_DATABASE_URL", "postgresql+asyncpg://postgres@localhost:5432/aary_test"
+)
+# Redis database 15 is the tests' own.
+os.environ["AARY_REDIS_URL"] = os.environ.get("AARY_TEST_REDIS_URL", "redis://localhost:6379/15")
 
 import pytest  # noqa: E402
 from alembic.config import Config  # noqa: E402

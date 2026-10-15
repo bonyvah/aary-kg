@@ -4,7 +4,8 @@ import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { cx } from "@/lib/cx";
 import type { HostQuestion } from "@/lib/game/events";
-import { AnswerTile, type AnswerPosition } from "./AnswerTile";
+import { Check } from "@/components/icons";
+import { answerPositions, type AnswerPosition } from "./AnswerTile";
 import { HostQuestionHeader, POSITIONS } from "./HostQuestionScreen";
 
 const BAR_COLOR: Record<AnswerPosition, string> = {
@@ -23,7 +24,7 @@ type HostCountsScreenProps = {
   counts: readonly [number, number, number, number];
 };
 
-/** After the question closed: the right answer keeps its color with a check, the rest are dimmed, each with its count. */
+/** After the question closed: one vertical bar per answer, the right one in its color with a check, the rest grey. */
 export function HostCountsScreen({ question, correct, round, totalQuestions, counts }: HostCountsScreenProps) {
   const t = useTranslations("host.live");
   const format = useFormatter();
@@ -33,41 +34,42 @@ export function HostCountsScreen({ question, correct, round, totalQuestions, cou
     <div className="flex flex-1 flex-col gap-6">
       <HostQuestionHeader round={round} totalQuestions={totalQuestions} />
       <h1 className="text-display font-black [overflow-wrap:anywhere]">{question.text}</h1>
-      <div className="grid grid-cols-1 gap-x-4 gap-y-6 pb-2 sm:grid-cols-2">
+      <ul className="grid flex-1 grid-cols-4 gap-x-3 gap-y-0 pb-2 md:gap-x-6">
         {POSITIONS.map((position) => {
           const right = position === correct;
           const count = counts[position - 1] ?? 0;
           const barVars = { "--pct": `${(count / most) * 100}%` } as CSSProperties;
+          const { Shape, tone } = answerPositions[position];
           return (
-            <div key={position} className="flex flex-col gap-3">
-              <AnswerTile
-                position={position}
-                dim={!right}
-                disabled
-                result={right ? "ok" : undefined}
-                resultLabel={t("correct")}
-                className="pointer-events-none"
-              >
-                {question.answers[position - 1]}
-              </AnswerTile>
-              <div className="flex items-center gap-3">
-                <div className="h-4 flex-1 overflow-hidden rounded-full bg-surface-raised">
+            <li key={position} className="flex min-w-0 flex-col gap-3">
+              <div className="flex min-h-[200px] flex-1 flex-col items-center justify-end gap-2">
+                <p className="text-display font-black tabular-nums" aria-label={t("count", { count, formatted: format.number(count) })}>
+                  {format.number(count)}
+                </p>
+                <div className="flex h-[40vh] min-h-[120px] w-full items-end">
                   <div
                     style={barVars}
                     className={cx(
-                      "h-full w-(--pct) rounded-full transition-[width] duration-200 ease-out motion-reduce:transition-none",
+                      "min-h-2 w-full h-(--pct) rounded-t-md transition-[height] duration-200 ease-out motion-reduce:transition-none",
                       right ? BAR_COLOR[position] : "bg-disabled",
                     )}
                   />
                 </div>
-                <p className="min-w-[88px] text-right text-body font-bold tabular-nums">
-                  {t("count", { count: count, formatted: format.number(count) })}
-                </p>
               </div>
-            </div>
+              <div
+                className={cx(
+                  "flex min-h-[72px] items-center gap-2 rounded-md p-3 text-body-lg font-bold [overflow-wrap:anywhere]",
+                  right ? cx(tone, "shadow-[0_4px_0_0_var(--tile-e)]") : "bg-disabled text-on-disabled",
+                )}
+              >
+                <Shape className="size-8 flex-none" />
+                <span className="min-w-0 flex-1">{question.answers[position - 1]}</span>
+                {right ? <Check width={28} height={28} className="flex-none" role="img" aria-label={t("correct")} /> : null}
+              </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }

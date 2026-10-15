@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Check } from "@/components/icons";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { useToast } from "@/components/ui/useToast";
+import { finishScoring, setScore } from "@/lib/api/contests";
+import { toKnownCode } from "@/lib/api/client";
 import { cx } from "@/lib/cx";
 import {
   canFinish,
@@ -17,24 +19,49 @@ import {
   runningScore,
   type JuryEvent,
 } from "@/lib/juryScoring/reducer";
-import { mockCurrentUser } from "@/mocks/staff";
-import type { Contest } from "@/types/contest";
+import type { Contest, Score } from "@/types/contest";
 import { ScoreButtons } from "./ScoreButtons";
+import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
 /** A jury member scores the entries of an open contest, one entry at a time. */
 export function JuryScreen({ contest }: { contest: Contest }) {
   const t = useTranslations("contest.score");
+  const tc = useTranslations("common");
   const format = useFormatter();
   const { toast, show } = useToast();
-  const userId = mockCurrentUser.id;
+  const userId = useCurrentUser().id;
   const member = contest.jury.find((item) => item.userId === userId);
   const [state, dispatch] = useReducer(
     (current: ReturnType<typeof initialJuryState>, event: JuryEvent) => juryReducer(contest, current, event),
     undefined,
     () => initialJuryState(contest.scores[userId], member?.finished ?? false),
   );
+
+  // Every score is sent as it is given, one after another so the last click is the one the server keeps.
+  const saves = useRef<Promise<unknown>>(Promise.resolve());
+  const [finishing, setFinishing] = useState(false);
+
+  function giveScore(entryId: string, criterionId: string, score: Score) {
+    dispatch({ type: "SCORE_SET", entryId, criterionId, score });
+    saves.current = saves.current
+      .then(() => setScore(contest.id, entryId, criterionId, score))
+      .catch((error: unknown) => show("danger", tc(`apiError.${toKnownCode(error)}`)));
+  }
+
+  async function finish() {
+    setFinishing(true);
+    try {
+      await saves.current;
+      await finishScoring(contest.id);
+      dispatch({ type: "FINISHED" });
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setFinishing(false);
+    }
+  }
 
   const entry = contest.entries[state.index];
   const done = completeCount(contest, state);
@@ -117,7 +144,7 @@ export function JuryScreen({ contest }: { contest: Contest }) {
               <ScoreButtons
                 label={t("criterionLabel", { name: criterion.name, weight: criterion.weight })}
                 value={state.scores[entry.id]?.[criterion.id]}
-                onChange={(next) => dispatch({ type: "SCORE_SET", entryId: entry.id, criterionId: criterion.id, score: next })}
+                onChange={(next) => giveScore(entry.id, criterion.id, next)}
               />
             </li>
           ))}
@@ -146,9 +173,9 @@ export function JuryScreen({ contest }: { contest: Contest }) {
           variant="success"
           size="lg"
           block
-          disabled={!canFinish(contest, state) || state.finished}
+          disabled={!canFinish(contest, state) || state.finished || finishing}
           aria-describedby="finish-note"
-          onClick={() => dispatch({ type: "FINISHED" })}
+          onClick={() => void finish()}
         >
           {t("finish")}
         </Button>

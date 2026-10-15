@@ -6,9 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Table, Td, Th } from "@/components/ui/Table";
-import { canManage, rankEntries } from "@/lib/contestScoring";
-import { mockCurrentUser } from "@/mocks/staff";
-import type { Contest, RankedEntry } from "@/types/contest";
+import type { Contest, ContestResults, RankedEntry } from "@/types/contest";
 import { BreakdownModal } from "./BreakdownModal";
 import { ContestStatusBadge } from "./ContestStatusBadge";
 import { ResultsPodium } from "./ResultsPodium";
@@ -16,13 +14,14 @@ import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
 /** The final ranking of a closed contest: the podium, the table, and the breakdown for those who may see it. */
-export function ResultsScreen({ contest }: { contest: Contest }) {
+export function ResultsScreen({ contest, results }: { contest: Contest; results: ContestResults }) {
   const t = useTranslations("contest.results");
   const format = useFormatter();
   const [explained, setExplained] = useState<RankedEntry | null>(null);
-  const ranking = rankEntries(contest);
+  const ranking = results.ranking;
   const top = ranking.filter((item) => item.rank !== null).slice(0, 3);
-  const mayExplain = canManage(contest, mockCurrentUser);
+  // The server only sends the breakdown to the owner and admins.
+  const mayExplain = results.breakdown !== null;
   const two = (value: number) => format.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
@@ -99,7 +98,12 @@ export function ResultsScreen({ contest }: { contest: Contest }) {
 
       <p className="pb-4 text-body text-ink-muted">{t("juryCount", { count: contest.jury.filter((member) => member.finished).length })}</p>
 
-      <BreakdownModal contest={contest} ranked={explained} onClose={() => setExplained(null)} />
+      <BreakdownModal
+        contest={contest}
+        ranked={explained}
+        rows={(explained && results.breakdown?.[explained.entry.id]) || []}
+        onClose={() => setExplained(null)}
+      />
     </StaffShell>
   );
 }

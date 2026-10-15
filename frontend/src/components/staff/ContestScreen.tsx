@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { closeContest, openContest } from "@/lib/api/contests";
+import { toKnownCode } from "@/lib/api/client";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -8,10 +10,10 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/useToast";
 import { canManage, canScore, contestRole, scoredEntryCount, validateContest } from "@/lib/contestScoring";
-import { mockCurrentUser } from "@/mocks/staff";
-import type { Contest, ContestStatus } from "@/types/contest";
+import type { Contest } from "@/types/contest";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestStatusBadge } from "./ContestStatusBadge";
+import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
@@ -21,27 +23,32 @@ type Pending = "open" | "close" | null;
 export function ContestScreen({ contest: initial }: { contest: Contest }) {
   const t = useTranslations("contest.page");
   const tc = useTranslations("contest");
+  const tcommon = useTranslations("common");
   const { toast, show } = useToast();
-  // The status is local in the mock: opening and closing only change this screen.
-  const [status, setStatus] = useState<ContestStatus>(initial.status);
+  const [contest, setContest] = useState<Contest>(initial);
   const [pending, setPending] = useState<Pending>(null);
+  const [busy, setBusy] = useState(false);
+  const status = contest.status;
 
-  const contest: Contest = { ...initial, status };
-  const viewer = mockCurrentUser;
+  const viewer = useCurrentUser();
   const manage = canManage(contest, viewer);
   const role = contestRole(contest, viewer.id);
   const scoring = canScore(contest, viewer.id);
   const problems = validateContest(contest);
 
-  function confirm() {
-    if (pending === "open") {
-      setStatus("open");
-      show("success", t("toast.opened"));
-    } else if (pending === "close") {
-      setStatus("closed");
-      show("success", t("toast.closed"));
+  async function confirm() {
+    const action = pending;
+    if (!action) return;
+    setBusy(true);
+    try {
+      setContest(await (action === "open" ? openContest(contest.id) : closeContest(contest.id)));
+      show("success", t(action === "open" ? "toast.opened" : "toast.closed"));
+    } catch (error) {
+      show("danger", tcommon(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setBusy(false);
+      setPending(null);
     }
-    setPending(null);
   }
 
   return (
@@ -170,7 +177,8 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
         confirmLabel={t(pending === "close" ? "confirmClose.confirm" : "confirmOpen.confirm")}
         cancelLabel={t("cancel")}
         variant={pending === "close" ? "danger" : "primary"}
-        onConfirm={confirm}
+        busy={busy}
+        onConfirm={() => void confirm()}
         onClose={() => setPending(null)}
       />
       {toast}

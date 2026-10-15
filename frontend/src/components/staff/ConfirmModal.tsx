@@ -11,12 +11,14 @@ type ConfirmModalProps = {
   cancelLabel: string;
   /** `danger` for anything destructive. */
   variant?: ButtonVariant;
+  /** The action is running: the confirm button waits. */
+  busy?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 };
 
 /** A yes/no question before something that is hard to undo. */
-export function ConfirmModal({ open, title, body, confirmLabel, cancelLabel, variant = "danger", onConfirm, onClose }: ConfirmModalProps) {
+export function ConfirmModal({ open, title, body, confirmLabel, cancelLabel, variant = "danger", busy = false, onConfirm, onClose }: ConfirmModalProps) {
   return (
     <Modal
       open={open}
@@ -27,7 +29,7 @@ export function ConfirmModal({ open, title, body, confirmLabel, cancelLabel, var
           <Button variant="neutral" onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button variant={variant} onClick={onConfirm}>
+          <Button variant={variant} disabled={busy} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </>

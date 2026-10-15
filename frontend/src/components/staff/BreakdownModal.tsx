@@ -4,22 +4,22 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Table, Td, Th } from "@/components/ui/Table";
-import { entryBreakdown } from "@/lib/contestScoring";
-import type { Contest, Entry, RankedEntry } from "@/types/contest";
+import type { BreakdownRow, Contest, Entry, RankedEntry } from "@/types/contest";
 
 type BreakdownModalProps = {
   contest: Contest;
   /** The entry to explain, or null when the modal is closed. */
   ranked: RankedEntry | null;
+  /** The jury members' scores for that entry, as the server sent them. */
+  rows: readonly BreakdownRow[];
   onClose: () => void;
 };
 
 /** Every finished jury member's scores for one entry, and the average. Owner and admins only. */
-export function BreakdownModal({ contest, ranked, onClose }: BreakdownModalProps) {
+export function BreakdownModal({ contest, ranked, rows, onClose }: BreakdownModalProps) {
   const t = useTranslations("contest.results");
   const format = useFormatter();
   const entry: Entry | undefined = ranked?.entry;
-  const rows = entry ? entryBreakdown(contest, entry.id) : [];
   const two = (value: number) => format.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (

@@ -16,6 +16,7 @@ from app.game import ratelimit
 from app.game.hub import Conn
 from app.game.models import GameError
 from app.game.runtime import get_engine, get_hub
+from app.netutil import client_ip
 from app.redis import get_redis
 from app.repositories import users as users_repo
 from app.security import decode_player_token, decode_token
@@ -62,12 +63,8 @@ async def _read(ws: WebSocket) -> Any | None:
         return None
 
 
-def _ip(ws: WebSocket) -> str:
-    return ws.client.host if ws.client else "unknown"
-
-
 async def _too_many_connections(ws: WebSocket) -> bool:
-    return not await ratelimit.allow(get_redis(), f"rl:ws:{_ip(ws)}", CONNECT_LIMIT, CONNECT_WINDOW_S)
+    return not await ratelimit.allow(get_redis(), f"rl:ws:{client_ip(ws)}", CONNECT_LIMIT, CONNECT_WINDOW_S)
 
 
 # --- host ---------------------------------------------------------------------------------------

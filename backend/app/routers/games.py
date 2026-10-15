@@ -6,6 +6,7 @@ from app.deps import CurrentUser, Session
 from app.errors import ApiError
 from app.game import ratelimit
 from app.game.runtime import get_engine
+from app.netutil import client_ip
 from app.redis import get_redis
 from app.schemas.game import (
     CreateGameIn,
@@ -21,10 +22,6 @@ from app.services import games as service
 from app.services import quizzes as quizzes_service
 
 router = APIRouter(prefix="/games", tags=["games"])
-
-
-def client_ip(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
 
 
 async def _limit(request: Request, what: str, limit: int, window_s: int) -> None:

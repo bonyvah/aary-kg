@@ -1,10 +1,27 @@
-from fastapi import FastAPI
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
+from app.config import get_settings
+from app.db import engine
 from app.errors import register_error_handlers
 from app.middleware import BodyLimitMiddleware, SecurityHeadersMiddleware
+from app.redis import get_redis
 from app.routers import admin_users, auth, contests, games, quizzes, users, ws
 
-app = FastAPI(title="aary kg", docs_url="/docs")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    get_settings().check_production()  # unsafe production settings stop the app here
+    yield
+    await get_redis().aclose()
+    await engine.dispose()
+
+
+app = FastAPI(title="aary kg", docs_url="/docs", lifespan=lifespan)
 app.add_middleware(BodyLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 register_error_handlers(app)
@@ -21,3 +38,23 @@ app.include_router(ws.router)
 async def health() -> dict[str, str]:
     """The process is up. Cheap, for a liveness probe."""
     return {"status": "ok"}
+
+
+@app.get("/health/ready")
+async def ready() -> JSONResponse:
+    """Can it do its job: Postgres and Redis both answer. 503 if either does not."""
+    checks = {"postgres": False, "redis": False}
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        checks["postgres"] = True
+    except Exception:
+        pass
+    try:
+        checks["redis"] = bool(await get_redis().ping())
+    except Exception:
+        pass
+    healthy = all(checks.values())
+    return JSONResponse(
+        {"status": "ok" if healthy else "unavailable", **checks}, status_code=200 if healthy else 503
+    )

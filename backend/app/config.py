@@ -22,6 +22,27 @@ class Settings(BaseSettings):
     # (the site's own host is always allowed).
     allowed_origins: str = ""
 
+    def check_production(self) -> None:
+        """Refuse to start in production with settings that would quietly weaken security."""
+        if self.env != "production":
+            return
+        problems = []
+        if not self.cookie_secure:
+            problems.append(
+                "AARY_COOKIE_SECURE must be true (the session cookie must only travel over https)"
+            )
+        secret = self.jwt_secret.lower()
+        if any(word in secret for word in ("change-me", "changeme", "dev-secret", "test-secret", "example")):
+            problems.append("AARY_JWT_SECRET is a placeholder: generate a real one")
+        if len(set(self.jwt_secret)) < 12:
+            problems.append("AARY_JWT_SECRET has too little variety: generate a random one")
+        if not self.allowed_origin_list:
+            problems.append(
+                "AARY_ALLOWED_ORIGINS must list the public site origin, e.g. https://quiz.example"
+            )
+        if problems:
+            raise RuntimeError("Unsafe production settings:\n- " + "\n- ".join(problems))
+
     @property
     def allowed_origin_list(self) -> list[str]:
         return [o.strip().rstrip("/").lower() for o in self.allowed_origins.split(",") if o.strip()]

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Gear } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { IconButton } from "@/components/ui/IconButton";
 import { useToast } from "@/components/ui/useToast";
 import type { ManagedUser } from "@/types/user";
 import { ChangeLoginModal } from "./ChangeLoginModal";
@@ -33,15 +33,9 @@ export function StaffMenu() {
 
   return (
     <>
-      <Button
-        variant="secondary"
-        aria-haspopup="dialog"
-        aria-label={tm("title")}
-        onClick={() => setView("settings")}
-        className="size-11 p-0!"
-      >
-        <Icon icon={Gear} weight="bold" />
-      </Button>
+      <IconButton label={tm("title")} aria-haspopup="dialog" onClick={() => setView("settings")}>
+        <Icon icon={Gear} weight="bold" size={28} />
+      </IconButton>
       <SettingsModal
         open={view === "settings"}
         onClose={closeIf("settings")}

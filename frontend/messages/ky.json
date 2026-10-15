@@ -441,6 +441,11 @@
   },
   "host": {
     "bar": {
+      "pin": "PIN коду:",
+      "showQr": "QR кодду көрсөтүү",
+      "joinTitle": "Оюнга кошул",
+      "closeQr": "Жабуу",
+      "qrLabel": "QR код",
       "players": "{count, plural, one {# ойноочу} other {# ойноочу}}",
       "soundMute": "Үндү өчүрүү",
       "soundUnmute": "Үндү күйгүзүү",

@@ -113,6 +113,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <HostTopBar
+        pin={state.pin}
         playerCount={state.players.length}
         soundOn={soundOn}
         onToggleSound={() => setSoundOn((on) => !on)}

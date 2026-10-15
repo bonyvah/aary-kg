@@ -429,6 +429,11 @@
   },
   "host": {
     "bar": {
+      "pin": "PIN-код:",
+      "showQr": "Показать QR-код",
+      "joinTitle": "Присоединяйся к игре",
+      "closeQr": "Закрыть",
+      "qrLabel": "QR-код",
       "players": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
       "soundMute": "Выключить звук",
       "soundUnmute": "Включить звук",

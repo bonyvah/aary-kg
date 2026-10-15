@@ -6,16 +6,18 @@ import { ArrowsIn, ArrowsOut, Gear, SpeakerHigh, SpeakerSlash, User } from "@pho
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Logo } from "@/components/ui/Logo";
+import { JoinInfo } from "./JoinInfo";
 
 type HostTopBarProps = {
+  pin: string;
   playerCount: number;
   soundOn: boolean;
   onToggleSound: () => void;
   onOpenSettings: () => void;
 };
 
-/** Top bar of every host screen: logo on the left, player count, sound, settings and fullscreen on the right. */
-export function HostTopBar({ playerCount, soundOn, onToggleSound, onOpenSettings }: HostTopBarProps) {
+/** Top bar of every host screen: the PIN and QR button on the left, the logo in the middle, player count, sound, settings and fullscreen on the right. */
+export function HostTopBar({ pin, playerCount, soundOn, onToggleSound, onOpenSettings }: HostTopBarProps) {
   const t = useTranslations("host.bar");
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -33,8 +35,8 @@ export function HostTopBar({ playerCount, soundOn, onToggleSound, onOpenSettings
   return (
     <header className="bg-surface-raised">
       <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-2">
+        <JoinInfo pin={pin} />
         <Logo />
-        <div />
         <div className="flex items-center justify-end gap-1">
           <span
             role="img"

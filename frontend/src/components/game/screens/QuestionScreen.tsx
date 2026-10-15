@@ -4,6 +4,7 @@ import type { PlayerQuestion } from "@/types/game";
 import { AnswerTile, type AnswerPosition } from "../AnswerTile";
 import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
+import { WaitingForOthers } from "./WaitingForOthers";
 
 const POSITIONS = [
   { position: 1, shape: "red" },
@@ -15,7 +16,7 @@ const POSITIONS = [
 type QuestionScreenProps = {
   question: PlayerQuestion;
   secondsLeft: number;
-  /** The locked answer. While it is set, the tiles do not react and the player waits. */
+  /** The locked answer. While it is set, the question and tiles give way to the waiting view. */
   selected: AnswerPosition | null;
   onAnswer: (position: AnswerPosition) => void;
   onLeave: () => void;
@@ -32,25 +33,25 @@ export function QuestionScreen({ question, secondsLeft, selected, onAnswer, onLe
       topLeft={<Badge>{t("counter", { current: question.index, total: question.total })}</Badge>}
       onLeave={onLeave}
     >
-      <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
-      <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
-      <div className="mt-auto flex flex-col gap-4">
-        {locked ? <p className="text-center text-body font-bold">{t("waiting")}</p> : null}
-        <div className="grid grid-cols-2 gap-4 pb-2">
-          {POSITIONS.map(({ position, shape }) => (
-            <AnswerTile
-              key={position}
-              shapeOnly
-              position={position}
-              pressed={selected === position}
-              aria-label={tc(`answerShape.${shape}`)}
-              onClick={() => onAnswer(position)}
-              disabled={locked}
-              className={locked ? "pointer-events-none" : undefined}
-            />
-          ))}
-        </div>
-      </div>
+      {locked ? (
+        <WaitingForOthers secondsLeft={secondsLeft} total={question.seconds} />
+      ) : (
+        <>
+          <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
+          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
+          <div className="mt-auto grid grid-cols-2 gap-4 pb-2">
+            {POSITIONS.map(({ position, shape }) => (
+              <AnswerTile
+                key={position}
+                shapeOnly
+                position={position}
+                aria-label={tc(`answerShape.${shape}`)}
+                onClick={() => onAnswer(position)}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </PlayerScreen>
   );
 }

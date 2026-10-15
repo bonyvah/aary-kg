@@ -34,9 +34,8 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
             pin
             label={t("join.pinLabel")}
             placeholder={t("join.pinPlaceholder")}
-            maxLength={6}
             value={pin}
-            onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))}
+            onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 6))}
             error={error ? t(errorMessageKey[error]) : undefined}
           />
         </div>

@@ -56,7 +56,7 @@ export function JuryScreen({ contest }: { contest: Contest }) {
           <ButtonLink href={`/contests/${contest.id}`} variant="neutral">
             {t("back")}
           </ButtonLink>
-          <StaffMenu name={mockCurrentUser.name} />
+          <StaffMenu />
         </div>
       }
     >

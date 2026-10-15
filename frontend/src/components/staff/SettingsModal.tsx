@@ -2,18 +2,19 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import { Modal } from "@/components/ui/Modal";
+import { useCurrentUser, useSession } from "./SessionProvider";
 
 type SettingsModalProps = {
   open: boolean;
   onClose: () => void;
-  name: string;
 };
 
 /** Account settings: who is signed in, the language switcher and sign out. */
-export function SettingsModal({ open, onClose, name }: SettingsModalProps) {
+export function SettingsModal({ open, onClose }: SettingsModalProps) {
+  const { name } = useCurrentUser();
+  const session = useSession();
   const t = useTranslations("staff.menu");
   const tc = useTranslations("common");
 
@@ -27,9 +28,9 @@ export function SettingsModal({ open, onClose, name }: SettingsModalProps) {
           <Button variant="neutral" onClick={onClose}>
             {t("close")}
           </Button>
-          <ButtonLink href="/login" variant="danger">
+          <Button variant="danger" onClick={() => void session?.signOut()}>
             {t("signOut")}
-          </ButtonLink>
+          </Button>
         </>
       }
     >

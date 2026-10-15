@@ -85,7 +85,7 @@ export function AdminScreen() {
           <ButtonLink href="/dashboard" variant="neutral">
             {t("toDashboard")}
           </ButtonLink>
-          <StaffMenu name={mockCurrentUser.name} />
+          <StaffMenu />
         </div>
       }
     >

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AvatarInitial } from "@/components/game/Avatar";
+import { useCurrentUser } from "./SessionProvider";
 import { SettingsModal } from "./SettingsModal";
 
 /** The initial in a circle opens the account settings. */
-export function StaffMenu({ name }: { name: string }) {
+export function StaffMenu() {
+  const { name } = useCurrentUser();
   const t = useTranslations("staff.menu");
   const [open, setOpen] = useState(false);
 
@@ -20,7 +22,7 @@ export function StaffMenu({ name }: { name: string }) {
       >
         <AvatarInitial name={name} />
       </button>
-      <SettingsModal open={open} onClose={() => setOpen(false)} name={name} />
+      <SettingsModal open={open} onClose={() => setOpen(false)} />
     </>
   );
 }

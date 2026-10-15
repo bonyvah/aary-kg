@@ -7,7 +7,6 @@ import { SettingsModal } from "@/components/staff/SettingsModal";
 import { useHostFlow } from "@/lib/hostFlow/useHostFlow";
 import type { HostPhase } from "@/lib/hostFlow/reducer";
 import { standingsAfter, MOCK_GAME_PIN } from "@/mocks/hostGame";
-import { mockCurrentUser } from "@/mocks/staff";
 import type { Quiz } from "@/types/quiz";
 import { DemoBar } from "./DemoBar";
 import { HostCountsScreen } from "./HostCountsScreen";
@@ -82,7 +81,7 @@ function HostRun({ quiz, onRestart }: { quiz: Quiz; onRestart: () => void }) {
           </div>
         ) : null}
       </main>
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} name={mockCurrentUser.name} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

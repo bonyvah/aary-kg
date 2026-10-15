@@ -51,7 +51,7 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
           <ButtonLink href="/dashboard" variant="neutral">
             {t("back")}
           </ButtonLink>
-          <StaffMenu name={viewer.name} />
+          <StaffMenu />
         </div>
       }
     >

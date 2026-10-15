@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { mockCurrentUser } from "@/mocks/staff";
+import { useCurrentUser } from "./SessionProvider";
 import { contestsForUser } from "@/mocks/contests";
 import { mockQuizSummaries } from "@/mocks/quizzes";
 import { ContestCard } from "./ContestCard";
@@ -18,6 +19,7 @@ const TABS = ["quizzes", "contests"] as const;
 type Tab = (typeof TABS)[number];
 
 export function DashboardScreen() {
+  const user = useCurrentUser();
   const t = useTranslations("staff.dashboard");
   const [tab, setTab] = useState<Tab>("quizzes");
   const idBase = useId();
@@ -27,12 +29,12 @@ export function DashboardScreen() {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          {mockCurrentUser.role === "admin" ? (
+          {user.role === "admin" ? (
             <ButtonLink href="/admin" variant="neutral">
               {t("admin")}
             </ButtonLink>
           ) : null}
-          <StaffMenu name={mockCurrentUser.name} />
+          <StaffMenu />
         </div>
       }
     >

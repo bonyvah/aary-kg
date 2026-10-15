@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Table, Td, Th } from "@/components/ui/Table";
-import { mockCurrentUser } from "@/mocks/staff";
 import type { GameReport } from "@/types/report";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -27,7 +26,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
   const minutes = Math.max(1, Math.round(report.durationSeconds / 60));
 
   return (
-    <StaffShell topRight={<StaffMenu name={mockCurrentUser.name} />}>
+    <StaffShell topRight={<StaffMenu />}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{report.quizTitle}</h1>

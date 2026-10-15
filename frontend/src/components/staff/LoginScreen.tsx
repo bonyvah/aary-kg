@@ -8,22 +8,34 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { mockLogin } from "@/lib/mockAuth";
-import type { StaffErrorCode } from "@/types/staff";
+import { login as signIn } from "@/lib/api/auth";
+import { ApiRequestError, toKnownCode } from "@/lib/api/client";
+import { useSession } from "./SessionProvider";
 import { StaffShell } from "./StaffShell";
 
 export function LoginScreen() {
   const t = useTranslations("staff.login");
+  const tc = useTranslations("common");
   const router = useRouter();
+  const session = useSession();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<StaffErrorCode | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const result = mockLogin(login, password);
-    setError(result);
-    if (result === null) router.push("/dashboard");
+    if (login.trim() === "" || password === "") return setError(t("errors.CREDENTIALS_REQUIRED"));
+    setBusy(true);
+    try {
+      const user = await signIn(login, password);
+      session?.signedIn(user);
+      router.push("/dashboard");
+    } catch (failure) {
+      const code = failure instanceof ApiRequestError ? failure.code : "";
+      setError(code === "INVALID_CREDENTIALS" ? t("errors.INVALID_CREDENTIALS") : tc(`apiError.${toKnownCode(failure)}`));
+      setBusy(false);
+    }
   }
 
   return (
@@ -44,9 +56,9 @@ export function LoginScreen() {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            error={error ? t(`errors.${error}`) : undefined}
+            error={error ?? undefined}
           />
-          <Button type="submit" size="lg" block>
+          <Button type="submit" size="lg" block disabled={busy}>
             {t("submit")}
           </Button>
         </form>

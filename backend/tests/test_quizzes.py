@@ -33,13 +33,22 @@ async def test_create_get_list_and_update(as_user):
 
 async def test_blank_fields_are_reported_with_editor_keys(as_user):
     c, _ = await as_user("ulan")
-    bad = quiz(title=" ", questions=[question("a", text=""), question("b", answers=["1", "", "3", " "])])
+    bad = quiz(title=" ", questions=[question("a", text=""), question("b", answers=["1", "", "", " "])])
     r = await c.post("/quizzes", json=bad)
     assert r.status_code == 400 and r.json()["code"] == "QUIZ_INVALID"
     fields = [i["field"] for i in r.json()["issues"]]
-    assert fields == ["title", "a:text", "b:answer:2", "b:answer:4"]
+    assert fields == ["title", "a:text", "b:answer:2", "b:answer:3", "b:answer:4"]
     assert all(i["code"] == "FIELD_REQUIRED" for i in r.json()["issues"])
     assert (await c.get("/quizzes")).json() == []  # nothing saved
+
+
+async def test_two_filled_answers_are_enough_if_the_correct_one_is_among_them(as_user):
+    c, _ = await as_user("ulan")
+    two = question("a", answers=["1", "", "3", ""], correct=3)
+    assert (await c.post("/quizzes", json=quiz(questions=[two]))).status_code == 201
+    blank_correct = question("b", answers=["1", "", "3", ""], correct=2)
+    r = await c.post("/quizzes", json=quiz(questions=[blank_correct]))
+    assert r.status_code == 400 and [i["field"] for i in r.json()["issues"]] == ["b:answer:2"]
 
 
 async def test_shape_errors_are_validation_errors(as_user):

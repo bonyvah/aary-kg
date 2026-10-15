@@ -70,10 +70,12 @@ export function validateQuiz(quiz: Quiz): string[] {
   const missing: string[] = [];
   if (quiz.title.trim() === "") missing.push("title");
   for (const question of quiz.questions) {
-    if (question.text.trim() === "") missing.push(textKey(question.id));
-    question.answers.forEach((answer, index) => {
-      if (answer.trim() === "") missing.push(answerKey(question.id, (index + 1) as AnswerPosition));
-    });
+    missing.push(...missingForNext(question));
+    // The right answer has to be one that has text.
+    const correctKey = answerKey(question.id, question.correct as AnswerPosition);
+    if ((question.answers[question.correct - 1] ?? "").trim() === "" && !missing.includes(correctKey)) {
+      missing.push(correctKey);
+    }
   }
   return missing;
 }

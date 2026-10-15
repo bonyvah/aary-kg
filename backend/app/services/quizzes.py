@@ -8,18 +8,26 @@ from app.models.user import User
 from app.repositories import quizzes as repo
 from app.schemas.quiz import QuizIn
 
+MIN_FILLED_ANSWERS = 2
+
 
 def find_issues(payload: QuizIn) -> list[dict[str, str]]:
-    """Blank fields, reported with the same keys the editor uses: title, <id>:text, <id>:answer:<n>."""
+    """Blank fields, reported with the same keys the editor uses: title, <id>:text, <id>:answer:<n>.
+
+    A question needs its text and at least two answers with text; the correct one must be among them.
+    Blank answers are reported only when too few are filled, plus the correct one if it is blank.
+    """
     issues: list[dict[str, str]] = []
     if not payload.title.strip():
         issues.append({"code": "FIELD_REQUIRED", "field": "title"})
     for q in payload.questions:
         if not q.text.strip():
             issues.append({"code": "FIELD_REQUIRED", "field": f"{q.id}:text"})
-        for position, answer in enumerate(q.answers, start=1):
-            if not answer.strip():
-                issues.append({"code": "FIELD_REQUIRED", "field": f"{q.id}:answer:{position}"})
+        blank = [n for n, answer in enumerate(q.answers, start=1) if not answer.strip()]
+        flagged = blank if len(q.answers) - len(blank) < MIN_FILLED_ANSWERS else []
+        if q.correct in blank and q.correct not in flagged:
+            flagged = sorted([*flagged, q.correct])
+        issues.extend({"code": "FIELD_REQUIRED", "field": f"{q.id}:answer:{n}"} for n in flagged)
     return issues
 
 

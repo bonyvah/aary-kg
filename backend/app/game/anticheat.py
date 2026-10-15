@@ -47,6 +47,18 @@ def _same_timing_questions(answers_by_player: Mapping[str, Sequence[Answer]]) ->
     return hits
 
 
+def flags_from_results(
+    results: Mapping[int, Mapping[str, Mapping[str, object]]],
+    signals: Mapping[str, Mapping[str, int]],
+) -> dict[str, list[dict[str, int | str]]]:
+    """Flags of a finished game. results[round][player id] = {ms, correct, ...} as the engine stored them."""
+    by_player: dict[str, list[Answer]] = {}
+    for rnd, per_player in results.items():
+        for pid, r in per_player.items():
+            by_player.setdefault(pid, []).append(Answer(rnd, int(r["ms"]), bool(r["correct"])))  # type: ignore[call-overload]
+    return compute_flags(by_player, signals)
+
+
 def compute_flags(
     answers_by_player: Mapping[str, Sequence[Answer]],
     signals: Mapping[str, Mapping[str, int]],

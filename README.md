@@ -2,7 +2,7 @@
 
 A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based contest mode. Built for a small community: a handful of admins, a limited number of users, and players who just join with a PIN.
 
-> Status: Phase 5 in progress. All screens exist; the backend is being built slice by slice and the screens are wired to it as each piece lands (auth and admin users are live).
+> Status: Phase 5 in progress. All screens exist; the backend is being built slice by slice and the screens are wired to it as each piece lands (auth, admin users, quizzes and contests are live; live games are next).
 
 ## What it does
 

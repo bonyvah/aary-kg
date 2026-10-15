@@ -36,10 +36,15 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
 
   if (!question) return null;
 
+  function chooseSeconds(seconds: number) {
+    customSeconds.move(question?.seconds ?? seconds, seconds);
+    editor.setSeconds(seconds);
+  }
+
   const required = t("errors.FIELD_REQUIRED");
   // The presets, the times typed earlier and the times already in this quiz, in one ascending list.
   const secondsOptions = Array.from(
-    new Set([...SECONDS_OPTIONS, ...customSeconds.values, ...state.quiz.questions.map((q) => q.seconds)]),
+    new Set([...SECONDS_OPTIONS, ...customSeconds.popular, ...state.quiz.questions.map((q) => q.seconds)]),
   )
     .sort((a, b) => a - b)
     .map((seconds) => ({ value: seconds, label: String(seconds) }));
@@ -116,15 +121,12 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
               value={question.seconds}
               options={secondsOptions}
               selectedLabel={t("timeOption", { seconds: question.seconds })}
-              onChange={editor.setSeconds}
+              onChange={chooseSeconds}
               custom={{
                 label: t("customTimeLabel"),
                 min: MIN_SECONDS,
                 max: MAX_SECONDS,
-                onCommit: (seconds) => {
-                  customSeconds.add(seconds);
-                  editor.setSeconds(seconds);
-                },
+                onCommit: chooseSeconds,
               }}
             />
             <Button

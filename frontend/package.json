@@ -17,7 +17,8 @@
     "tokens:check": "node scripts/generate-tokens.mjs --check",
     "lint": "node scripts/generate-tokens.mjs --check && eslint",
     "check:player": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-player-flow.mts",
-    "check:host": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-host-flow.mts"
+    "check:host": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-host-flow.mts",
+    "check:bundle": "node scripts/check-player-bundle.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

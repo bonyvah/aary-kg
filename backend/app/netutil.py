@@ -1,4 +1,5 @@
 import ipaddress
+from urllib.parse import urlparse
 
 from starlette.requests import HTTPConnection
 
@@ -24,3 +25,20 @@ def client_ip(conn: HTTPConnection) -> str:
         return str(ipaddress.ip_address(candidate))
     except ValueError:
         return peer  # not an address (garbage or a hostname): never use it as a rate limit key
+
+
+def origin_allowed(conn: HTTPConnection) -> bool:
+    """May this page open a game WebSocket? Browsers always send an Origin on a WebSocket, and a
+    page on another site would send its own: refusing those stops cross-site hijacking of a
+    logged-in host's cookie. Clients that are not browsers send none, and have no cookie to abuse.
+
+    Allowed: no Origin, an origin listed in AARY_ALLOWED_ORIGINS, or (when nothing is listed) the
+    site's own host. Behind a proxy that rewrites the Host header, list the public origin.
+    """
+    origin = conn.headers.get("origin")
+    if origin is None:
+        return True
+    listed = get_settings().allowed_origin_list
+    if listed:
+        return origin.rstrip("/").lower() in listed
+    return urlparse(origin).netloc.lower() == conn.headers.get("host", "").lower()

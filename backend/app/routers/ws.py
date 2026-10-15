@@ -16,7 +16,7 @@ from app.game import ratelimit
 from app.game.hub import Conn
 from app.game.models import GameError
 from app.game.runtime import get_engine, get_hub
-from app.netutil import client_ip
+from app.netutil import client_ip, origin_allowed
 from app.redis import get_redis
 from app.repositories import users as users_repo
 from app.security import decode_player_token, decode_token
@@ -63,8 +63,13 @@ async def _read(ws: WebSocket) -> Any | None:
         return None
 
 
-async def _too_many_connections(ws: WebSocket) -> bool:
-    return not await ratelimit.allow(get_redis(), f"rl:ws:{client_ip(ws)}", CONNECT_LIMIT, CONNECT_WINDOW_S)
+async def _refuse(ws: WebSocket) -> int | None:
+    """Close code if this connection must not go on: a foreign page, or too many connections."""
+    if not origin_allowed(ws):
+        return FORBIDDEN
+    if not await ratelimit.allow(get_redis(), f"rl:ws:{client_ip(ws)}", CONNECT_LIMIT, CONNECT_WINDOW_S):
+        return RATE_LIMITED
+    return None
 
 
 # --- host ---------------------------------------------------------------------------------------
@@ -73,8 +78,8 @@ async def _too_many_connections(ws: WebSocket) -> bool:
 @router.websocket("/ws/host/{game_id}")
 async def host_socket(ws: WebSocket, game_id: str) -> None:
     await ws.accept()
-    if await _too_many_connections(ws):
-        return await ws.close(code=RATE_LIMITED)
+    if (refused := await _refuse(ws)) is not None:
+        return await ws.close(code=refused)
 
     token = ws.cookies.get(COOKIE_NAME)
     sub = decode_token(token) if token else None
@@ -132,8 +137,8 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
 @router.websocket("/ws/play")
 async def player_socket(ws: WebSocket) -> None:
     await ws.accept()
-    if await _too_many_connections(ws):
-        return await ws.close(code=RATE_LIMITED)
+    if (refused := await _refuse(ws)) is not None:
+        return await ws.close(code=refused)
 
     # The token is the first message, not part of the URL: URLs end up in logs.
     try:

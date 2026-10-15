@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # (the site's own host is always allowed).
     allowed_origins: str = ""
 
+    @property
+    def allowed_origin_list(self) -> list[str]:
+        return [o.strip().rstrip("/").lower() for o in self.allowed_origins.split(",") if o.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:

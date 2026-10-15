@@ -58,6 +58,12 @@ class Peer:
             await asyncio.sleep(0.01)
         raise AssertionError(f"no {type_!r} #{count} in {[e['type'] for e in self.events]}")
 
+    async def wait_first(self, timeout=4):
+        """Waits until the server has sent anything, or closed the connection."""
+        end = asyncio.get_running_loop().time() + timeout
+        while not self.events and self.closed is None and asyncio.get_running_loop().time() < end:
+            await asyncio.sleep(0.01)
+
     async def wait_closed(self, timeout=4):
         end = asyncio.get_running_loop().time() + timeout
         while self.closed is None and asyncio.get_running_loop().time() < end:
@@ -82,6 +88,9 @@ class Room:
         headers = {"Cookie": f"aary_token={cookie or self.host_cookie}"}
         peer = Peer(await connect(f"{self.base}/ws/host/{self.game['gameId']}", additional_headers=headers))
         self.peers.append(peer)
+        # The server has attached this screen once it sends its snapshot (or closes it). Until then
+        # an event published right away, like a player joining, could be missed.
+        await peer.wait_first()
         return peer
 
     async def join(self, nickname):

@@ -30,14 +30,6 @@ async def test_resetting_one_user_leaves_other_sessions_alone(client, as_user):
     assert (await admin.get("/auth/me")).status_code == 200
 
 
-async def test_an_admin_resetting_their_own_password_signs_themselves_out(as_user):
-    admin, me = await as_user("root", role="admin")
-    new = (await admin.post(f"/admin/users/{me.id}/reset-password")).json()["password"]
-    assert (await admin.get("/auth/me")).status_code == 401
-    await login_as(admin, "root", new)
-    assert (await admin.get("/auth/me")).status_code == 200
-
-
 async def test_token_claims_and_forgeries():
     token = create_token("abc", 3)
     assert decode_token(token) == ("abc", 3)

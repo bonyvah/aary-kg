@@ -11,13 +11,14 @@ router = APIRouter(prefix="/admin/users", tags=["admin"])
 
 
 @router.get("", response_model=list[ManagedUser], response_model_by_alias=True)
-async def list_users(_: AdminUser, session: Session) -> list[ManagedUser]:
-    return [ManagedUser.model_validate(u) for u in await repo.list_all(session)]
+async def list_users(actor: AdminUser, session: Session) -> list[ManagedUser]:
+    """Everybody except the admin asking: you manage others, not yourself."""
+    return [ManagedUser.model_validate(u) for u in await repo.list_all(session, exclude=actor.id)]
 
 
 @router.post("", status_code=201, response_model=UserWithPassword, response_model_by_alias=True)
 async def create_user(body: CreateUserIn, _: AdminUser, session: Session) -> UserWithPassword:
-    user, password = await service.create_user(session, body.name, body.login, body.role)
+    user, password = await service.create_user(session, body.name, body.login, "user")
     return UserWithPassword(user=ManagedUser.model_validate(user), password=password)
 
 

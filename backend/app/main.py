@@ -31,6 +31,7 @@ app.include_router(quizzes.router)
 app.include_router(contests.router)
 app.include_router(users.router)
 app.include_router(games.router)
+app.include_router(games.admin_router)
 app.include_router(ws.router)
 
 

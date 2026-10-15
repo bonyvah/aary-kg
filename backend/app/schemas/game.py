@@ -69,6 +69,7 @@ class GameReport(CamelModel):
 class GameSummary(CamelModel):
     id: uuid.UUID
     quiz_title: str
+    owner_name: str  # who hosted it
     finished_at: datetime
     player_count: int
     question_count: int

@@ -46,13 +46,21 @@ async def set_active(session: AsyncSession, actor: User, user_id: uuid.UUID, act
     user = await _get(session, user_id)
     if user.id == actor.id and not active:
         raise ApiError(400, "CANNOT_DISABLE_SELF")
+    _not_an_admin(user)
     user.active = active
     await session.commit()
     return user
 
 
+def _not_an_admin(user: User) -> None:
+    """Admins manage regular users. Another admin can't be disabled or have a password reset from here."""
+    if user.role == "admin":
+        raise ApiError(403, "CANNOT_MANAGE_ADMIN")
+
+
 async def reset_password(session: AsyncSession, user_id: uuid.UUID) -> str:
     user = await _get(session, user_id)
+    _not_an_admin(user)
     password = generate_password()
     user.password_hash = hash_password(password)
     user.token_version += 1  # every open session of this user ends

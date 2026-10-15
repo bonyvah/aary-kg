@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Cross } from "@/components/icons";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
 import { formatPin, JOIN_HOST, joinUrl } from "@/lib/joinLink";
 import type { Player } from "@/types/game";
 import { LobbyChip } from "./LobbyChip";
@@ -41,11 +39,19 @@ export function HostLobbyScreen({ pin, players, onKick, onStart }: HostLobbyScre
 
       <ul aria-label={t("players")} className="flex max-w-[1000px] flex-wrap justify-center gap-3">
         {players.map((player) => (
-          <li key={player.id} className="flex items-center gap-1">
-            <LobbyChip nickname={player.nickname} character={player.character} animate />
-            <IconButton label={t("kick", { name: player.nickname })} onClick={() => onKick(player.id)}>
-              <Cross width={20} height={20} />
-            </IconButton>
+          <li key={player.id}>
+            {/* Clicking a player removes them; the name is struck through on hover as the warning. */}
+            <button
+              type="button"
+              aria-label={t("kick", { name: player.nickname })}
+              onClick={() => onKick(player.id)}
+              className={
+                "group cursor-pointer rounded-full " +
+                "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              }
+            >
+              <LobbyChip nickname={player.nickname} character={player.character} animate />
+            </button>
           </li>
         ))}
       </ul>

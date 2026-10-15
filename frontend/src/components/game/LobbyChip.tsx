@@ -22,7 +22,7 @@ export function LobbyChip({ nickname, character, animate = false, className }: L
       )}
     >
       <Avatar character={character} />
-      <span className="min-w-0 [overflow-wrap:anywhere]">{nickname}</span>
+      <span className="min-w-0 [overflow-wrap:anywhere] group-hover:line-through group-focus-visible:line-through">{nickname}</span>
     </span>
   );
 }

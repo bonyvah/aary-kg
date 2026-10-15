@@ -40,9 +40,9 @@ const ended = run([server({ type: "game.ended", gameId: "g1", standings: [row("a
 check("the end shows the podium and knows which game to report", ended.phase === "podium" && ended.gameId === "g1");
 
 const snap = (over: Partial<Extract<HostEvent, { type: "host.state" }>>): HostFlowEvent =>
-  server({ type: "host.state", gameId: "g1", pin: "123456", shuffle: false, phase: "lobby", total: 3, players: [], question: null, remainingMs: null, answered: 0, counts: null, correct: null, standings: null, ...over });
+  server({ type: "host.state", gameId: "g1", pin: "123456", phase: "lobby", total: 3, players: [], question: null, remainingMs: null, answered: 0, counts: null, correct: null, standings: null, ...over });
 const fresh = (over: Partial<Extract<HostEvent, { type: "host.state" }>>) => run([snap(over)]);
-check("snapshot in the lobby keeps the shuffle setting", fresh({ shuffle: true }).shuffle === true && fresh({}).phase === "lobby" && fresh({}).round === 0);
+check("snapshot in the lobby", fresh({}).phase === "lobby" && fresh({}).round === 0);
 check("snapshot mid-question restores the clock, the answer count and the question", fresh({ phase: "question", question, remainingMs: 7400, answered: 2, players: [player("a"), player("b")] }).secondsLeft === 8 && fresh({ phase: "question", question, remainingMs: 7400, answered: 2 }).answered === 2 && fresh({ phase: "question", question, remainingMs: 7400 }).round === 1);
 check("snapshot on the counts screen restores counts and the right answer", fresh({ phase: "counts", question, counts: [0, 2, 0, 0], correct: 2 }).counts?.join() === "0,2,0,0" && fresh({ phase: "counts", question, counts: [0, 2, 0, 0], correct: 2 }).correct === 2);
 check("snapshot on the leaderboard and at the end", fresh({ phase: "leaderboard", standings: [row("a", 1, 5)] }).phase === "leaderboard" && fresh({ phase: "ended", standings: [row("a", 1, 5)] }).phase === "podium");

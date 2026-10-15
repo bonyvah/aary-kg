@@ -27,7 +27,7 @@ class ApiError(Exception):
 GAME_STATUS = {
     "GAME_NOT_FOUND": 404,
     "UNKNOWN_PLAYER": 404,
-    "GAME_STARTED": 409,
+    "GAME_ENDED": 409,
     "NICKNAME_TAKEN": 409,
     "GAME_FULL": 409,
     "INVALID_STATE": 409,

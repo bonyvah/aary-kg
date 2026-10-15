@@ -115,8 +115,10 @@ class GameEngine:
 
     async def joinable(self, pin: str) -> GameState:
         state = await self.lookup_pin(pin)
-        if state.phase != "lobby":
-            raise GameError("GAME_STARTED")
+        if state.phase == "ended":
+            raise GameError(
+                "GAME_ENDED"
+            )  # a game in progress can still be joined: the player plays from the next question
         return state
 
     async def join(self, pin: str, nickname: str) -> tuple[GameState, PlayerState]:

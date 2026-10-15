@@ -84,7 +84,7 @@ async def test_joining_while_the_game_starts_loses_nobody(env):  # noqa: F811
     results = await asyncio.gather(env.engine.start(state.id), *(join(i) for i in range(30)))
     joined = [r for r in results[1:] if not isinstance(r, GameError)]
     refused = [r for r in results[1:] if isinstance(r, GameError)]
-    assert all(e.code == "GAME_STARTED" for e in refused)  # the only reason to be turned away
+    assert not refused  # a running game can be joined: nobody is turned away by the start
     players = await env.repo.get_players(state.id)
     assert len(players) == 1 + len(joined)  # everyone who got in is in the game, nobody twice
     assert len({p.id for p in players}) == len(players)

@@ -17,8 +17,8 @@ JSON objects, camelCase keys, `"v": 1` and `"type"` on every message. A client m
 
 | Step | Who | How |
 |---|---|---|
-| Create a lobby | host (staff session) | `POST /games {quizId, shuffleQuestions}` returns `{gameId, pin}`. The quiz is copied into the game. |
-| Check a PIN | player | `GET /games/pin/{pin}` returns 204, or `PIN_INVALID` / `GAME_NOT_FOUND` / `GAME_STARTED` |
+| Create a lobby | host (staff session) | `POST /games {quizId}` returns `{gameId, pin}`. The quiz is copied into the game. |
+| Check a PIN | player | `GET /games/pin/{pin}` returns 204, or `PIN_INVALID` / `GAME_NOT_FOUND` / `GAME_ENDED` (a game that is running can still be joined) |
 | Join | player | `POST /games/join {pin, nickname}` returns `{token, player}`. The token is a JWT good for this player in this game only (12 h); staff routes refuse it. |
 | Host socket | host | `GET /ws/host/{gameId}`, authenticated by the staff session cookie. Only the game's owner (admins do not host). |
 | Player socket | player | `GET /ws/play`, then the **first message** is `{type:"hello", token}` within 5 s (the token is not in the URL, URLs get logged). |
@@ -59,7 +59,7 @@ A correct answer scores `500 + 500 x (time left / time allowed)`, so 500 to 1000
 
 ## Anti-cheat
 - **Nicknames** are trimmed, 1 to 20 characters, no invisible characters. They are compared by a "skeleton" (case, spaces, punctuation and Cyrillic look-alikes of Latin letters ignored), so "Alex" and "Аlех" are the same name. Names containing "admin", "host", "ведущий" ... (look-alikes and digit swaps included) or words from `nickname_blocklist.txt` are refused. Extend that file for the community.
-- **Rate limits** (Redis counters, per client address, see `AARY_TRUSTED_PROXY_HOPS` for how the address is found). A whole classroom often shares one public address, so joining is limited by what an attacker does, not by how many people join: **failed PIN lookups** (a wrong or malformed PIN) 20 per minute, after which that address is refused for the rest of the minute; successful PIN checks 600 per minute, joins 300 per minute, WebSocket connections 600 per minute. A refused nickname or a game that already started does not count as a guess. Player messages are limited to 100 per 10 seconds per player. Staff login: 20 attempts per 10 minutes per address and 8 failed attempts per login (locks it for 15 minutes).
+- **Rate limits** (Redis counters, per client address, see `AARY_TRUSTED_PROXY_HOPS` for how the address is found). A whole classroom often shares one public address, so joining is limited by what an attacker does, not by how many people join: **failed PIN lookups** (a wrong or malformed PIN) 20 per minute, after which that address is refused for the rest of the minute; successful PIN checks 600 per minute, joins 300 per minute, WebSocket connections 600 per minute. A refused nickname or a game that already ended does not count as a guess. Player messages are limited to 100 per 10 seconds per player. Staff login: 20 attempts per 10 minutes per address and 8 failed attempts per login (locks it for 15 minutes).
 - **Flags for the host's report** (hints, never proof, nobody is removed because of them):
 
 | kind | meaning |

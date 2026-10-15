@@ -34,7 +34,7 @@ export type GamePhase =
 export type ErrorCode =
   | "PIN_INVALID"
   | "GAME_NOT_FOUND"
-  | "GAME_STARTED"
+  | "GAME_ENDED"
   | "GAME_FULL"
   | "NICKNAME_INVALID"
   | "NICKNAME_TAKEN"

@@ -99,13 +99,16 @@ async def test_join_errors_are_stable_codes(client, as_user):
     assert r.json()["code"] == "NICKNAME_INVALID"
 
 
-async def test_join_after_start_is_refused(client, as_user):
+async def test_a_running_game_can_be_joined_but_an_ended_one_cannot(client, as_user):
     _, _, _, game = await make_game(as_user)
     await join(client, game["pin"], "Aida")
     await get_engine().start(game["gameId"])
-    r = await join(client, game["pin"], "Late")
-    assert (r.status_code, r.json()["code"]) == (409, "GAME_STARTED")
-    assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_STARTED"
+    assert (await join(client, game["pin"], "Late")).status_code == 200
+    assert (await client.get(f"/games/pin/{game['pin']}")).status_code == 204
+    await get_engine().end(game["gameId"])
+    r = await join(client, game["pin"], "TooLate")
+    assert (r.status_code, r.json()["code"]) == (409, "GAME_ENDED")
+    assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_ENDED"
 
 
 async def test_a_player_token_is_no_staff_credential(client, as_user):
@@ -249,12 +252,13 @@ async def test_wrong_pins_and_malformed_pins_both_count_but_nicknames_do_not(cli
     assert (await client.get(f"/games/pin/{game['pin']}")).status_code == 429
 
 
-async def test_a_game_that_started_is_not_a_guess(client, as_user):
+async def test_a_game_that_ended_is_not_a_guess(client, as_user):
     from app.routers.games import FAILED_PIN_LIMIT
 
     _, _, _, game = await make_game(as_user)
     await join(client, game["pin"], "Aida")
     await get_engine().start(game["gameId"])
+    await get_engine().end(game["gameId"])
     for _ in range(FAILED_PIN_LIMIT + 5):
-        assert (await join(client, game["pin"], "Late")).json()["code"] == "GAME_STARTED"
-    assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_STARTED"
+        assert (await join(client, game["pin"], "Late")).json()["code"] == "GAME_ENDED"
+    assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_ENDED"

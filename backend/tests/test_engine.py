@@ -203,9 +203,12 @@ async def test_start_needs_players_and_only_works_once(env):
     with pytest.raises(GameError) as e:
         await env.engine.start(state.id)
     assert e.value.code == "INVALID_STATE"
+    late, _ = await env.engine.join(state.pin, "Late")  # a running game can still be joined
+    assert late.id == state.id
+    await env.engine.end(state.id)
     with pytest.raises(GameError) as e:
-        await env.engine.join(state.pin, "Late")
-    assert e.value.code == "GAME_STARTED"
+        await env.engine.join(state.pin, "TooLate")
+    assert e.value.code == "GAME_ENDED"
 
 
 async def test_question_order_is_the_quiz_order(env):

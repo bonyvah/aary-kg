@@ -1,23 +1,28 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { AvatarInitial } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/useToast";
-import { generatePassword } from "@/lib/adminUsers";
+import * as api from "@/lib/api/adminUsers";
+import { toKnownCode } from "@/lib/api/client";
+import type { KnownApiCode } from "@/lib/api/client";
 import { mockContests } from "@/mocks/contests";
-import { mockUsers } from "@/mocks/users";
-import { mockCurrentUser } from "@/mocks/staff";
+import { WarningCircle } from "@phosphor-icons/react";
 import type { ManagedUser, UserRole } from "@/types/user";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
 import { PasswordModal } from "./PasswordModal";
+import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
@@ -31,41 +36,69 @@ type Tab = (typeof TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
+  const tc = useTranslations("common");
+  const router = useRouter();
+  const me = useCurrentUser();
   const [tab, setTab] = useState<Tab>("users");
   const idBase = useId();
   const format = useFormatter();
   const { toast, show } = useToast();
-  const [users, setUsers] = useState<readonly ManagedUser[]>(mockUsers);
+  const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
+  const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
   const [creating, setCreating] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
 
-  function createUser(input: { name: string; login: string; role: UserRole }) {
-    const user: ManagedUser = {
-      id: `u-${input.login}`,
-      name: input.name,
-      login: input.login,
-      role: input.role,
-      active: true,
-      createdAt: new Date().toISOString().slice(0, 10),
-    };
-    setUsers((current) => [...current, user]);
+  const loadUsers = useCallback(async () => {
+    setLoadError(null);
+    try {
+      setUsers(await api.listUsers());
+    } catch (error) {
+      setLoadError(toKnownCode(error));
+    }
+  }, []);
+
+  // The server refuses non-admins too; this only keeps them off a screen that would show an error.
+  const isAdmin = me.role === "admin";
+  useEffect(() => {
+    if (!isAdmin) router.replace("/dashboard");
+    else void loadUsers();
+  }, [isAdmin, router, loadUsers]);
+
+  function fail(error: unknown) {
+    show("danger", tc(`apiError.${toKnownCode(error)}`));
+  }
+
+  async function createUser(input: { name: string; login: string; role: UserRole }) {
+    const created = await api.createUser(input);
+    setUsers((current) => [...(current ?? []), created.user]);
     setCreating(false);
-    setRevealed({ name: user.name, password: generatePassword() });
+    setRevealed({ name: created.user.name, password: created.password });
     show("success", t("toast.created"));
   }
 
-  function setActive(user: ManagedUser, active: boolean) {
-    setUsers((current) => current.map((item) => (item.id === user.id ? { ...item, active } : item)));
-    show("success", t(active ? "toast.enabled" : "toast.disabled"));
+  async function setActive(user: ManagedUser, active: boolean) {
+    try {
+      const updated = await api.setUserActive(user.id, active);
+      setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
+      show("success", t(active ? "toast.enabled" : "toast.disabled"));
+    } catch (error) {
+      fail(error);
+    }
   }
 
-  function confirmPending() {
+  async function confirmPending() {
     if (!pending) return;
-    if (pending.kind === "disable") setActive(pending.user, false);
-    else setRevealed({ name: pending.user.name, password: generatePassword() });
+    const { kind, user } = pending;
     setPending(null);
+    if (kind === "disable") return setActive(user, false);
+    try {
+      const { password } = await api.resetPassword(user.id);
+      setRevealed({ name: user.name, password });
+    } catch (error) {
+      fail(error);
+    }
   }
 
   async function copyPassword() {
@@ -109,6 +142,16 @@ export function AdminScreen() {
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "contests" ? (
           <ContestsTable contests={mockContests} />
+        ) : loadError ? (
+          <EmptyState
+            icon={WarningCircle}
+            title={tc(`apiError.${loadError}`)}
+            action={<Button onClick={() => void loadUsers()}>{tc("retry")}</Button>}
+          />
+        ) : users === null ? (
+          <div className="flex justify-center py-8">
+            <Spinner label={tc("loading")} />
+          </div>
         ) : (
         <Table className="min-w-[860px]">
           <thead>
@@ -123,7 +166,7 @@ export function AdminScreen() {
           </thead>
           <tbody>
             {users.map((user) => {
-              const isSelf = user.id === mockCurrentUser.id;
+              const isSelf = user.id === me.id;
               return (
                 <tr key={user.id}>
                   <Td>
@@ -176,14 +219,14 @@ export function AdminScreen() {
         )}
       </div>
 
-      <CreateUserModal open={creating} existing={users} onClose={() => setCreating(false)} onCreate={createUser} />
+      <CreateUserModal open={creating} existing={users ?? []} onClose={() => setCreating(false)} onCreate={createUser} />
       <ConfirmModal
         open={pending !== null}
         title={t(pending?.kind === "reset" ? "confirmReset.title" : "confirmDisable.title")}
         body={t(pending?.kind === "reset" ? "confirmReset.body" : "confirmDisable.body", { name: pending?.user.name ?? "" })}
         confirmLabel={t(pending?.kind === "reset" ? "confirmReset.confirm" : "confirmDisable.confirm")}
         cancelLabel={t("cancel")}
-        onConfirm={confirmPending}
+        onConfirm={() => void confirmPending()}
         onClose={() => setPending(null)}
       />
       <PasswordModal

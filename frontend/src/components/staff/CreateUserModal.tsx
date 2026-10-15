@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
+import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { validateNewUser, type AdminErrorCode } from "@/lib/adminUsers";
 import type { ManagedUser, UserRole } from "@/types/user";
 
@@ -14,7 +15,8 @@ type CreateUserModalProps = {
   open: boolean;
   existing: readonly ManagedUser[];
   onClose: () => void;
-  onCreate: (input: { name: string; login: string; role: UserRole }) => void;
+  /** Rejects with ApiRequestError when the server says no. */
+  onCreate: (input: { name: string; login: string; role: UserRole }) => Promise<void>;
 };
 
 const FORM_ID = "create-user-form";
@@ -23,10 +25,13 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
   const t = useTranslations("admin.create");
   const te = useTranslations("admin.errors");
   const tr = useTranslations("admin.roles");
+  const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [login, setLogin] = useState("");
   const [role, setRole] = useState<UserRole>("user");
   const [errors, setErrors] = useState<{ name?: AdminErrorCode; login?: AdminErrorCode }>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // A fresh form every time it opens.
   useEffect(() => {
@@ -35,14 +40,30 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
       setLogin("");
       setRole("user");
       setErrors({});
+      setFormError(null);
+      setBusy(false);
     }
   }, [open]);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const found = validateNewUser({ name, login }, existing);
     setErrors(found);
-    if (!found.name && !found.login) onCreate({ name: name.trim(), login: login.trim().toLowerCase(), role });
+    setFormError(null);
+    if (found.name || found.login) return;
+    setBusy(true);
+    try {
+      await onCreate({ name: name.trim(), login: login.trim().toLowerCase(), role });
+    } catch (failure) {
+      // The server checks the same rules: its answer for a field shows under that field.
+      const known: readonly string[] = ["FIELD_REQUIRED", "LOGIN_INVALID", "LOGIN_TAKEN"];
+      if (failure instanceof ApiRequestError && known.includes(failure.code) && (failure.field === "name" || failure.field === "login")) {
+        setErrors({ [failure.field]: failure.code as AdminErrorCode });
+      } else {
+        setFormError(tc(`apiError.${toKnownCode(failure)}`));
+      }
+      setBusy(false);
+    }
   }
 
   return (
@@ -55,7 +76,7 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
           <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button type="submit" form={FORM_ID}>
+          <Button type="submit" form={FORM_ID} disabled={busy}>
             {t("submit")}
           </Button>
         </>
@@ -82,6 +103,11 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
           <option value="user">{tr("user")}</option>
           <option value="admin">{tr("admin")}</option>
         </Select>
+        {formError ? (
+          <p role="alert" className="text-caption font-bold text-danger-text">
+            {formError}
+          </p>
+        ) : null}
       </form>
     </Modal>
   );

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
-import { AvatarInitial } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -174,10 +173,7 @@ export function AdminScreen() {
               return (
                 <tr key={user.id}>
                   <Td>
-                    <span className="flex items-center gap-3">
-                      <AvatarInitial name={user.name} />
-                      <span className="min-w-0 break-words font-bold">{user.name}</span>
-                    </span>
+                    <span className="min-w-0 break-words font-bold">{user.name}</span>
                   </Td>
                   <Td>{user.login}</Td>
                   <Td>

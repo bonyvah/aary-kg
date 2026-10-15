@@ -21,7 +21,7 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 ## Product
 
 ### Roles
-- **admin**: few of them. Create/disable users, see everything, manage contests. No self-registration anywhere.
+- **admin**: few of them. Manages the platform, does not use it: creates/disables users (role `user` only, never another admin; other admins are listed without actions, the acting admin is not listed), sees all contests and games and can correct a finished game's data (scores, answers, nicknames, flags; every edit is audited, hosts see it read-only). Admins never create quizzes, contests or host games. No self-registration anywhere.
 - **user**: created by admin. Creates quizzes, hosts live games, creates contests, can be a jury member.
 - **player**: no account, no auth. Joins a live game with a game PIN + nickname.
 
@@ -82,7 +82,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - After the nickname the player gets a random character and can change shape, color and face (or shuffle) in the lobby until the game starts.
 - Build one `Avatar` React component that draws the parts as inline SVG. Never load them as image files. Colors come from the `avatar-*` tokens.
 - Store only the three ids per player (Redis game state) and validate them against the fixed lists on the server. Faces repeat in a game, so the nickname is what identifies a player.
-- NO photo uploads, camera input or custom images, ever. Staff lists use an initial in a circle (`ak-avatar--initial`).
+- NO photo uploads, camera input or custom images, ever. Avatars exist only for players: staff lists (admins, users, juries) show plain names, no avatar or initial circle.
 
 ### Style rules
 - Buttons are chunky with a solid darker bottom edge (about 4px) and a press-down effect. Not soft shadows.

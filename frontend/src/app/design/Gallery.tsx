@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Gear, Trash } from "@phosphor-icons/react/ssr";
-import { Avatar, AvatarInitial } from "@/components/game/Avatar";
+import { Avatar } from "@/components/game/Avatar";
 import { COLORS, FACES, SHAPES, type Character } from "@/components/game/avatar/characters";
 import { AnswerTile } from "@/components/game/AnswerTile";
 import { LeaderboardRow } from "@/components/game/LeaderboardRow";
@@ -261,10 +261,6 @@ export function Gallery({ idBase }: { idBase: string }) {
           <Avatar character={{ shape: "heart", color: "pink", face: "shy" }} />
           <Avatar size="lg" character={{ shape: "star", color: "yellow", face: "happy" }} />
           <Avatar size="xl" character={{ shape: "pill", color: "teal", face: "cool" }} />
-          <AvatarInitial name="Асель" />
-          <AvatarInitial name="Улан" tone="red" />
-          <AvatarInitial name="Өмүр" tone="yellow" />
-          <AvatarInitial name="Гүлзат" tone="green" />
         </div>
       </Section>
 
@@ -333,10 +329,7 @@ export function Gallery({ idBase }: { idBase: string }) {
             {mockStaff.map((user) => (
               <tr key={user.id}>
                 <Td>
-                  <span className="flex items-center gap-2">
-                    <AvatarInitial name={user.name} />
-                    {user.name}
-                  </span>
+                  {user.name}
                 </Td>
                 <Td>
                   <Badge variant={roleBadge[user.role]}>{t(`badge.${user.role}`)}</Badge>

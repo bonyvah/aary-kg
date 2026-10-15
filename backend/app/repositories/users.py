@@ -26,3 +26,13 @@ async def count(session: AsyncSession) -> int:
 
 def add(session: AsyncSession, user: User) -> None:
     session.add(user)
+
+
+async def get_many_active(session: AsyncSession, user_ids: list[uuid.UUID]) -> list[User]:
+    result = await session.execute(select(User).where(User.id.in_(user_ids), User.active.is_(True)))
+    return list(result.scalars())
+
+
+async def list_active(session: AsyncSession) -> list[User]:
+    result = await session.execute(select(User).where(User.active.is_(True)).order_by(User.name))
+    return list(result.scalars())

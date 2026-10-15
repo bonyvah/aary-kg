@@ -17,9 +17,7 @@ async def test_requires_login_and_admin(client):
 
 async def test_create_user_returns_password_once_and_it_works(client):
     await admin_client(client)
-    r = await client.post(
-        "/admin/users", json={"name": " Ulan K ", "login": " Ulan.K ", "role": "user"}
-    )
+    r = await client.post("/admin/users", json={"name": " Ulan K ", "login": " Ulan.K ", "role": "user"})
     assert r.status_code == 201
     body = r.json()
     assert body["user"]["login"] == "ulan.k" and body["user"]["name"] == "Ulan K"

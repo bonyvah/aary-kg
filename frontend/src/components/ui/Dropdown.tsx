@@ -5,17 +5,12 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
-import { Input } from "./Input";
 import { cx } from "@/lib/cx";
 
 export type DropdownOption = { value: number; label: string };
 
 type CustomEntry = {
   label: string;
-  /** Shown under the field while it is not in error. */
-  hint: string;
-  /** Shown when Enter is pressed on a value outside the range. */
-  invalid: string;
   min: number;
   max: number;
   /** Called with a valid whole number when the field is confirmed (Enter) or the list closes. */
@@ -27,7 +22,9 @@ type DropdownProps = {
   value: number;
   options: ReadonlyArray<DropdownOption>;
   onChange: (value: number) => void;
-  /** Adds a number field under the options. */
+  /** Text of the closed field; defaults to the selected option's label. */
+  selectedLabel?: string;
+  /** Adds a number field as the last cell of the list; `label` names it for assistive tech. */
   custom?: CustomEntry;
   /** Where the list opens. Default: below the field. */
   placement?: "down" | "up";
@@ -36,7 +33,7 @@ type DropdownProps = {
 };
 
 /** A listbox of chunky option buttons, with an optional number field for a value that is not listed. */
-export function Dropdown({ label, value, options, onChange, custom, placement = "down", wrapperClassName }: DropdownProps) {
+export function Dropdown({ label, value, options, onChange, selectedLabel, custom, placement = "down", wrapperClassName }: DropdownProps) {
   const baseId = useId();
   const labelId = `${baseId}-label`;
   const listId = `${baseId}-list`;
@@ -143,13 +140,13 @@ export function Dropdown({ label, value, options, onChange, custom, placement = 
             "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
           )}
         >
-          <span className="truncate">{selected?.label ?? value}</span>
+          <span className="truncate">{selectedLabel ?? selected?.label ?? value}</span>
           <Icon icon={CaretDown} size={20} className={cx("shrink-0 transition-transform duration-150", open && "rotate-180")} />
         </button>
         {open ? (
           <div
             className={cx(
-              "absolute left-0 z-20 flex w-full min-w-[280px] flex-col gap-4 rounded-md border-2 border-border-control bg-surface-raised p-3",
+              "absolute left-0 z-20 w-full min-w-[280px] rounded-md border-2 border-border-control bg-surface-raised p-3",
               "shadow-[0_4px_0_0_var(--border-control)]",
               placement === "up" ? "bottom-full mb-3" : "top-full mt-3",
             )}
@@ -178,23 +175,29 @@ export function Dropdown({ label, value, options, onChange, custom, placement = 
                   </Button>
                 );
               })}
+              {custom ? (
+                <input
+                  aria-label={custom.label}
+                  aria-invalid={rejected ? true : undefined}
+                  placeholder={`${custom.min}–${custom.max}`}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={String(custom.max).length}
+                  value={draft}
+                  onChange={(event) => {
+                    setDraft(event.target.value);
+                    setRejected(false);
+                  }}
+                  onKeyDown={onFieldKeyDown}
+                  className={cx(
+                    "min-h-[44px] min-w-0 rounded-md border-2 border-field-border bg-field px-2 text-center text-body font-bold text-on-field",
+                    "placeholder:font-medium placeholder:text-on-field-muted",
+                    "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+                    "aria-invalid:border-danger",
+                  )}
+                />
+              ) : null}
             </div>
-            {custom ? (
-              <Input
-                label={custom.label}
-                helper={custom.hint}
-                error={rejected ? custom.invalid : undefined}
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={String(custom.max).length}
-                value={draft}
-                onChange={(event) => {
-                  setDraft(event.target.value);
-                  setRejected(false);
-                }}
-                onKeyDown={onFieldKeyDown}
-              />
-            ) : null}
           </div>
         ) : null}
       </div>

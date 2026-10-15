@@ -130,8 +130,6 @@
       "timeLabel": "Время на ответ",
       "timeOption": "{seconds} сек",
       "customTimeLabel": "Другое время",
-      "customTimeHint": "от {min} до {max} сек",
-      "customTimeInvalid": "Число должно быть от {min} до {max}",
       "errors": {
         "FIELD_REQUIRED": "Заполните поле."
       }

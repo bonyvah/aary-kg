@@ -42,7 +42,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
     new Set([...SECONDS_OPTIONS, ...customSeconds.values, ...state.quiz.questions.map((q) => q.seconds)]),
   )
     .sort((a, b) => a - b)
-    .map((seconds) => ({ value: seconds, label: t("timeOption", { seconds }) }));
+    .map((seconds) => ({ value: seconds, label: String(seconds) }));
   const invalidIds = new Set(
     state.quiz.questions.filter((q) => [...state.errors].some((key) => key.startsWith(`${q.id}:`))).map((q) => q.id),
   );
@@ -116,11 +116,10 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
               placement="up"
               value={question.seconds}
               options={secondsOptions}
+              selectedLabel={t("timeOption", { seconds: question.seconds })}
               onChange={editor.setSeconds}
               custom={{
                 label: t("customTimeLabel"),
-                hint: t("customTimeHint", { min: MIN_SECONDS, max: MAX_SECONDS }),
-                invalid: t("customTimeInvalid", { min: MIN_SECONDS, max: MAX_SECONDS }),
                 min: MIN_SECONDS,
                 max: MAX_SECONDS,
                 onCommit: (seconds) => {

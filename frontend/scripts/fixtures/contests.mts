@@ -1,4 +1,4 @@
-import type { Contest, Criterion, Entry, JuryMember, Score, ScoreSheet } from "@/types/contest";
+import type { Contest, Criterion, Entry, JuryMember, Score, ScoreSheet } from "../../src/types/contest.ts";
 
 const criteria = (names: readonly [string, number][], prefix: string): Criterion[] =>
   names.map(([name, weight], index) => ({ id: `${prefix}-c${index + 1}`, name, weight }));

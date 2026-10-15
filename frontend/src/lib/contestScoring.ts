@@ -2,7 +2,6 @@ import type {
   Contest,
   Criterion,
   ContestIssue,
-  RankedEntry,
   Score,
 } from "@/types/contest";
 
@@ -35,58 +34,6 @@ export function jurorEntryScore(
     total += (score * criterion.weight) / 100;
   }
   return total;
-}
-
-function average(values: readonly number[]): number | null {
-  return values.length === 0 ? null : values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-/** Ranks the entries: highest final score first, equal scores share the place (1, 1, 3). */
-export function rankEntries(contest: Contest): RankedEntry[] {
-  const finished = contest.jury.filter((member) => member.finished);
-
-  const rows = contest.entries.map((entry) => {
-    const jurorScores: number[] = [];
-    const perCriterionValues: Record<string, number[]> = {};
-    for (const member of finished) {
-      const sheet = contest.scores[member.userId]?.[entry.id];
-      const total = jurorEntryScore(contest.criteria, sheet);
-      if (total === null || !sheet) continue;
-      jurorScores.push(total);
-      for (const criterion of contest.criteria) {
-        const score = sheet[criterion.id];
-        if (score !== undefined) (perCriterionValues[criterion.id] ??= []).push(score);
-      }
-    }
-    const mean = average(jurorScores);
-    const perCriterion: Record<string, number | null> = {};
-    for (const criterion of contest.criteria) {
-      const mean = average(perCriterionValues[criterion.id] ?? []);
-      perCriterion[criterion.id] = mean === null ? null : round2(mean);
-    }
-    return {
-      entry,
-      finalScore: mean === null ? null : round2(mean),
-      perCriterion,
-      juryCount: jurorScores.length,
-    };
-  });
-
-  const scored = rows
-    .filter((row): row is typeof row & { finalScore: number } => row.finalScore !== null)
-    .sort((a, b) => b.finalScore - a.finalScore);
-
-  const ranked: RankedEntry[] = scored.map((row) => {
-    const firstEqual = scored.findIndex((other) => other.finalScore === row.finalScore);
-    const shared = scored.filter((other) => other.finalScore === row.finalScore).length > 1;
-    return { ...row, rank: firstEqual + 1, shared };
-  });
-
-  const unscored: RankedEntry[] = rows
-    .filter((row) => row.finalScore === null)
-    .map((row) => ({ ...row, rank: null, shared: false }));
-
-  return [...ranked, ...unscored];
 }
 
 type ContestDraft = Pick<Contest, "title" | "criteria" | "entries" | "jury">;
@@ -146,25 +93,4 @@ export function canScore(contest: Pick<Contest, "status" | "jury">, userId: stri
 /** How many entries this jury member has fully scored (every criterion). */
 export function scoredEntryCount(contest: Pick<Contest, "criteria" | "entries" | "scores">, userId: string): number {
   return contest.entries.filter((entry) => jurorEntryScore(contest.criteria, contest.scores[userId]?.[entry.id]) !== null).length;
-}
-
-export type BreakdownRow = {
-  userId: string;
-  name: string;
-  scores: Record<string, Score | undefined>;
-  /** This jury member's weighted score for the entry, at 2 decimals. */
-  total: number | null;
-};
-
-/** Every finished jury member's scores for one entry, for the results breakdown. */
-export function entryBreakdown(contest: Contest, entryId: string): BreakdownRow[] {
-  return contest.jury
-    .filter((member) => member.finished)
-    .map((member) => {
-      const sheet = contest.scores[member.userId]?.[entryId];
-      const total = jurorEntryScore(contest.criteria, sheet);
-      const scores: Record<string, Score | undefined> = {};
-      for (const criterion of contest.criteria) scores[criterion.id] = sheet?.[criterion.id];
-      return { userId: member.userId, name: member.name, scores, total: total === null ? null : round2(total) };
-    });
 }

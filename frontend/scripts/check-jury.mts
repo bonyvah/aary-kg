@@ -1,7 +1,7 @@
 // Checks the jury scoring state: the running score, when «finish» is allowed, and the entry navigation.
 // Run: pnpm check:jury
 import { canFinish, completeCount, initialJuryState, juryReducer, runningScore, type JuryEvent } from "../src/lib/juryScoring/reducer.ts";
-import { getMockContest } from "../src/mocks/contests.ts";
+import { getMockContest } from "./fixtures/contests.mts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {

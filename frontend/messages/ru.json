@@ -342,8 +342,19 @@
       "FORBIDDEN": "У вас нет доступа к этому действию.",
       "USER_NOT_FOUND": "Пользователь не найден.",
       "CANNOT_DISABLE_SELF": "Нельзя отключить себя.",
-      "VALIDATION_ERROR": "Данные заполнены неверно."
-    }
+      "VALIDATION_ERROR": "Данные заполнены неверно.",
+      "QUIZ_NOT_FOUND": "Викторина не найдена.",
+      "CONTEST_NOT_FOUND": "Конкурс не найден.",
+      "QUIZ_INVALID": "Викторина заполнена неверно.",
+      "CONTEST_INVALID": "Конкурс заполнен неверно.",
+      "CONTEST_NOT_DRAFT": "Оценивание уже началось.",
+      "CONTEST_NOT_OPEN": "Оценивание сейчас не идёт.",
+      "CONTEST_NOT_CLOSED": "Итоги появятся, когда конкурс закроют.",
+      "SCORING_INCOMPLETE": "Оцените всех участников по всем критериям.",
+      "ENTRY_NOT_FOUND": "Участник не найден.",
+      "CRITERION_NOT_FOUND": "Критерий не найден."
+    },
+    "toDashboard": "На главную"
   },
   "host": {
     "bar": {

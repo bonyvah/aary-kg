@@ -67,3 +67,19 @@ export type RankedEntry = {
   /** How many finished jury members scored this entry. */
   juryCount: number;
 };
+
+export type BreakdownRow = {
+  userId: string;
+  name: string;
+  /** Null where this jury member left the criterion without a score. */
+  scores: Record<string, Score | null>;
+  /** This jury member's weighted score for the entry, at 2 decimals. */
+  total: number | null;
+};
+
+/** What GET /contests/{id}/results answers. The server ranks; the browser only shows. */
+export type ContestResults = {
+  ranking: RankedEntry[];
+  /** entryId to one row per finished jury member. Null unless the viewer owns the contest or is an admin. */
+  breakdown: Record<string, BreakdownRow[]> | null;
+};

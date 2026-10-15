@@ -2,11 +2,15 @@
 const BASE = "/api";
 
 /** A failed call. The backend sends a stable `code` (never text); the frontend translates it. */
+export type ApiIssue = { code: string; field: string };
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
     readonly field: string | null,
+    /** A failed save lists everything that is wrong. */
+    readonly issues: readonly ApiIssue[] = [],
   ) {
     super(code);
     this.name = "ApiRequestError";
@@ -30,11 +34,12 @@ export async function apiFetch<T>(path: string, { method = "GET", body }: Reques
   if (response.status === 204) return undefined as T;
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const error = data as { code?: unknown; field?: unknown } | null;
+    const error = data as { code?: unknown; field?: unknown; issues?: unknown } | null;
     throw new ApiRequestError(
       response.status,
       typeof error?.code === "string" ? error.code : "UNKNOWN",
       typeof error?.field === "string" ? error.field : null,
+      Array.isArray(error?.issues) ? (error.issues as ApiIssue[]) : [],
     );
   }
   return data as T;
@@ -49,6 +54,16 @@ const KNOWN_CODES = [
   "USER_NOT_FOUND",
   "CANNOT_DISABLE_SELF",
   "VALIDATION_ERROR",
+  "QUIZ_NOT_FOUND",
+  "CONTEST_NOT_FOUND",
+  "QUIZ_INVALID",
+  "CONTEST_INVALID",
+  "CONTEST_NOT_DRAFT",
+  "CONTEST_NOT_OPEN",
+  "CONTEST_NOT_CLOSED",
+  "SCORING_INCOMPLETE",
+  "ENTRY_NOT_FOUND",
+  "CRITERION_NOT_FOUND",
 ] as const;
 export type KnownApiCode = (typeof KNOWN_CODES)[number];
 

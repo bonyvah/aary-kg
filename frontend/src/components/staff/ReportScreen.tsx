@@ -56,7 +56,6 @@ export function ReportScreen({ report }: { report: GameReport }) {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-h2 font-bold">{t("playersTitle")}</h2>
-        <p className="text-body text-ink-muted">{t("flagsNote")}</p>
         <Table className="min-w-[760px]">
           <thead>
             <tr>

@@ -34,6 +34,7 @@ export function NicknameScreen({ error, onSubmit }: NicknameScreenProps) {
             value={nickname}
             onChange={(event) => setNickname(event.target.value)}
             autoComplete="off"
+            autoFocus
             error={error ? t(errorMessageKey[error]) : undefined}
           />
         </div>

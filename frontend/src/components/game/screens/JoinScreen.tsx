@@ -32,6 +32,7 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
           <h1 className="text-display font-black [overflow-wrap:anywhere]">{t("join.title")}</h1>
           <Input
             pin
+            autoFocus
             label={t("join.pinLabel")}
             placeholder={t("join.pinPlaceholder")}
             value={pin}

@@ -113,7 +113,6 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
             <Dropdown
               label={t("timeLabel")}
               wrapperClassName="w-full max-w-[240px]"
-              placement="up"
               value={question.seconds}
               options={secondsOptions}
               selectedLabel={t("timeOption", { seconds: question.seconds })}

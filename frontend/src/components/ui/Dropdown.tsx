@@ -165,7 +165,7 @@ export function Dropdown({ label, value, options, onChange, selectedLabel, custo
                     id={`${baseId}-option-${option.value}`}
                     role="option"
                     aria-selected={isSelected}
-                    variant={isSelected ? "primary" : "neutral"}
+                    variant={isSelected ? "primary" : "secondary"}
                     className="min-w-0 px-2 text-body"
                     autoFocus={isSelected}
                     onClick={() => pick(option.value)}

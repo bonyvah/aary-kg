@@ -1,0 +1,18 @@
+# Words that may not appear inside a nickname. One per line, lowercase, Russian, Kyrgyz or English.
+# They are compared in a normalised form (look-alike letters and common digit swaps folded), so
+# add the plain word. Short entries also block innocent names that contain them: keep it specific.
+# This list is a starting point: the owner should extend it for the community.
+хуй
+хуе
+пизд
+бляд
+блять
+ебан
+ебат
+сука
+мудак
+fuck
+shit
+bitch
+cunt
+nigger

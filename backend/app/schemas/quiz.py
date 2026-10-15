@@ -8,7 +8,8 @@ from app.schemas.base import CamelModel
 Text = Annotated[str, StringConstraints(max_length=500)]
 Answer = Annotated[str, StringConstraints(max_length=200)]
 
-SECONDS = (10, 20, 30, 60)
+MIN_SECONDS = 5
+MAX_SECONDS = 300
 
 
 class Question(CamelModel):
@@ -17,7 +18,7 @@ class Question(CamelModel):
     text: Text
     answers: list[Answer] = Field(min_length=4, max_length=4)  # triangle, diamond, circle, square
     correct: Literal[1, 2, 3, 4]
-    seconds: Literal[10, 20, 30, 60]
+    seconds: int = Field(ge=MIN_SECONDS, le=MAX_SECONDS)
 
 
 class QuizIn(CamelModel):

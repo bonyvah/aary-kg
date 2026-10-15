@@ -25,7 +25,7 @@ async def test_create_get_list_and_update(as_user):
     listing = (await c.get("/quizzes")).json()
     assert listing == [{"id": qid, "title": "Math", "status": "ready", "questionCount": 1}]
 
-    two = quiz(title="Math 2", questions=[question("q1"), question("q2", correct=4, seconds=60)])
+    two = quiz(title="Math 2", questions=[question("q1"), question("q2", correct=4, seconds=15)])
     r = await c.put(f"/quizzes/{qid}", json=two)
     assert r.status_code == 200 and [q["id"] for q in r.json()["questions"]] == ["q1", "q2"]
     assert (await c.get("/quizzes")).json()[0]["questionCount"] == 2
@@ -48,7 +48,8 @@ async def test_shape_errors_are_validation_errors(as_user):
         quiz(questions=[]),
         quiz(questions=[question(answers=["a", "b", "c"])]),
         quiz(questions=[question(correct=5)]),
-        quiz(questions=[question(seconds=15)]),
+        quiz(questions=[question(seconds=4)]),
+        quiz(questions=[question(seconds=301)]),
         quiz(questions=[question("x"), question("x")]),
     ]
     for body in cases:

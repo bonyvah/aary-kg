@@ -1,0 +1,74 @@
+import uuid
+from datetime import datetime
+from typing import Annotated
+
+from pydantic import Field, StringConstraints
+
+from app.schemas.base import CamelModel
+
+
+class CreateGameIn(CamelModel):
+    quiz_id: uuid.UUID
+    # One question order for everybody (the host screen shows each question to the whole room).
+    shuffle_questions: bool = False
+
+
+class CreateGameOut(CamelModel):
+    game_id: str
+    pin: str
+
+
+class JoinIn(CamelModel):
+    pin: Annotated[str, StringConstraints(max_length=16)] = ""
+    nickname: Annotated[str, StringConstraints(max_length=100)] = ""
+
+
+class JoinedPlayer(CamelModel):
+    id: str
+    nickname: str
+    character: dict[str, str]
+
+
+class JoinOut(CamelModel):
+    token: str  # game-scoped, short-lived: only good for this player in this game
+    player: JoinedPlayer
+
+
+class Flag(CamelModel):
+    kind: str
+    count: int
+
+
+class ReportPlayer(CamelModel):
+    id: str
+    nickname: str
+    character: dict[str, str]
+    rank: int
+    score: int
+    correct: int
+    flags: list[Flag]
+
+
+class ReportQuestion(CamelModel):
+    id: str
+    text: str
+    correct_share: float = Field(ge=0, le=1)  # how many of the players got it right
+
+
+class GameReport(CamelModel):
+    game_id: uuid.UUID
+    quiz_id: uuid.UUID
+    quiz_title: str
+    finished_at: datetime
+    duration_seconds: int
+    question_count: int
+    players: list[ReportPlayer]
+    questions: list[ReportQuestion]
+
+
+class GameSummary(CamelModel):
+    id: uuid.UUID
+    quiz_title: str
+    finished_at: datetime
+    player_count: int
+    question_count: int

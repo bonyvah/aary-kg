@@ -108,7 +108,7 @@
       "questionCount": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
       "contestsEmpty": {
         "title": "Конкурсы скоро появятся",
-        "description": "Создавать конкурсы можно будет в следующей версии."
+        "description": "Создайте конкурс и выберите жюри."
       },
       "admin": "Админ",
       "createContest": "Создать конкурс",

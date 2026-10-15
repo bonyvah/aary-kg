@@ -119,7 +119,7 @@
       "questionCount": "{count, plural, one {# суроо} other {# суроо}}",
       "contestsEmpty": {
         "title": "Сынактар жакында чыгат",
-        "description": "Сынактарды кийинки версияда түзө аласыз."
+        "description": "Сынак түзүп, жюри тандаңыз."
       },
       "admin": "Админ",
       "createContest": "Сынак түзүү",

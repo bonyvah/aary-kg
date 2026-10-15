@@ -24,7 +24,7 @@ type HostCountsScreenProps = {
   counts: readonly [number, number, number, number];
 };
 
-/** After the question closed: one vertical bar per answer, the right one in its color with a check, the rest grey. */
+/** After the question closed: one vertical bar per answer, the right one in full color with a check, the rest faded. */
 export function HostCountsScreen({ question, correct, round, totalQuestions, counts }: HostCountsScreenProps) {
   const t = useTranslations("host.live");
   const format = useFormatter();
@@ -51,7 +51,8 @@ export function HostCountsScreen({ question, correct, round, totalQuestions, cou
                     style={barVars}
                     className={cx(
                       "min-h-2 w-full h-(--pct) rounded-t-md transition-[height] duration-200 ease-out motion-reduce:transition-none",
-                      right ? BAR_COLOR[position] : "bg-disabled",
+                      BAR_COLOR[position],
+                      !right && "opacity-50",
                     )}
                   />
                 </div>
@@ -59,7 +60,9 @@ export function HostCountsScreen({ question, correct, round, totalQuestions, cou
               <div
                 className={cx(
                   "flex min-h-[72px] items-center gap-2 rounded-md p-3 text-body-lg font-bold [overflow-wrap:anywhere]",
-                  right ? cx(tone, "shadow-[0_4px_0_0_var(--tile-e)]") : "bg-disabled text-on-disabled",
+                  tone,
+                  "shadow-[0_4px_0_0_var(--tile-e)]",
+                  !right && "opacity-50",
                 )}
               >
                 <Shape className="size-8 flex-none" />

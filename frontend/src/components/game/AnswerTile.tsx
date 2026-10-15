@@ -55,7 +55,7 @@ export function AnswerTile(props: AnswerTileProps) {
         "flex w-full items-center gap-4 rounded-md text-left text-h2 font-black [overflow-wrap:anywhere]",
         shapeOnly ? "relative min-h-[140px] justify-center p-4" : "min-h-[96px] px-6 py-4",
         dim
-          ? "cursor-default bg-disabled text-on-disabled"
+          ? cx(tone, "cursor-default opacity-50 shadow-[0_6px_0_0_var(--tile-e)]")
           : cx(
               tone,
               "cursor-pointer shadow-[0_6px_0_0_var(--tile-e)] transition-[transform,box-shadow] duration-150 ease-out",

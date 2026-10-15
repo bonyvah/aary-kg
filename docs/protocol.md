@@ -59,7 +59,7 @@ A correct answer scores `500 + 500 x (time left / time allowed)`, so 500 to 1000
 
 ## Anti-cheat
 - **Nicknames** are trimmed, 1 to 20 characters, no invisible characters. They are compared by a "skeleton" (case, spaces, punctuation and Cyrillic look-alikes of Latin letters ignored), so "Alex" and "Аlех" are the same name. Names containing "admin", "host", "ведущий" ... (look-alikes and digit swaps included) or words from `nickname_blocklist.txt` are refused. Extend that file for the community.
-- **Rate limits** (Redis counters): PIN checks 60/min per IP, joins 30/min per IP, WebSocket connections 60/min per IP, player messages 100 per 10 s per player.
+- **Rate limits** (Redis counters, per client address, see `AARY_TRUSTED_PROXY_HOPS` for how the address is found). A whole classroom often shares one public address, so joining is limited by what an attacker does, not by how many people join: **failed PIN lookups** (a wrong or malformed PIN) 20 per minute, after which that address is refused for the rest of the minute; successful PIN checks 600 per minute, joins 300 per minute, WebSocket connections 600 per minute. A refused nickname or a game that already started does not count as a guess. Player messages are limited to 100 per 10 seconds per player. Staff login: 20 attempts per 10 minutes per address and 8 failed attempts per login (locks it for 15 minutes).
 - **Flags for the host's report** (hints, never proof, nobody is removed because of them):
 
 | kind | meaning |

@@ -67,11 +67,6 @@ async def test_pin_check(client, as_user):
     assert (r.status_code, r.json()["code"]) == (404, "GAME_NOT_FOUND")
 
 
-async def test_pin_check_is_rate_limited(client):
-    codes = {(await client.get("/games/pin/999999")).status_code for _ in range(62)}
-    assert 429 in codes and 404 in codes
-
-
 async def test_join_returns_a_token_and_a_character(client, as_user):
     _, _, _, game = await make_game(as_user)
     r = await join(client, game["pin"], "  Aida ")
@@ -103,15 +98,13 @@ async def test_join_errors_are_stable_codes(client, as_user):
     assert r.json()["code"] == "NICKNAME_INVALID"
 
 
-async def test_join_after_start_is_refused_and_join_is_rate_limited(client, as_user):
+async def test_join_after_start_is_refused(client, as_user):
     _, _, _, game = await make_game(as_user)
     await join(client, game["pin"], "Aida")
     await get_engine().start(game["gameId"])
     r = await join(client, game["pin"], "Late")
     assert (r.status_code, r.json()["code"]) == (409, "GAME_STARTED")
     assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_STARTED"
-    codes = {(await join(client, "999999", f"n{i}")).status_code for i in range(32)}
-    assert 429 in codes
 
 
 async def test_a_player_token_is_no_staff_credential(client, as_user):
@@ -212,3 +205,55 @@ async def test_history_keeps_the_audit_trail_and_a_copy_of_the_questions(client,
     assert kinds[-1] == "game.ended" and all("at" in e for e in saved.audit)
     assert [a["question"] for a in player.answers] == ["q1", "q2"]
     assert all({"position", "ms", "points", "correct"} <= set(a) for a in player.answers)
+
+
+# --- a whole classroom behind one address -------------------------------------------------------
+
+
+async def test_a_class_of_100_behind_one_address_can_all_join(client, as_user):
+    """School Wi-Fi: every phone has the same public address. Joining must not be rate limited."""
+    _, _, _, game = await make_game(as_user)
+    # first check the PIN, as the real join screen does, then join
+    results = []
+    for i in range(100):
+        assert (await client.get(f"/games/pin/{game['pin']}")).status_code == 204
+        results.append((await join(client, game["pin"], f"Kid{i:03d}")).status_code)
+    assert results == [200] * 100
+
+
+async def test_guessing_pins_is_limited_by_failures(client, as_user):
+    from app.routers.games import FAILED_PIN_LIMIT
+
+    _, _, _, game = await make_game(as_user)
+    for i in range(FAILED_PIN_LIMIT):
+        assert (await client.get(f"/games/pin/{900000 + i}")).status_code == 404
+    blocked = await client.get(f"/games/pin/{game['pin']}")  # even the right PIN: this address is guessing
+    assert (blocked.status_code, blocked.json()["code"]) == (429, "RATE_LIMITED")
+    assert (await join(client, game["pin"], "Aida")).status_code == 429
+
+
+async def test_wrong_pins_and_malformed_pins_both_count_but_nicknames_do_not(client, as_user):
+    from app.routers.games import FAILED_PIN_LIMIT
+
+    _, _, _, game = await make_game(as_user)
+    await join(client, game["pin"], "Aida")
+    for _ in range(FAILED_PIN_LIMIT + 5):  # the right PIN with a taken or refused name: not a guess
+        assert (await join(client, game["pin"], "Aida")).status_code == 409
+        assert (await join(client, game["pin"], "Admin")).status_code == 400
+    assert (await client.get(f"/games/pin/{game['pin']}")).status_code == 204
+    for _ in range(FAILED_PIN_LIMIT // 2):
+        await client.get("/games/pin/12")  # malformed
+    for i in range(FAILED_PIN_LIMIT // 2):
+        await client.get(f"/games/pin/{800000 + i}")  # unknown
+    assert (await client.get(f"/games/pin/{game['pin']}")).status_code == 429
+
+
+async def test_a_game_that_started_is_not_a_guess(client, as_user):
+    from app.routers.games import FAILED_PIN_LIMIT
+
+    _, _, _, game = await make_game(as_user)
+    await join(client, game["pin"], "Aida")
+    await get_engine().start(game["gameId"])
+    for _ in range(FAILED_PIN_LIMIT + 5):
+        assert (await join(client, game["pin"], "Late")).json()["code"] == "GAME_STARTED"
+    assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_STARTED"

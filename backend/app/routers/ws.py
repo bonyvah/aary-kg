@@ -27,7 +27,8 @@ MAX_MESSAGE_BYTES = 2048
 HELLO_TIMEOUT_S = 5
 PING_EVERY_S = 5
 # Per connection attempts per IP, and per player messages (across all their connections).
-CONNECT_LIMIT, CONNECT_WINDOW_S = 60, 60
+# Generous: a classroom behind one address may reconnect all at once.
+CONNECT_LIMIT, CONNECT_WINDOW_S = 600, 60
 MESSAGE_LIMIT, MESSAGE_WINDOW_S = 100, 10
 
 # Close codes (4000-4999 are ours)

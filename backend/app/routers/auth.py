@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 
 from app.config import get_settings
 from app.deps import COOKIE_NAME, CurrentUser, Session
+from app.netutil import client_ip
 from app.schemas.user import LoginIn, ManagedUser
 from app.security import create_token
 from app.services import auth as service
@@ -10,8 +11,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=ManagedUser, response_model_by_alias=True)
-async def login(body: LoginIn, response: Response, session: Session) -> ManagedUser:
-    user = await service.authenticate(session, body.login, body.password)
+async def login(body: LoginIn, request: Request, response: Response, session: Session) -> ManagedUser:
+    user = await service.authenticate(session, body.login, body.password, client_ip(request))
     s = get_settings()
     response.set_cookie(
         COOKIE_NAME,

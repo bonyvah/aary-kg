@@ -457,7 +457,8 @@ async def test_snapshots_bring_a_reconnecting_player_up_to_date_in_every_phase(e
     assert hsnap.phase == "counts" and hsnap.correct == 1 and hsnap.counts == [0, 0, 1, 0]
 
     await env.engine.next(state.id)
-    assert (await env.engine.player_snapshot(state.id, aida.id)).top is not None
+    snap = await env.engine.player_snapshot(state.id, aida.id)
+    assert snap.top is not None and snap.question.index == 1  # the leaderboard says «question 1 of 3»
     with pytest.raises(GameError):
         await env.engine.player_snapshot(state.id, "ghost")
 

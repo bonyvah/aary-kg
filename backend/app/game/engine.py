@@ -199,6 +199,7 @@ class GameEngine:
             # What they tapped, so the results screen can say right, wrong or too late.
             event.answered = result["position"] if result else None
         elif state.phase == "leaderboard":
+            event.question = self._player_question(quiz, state, state.round)  # for «question 2 of 5»
             event.top = standings[:LEADERBOARD_TOP]
         else:
             event.top = standings[:PODIUM]

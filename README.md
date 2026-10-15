@@ -2,7 +2,7 @@
 
 A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based contest mode. Built for a small community: a handful of admins, a limited number of users, and players who just join with a PIN.
 
-> Status: planning / UI phase. Backend not started yet.
+> Status: Phase 5 in progress. All screens exist; the backend is being built slice by slice and the screens are wired to it as each piece lands (auth and admin users are live).
 
 ## What it does
 
@@ -58,6 +58,26 @@ The server is authoritative. The client is never trusted.
 ## Design
 
 Kahoot-inspired in feel (bold colors, chunky buttons, shape-coded answer tiles), with its own branding and assets. Players appear as one of eight shape characters (no photos). The design system lives in `design-system/` (tokens, component styles, avatars) and the screen designs in `design-refs/`. See `CLAUDE.md` for the rules.
+
+## Run locally
+
+```bash
+docker compose up -d                      # Postgres + Redis
+
+cd backend
+cp .env.example .env                      # set AARY_JWT_SECRET (32+ chars)
+uv sync
+uv run alembic upgrade head
+uv run python -m app.cli create-admin --login aizhan --name "Your Name"   # prints a password once
+uv run uvicorn app.main:app --reload --port 8000
+uv run pytest                             # needs Postgres (database aary_test) running
+
+cd ../frontend
+pnpm install
+pnpm dev                                  # http://localhost:3000, /api is proxied to :8000
+```
+
+Set `API_URL` for the frontend if the backend is not on `http://localhost:8000`.
 
 ## Roadmap
 

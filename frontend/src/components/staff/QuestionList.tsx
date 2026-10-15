@@ -43,7 +43,7 @@ export function QuestionList({ questions, selectedId, invalidIds, onSelect, onAd
           );
         })}
       </ol>
-      <Button variant="neutral" block onClick={onAdd}>
+      <Button variant="secondary" block onClick={onAdd}>
         {t("addQuestion")}
       </Button>
     </nav>

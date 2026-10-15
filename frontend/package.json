@@ -18,7 +18,8 @@
     "lint": "node scripts/generate-tokens.mjs --check && eslint",
     "check:player": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-player-flow.mts",
     "check:host": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-host-flow.mts",
-    "check:bundle": "node scripts/check-player-bundle.mjs"
+    "check:bundle": "node scripts/check-player-bundle.mjs",
+    "e2e": "node e2e/run.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.27",
+    "playwright": "1.56.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

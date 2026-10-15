@@ -61,19 +61,32 @@ Kahoot-inspired in feel (bold colors, chunky buttons, shape-coded answer tiles),
 
 ## Run locally
 
+Needs Docker (with compose), [uv](https://docs.astral.sh/uv/), pnpm and Node 22.
+
 ```bash
-docker compose up -d                      # Postgres + Redis
+make up                                          # Postgres + Redis, migrations, backend, web app
+make admin LOGIN=aizhan NAME="Your Name"         # first time: prints a password once
+```
+
+Then open http://localhost:3000. `make help` lists the rest: `make logs`, `make status`, `make down`,
+`make test`, `make check`, `make e2e`. Without Docker, start your own Postgres and Redis (the URLs
+are in `backend/.env`, created for you from `backend/.env.example`) and use `make up SKIP_DOCKER=1`.
+
+By hand, if you prefer separate terminals:
+
+```bash
+docker compose up -d --wait                       # Postgres + Redis
 
 cd backend
-cp .env.example .env                      # set AARY_JWT_SECRET (32+ chars)
+cp .env.example .env                              # development settings
 uv sync
 uv run alembic upgrade head
 uv run python -m app.cli create-admin --login aizhan --name "Your Name"   # prints a password once
-uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers   # always with --no-proxy-headers, see backend/.env.example
+uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers       # always with --no-proxy-headers
 
 cd ../frontend
 pnpm install
-pnpm dev                                  # http://localhost:3000, /api is proxied to :8000
+pnpm dev                                          # http://localhost:3000, /api is proxied to :8000
 ```
 
 Set `API_URL` for the frontend if the backend is not on `http://localhost:8000`.

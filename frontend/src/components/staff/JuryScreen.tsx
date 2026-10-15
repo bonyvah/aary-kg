@@ -80,7 +80,7 @@ export function JuryScreen({ contest }: { contest: Contest }) {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          <ButtonLink href={`/contests/${contest.id}`} variant="neutral">
+          <ButtonLink href={`/contests/${contest.id}`} variant="secondary">
             {t("back")}
           </ButtonLink>
           <StaffMenu />

@@ -49,7 +49,7 @@ export function ContestForm() {
     <div className="flex min-h-dvh flex-col">
       <header className="bg-surface-raised">
         <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-          <ButtonLink href={home} variant="neutral">
+          <ButtonLink href={home} variant="secondary">
             {t("back")}
           </ButtonLink>
           <div className="min-w-[200px] flex-1">

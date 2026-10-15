@@ -12,7 +12,7 @@ export function StaffMenu() {
 
   return (
     <>
-      <Button variant="neutral" aria-haspopup="dialog" onClick={() => setOpen(true)} className="max-w-[220px] truncate">
+      <Button variant="secondary" aria-haspopup="dialog" onClick={() => setOpen(true)} className="max-w-[220px] truncate">
         {name}
       </Button>
       <SettingsModal open={open} onClose={() => setOpen(false)} />

@@ -90,7 +90,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ButtonLink href="/admin" variant="neutral">
+          <ButtonLink href="/admin" variant="secondary">
             {t("back")}
           </ButtonLink>
           <Button variant="danger" disabled={busy} onClick={() => setPending({ kind: "deleteGame" })}>

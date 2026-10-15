@@ -69,7 +69,7 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
       title={t("title")}
       actions={
         <>
-          <Button variant="neutral" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button type="submit" form={FORM_ID} disabled={busy}>

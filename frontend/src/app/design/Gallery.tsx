@@ -81,6 +81,7 @@ export function Gallery({ idBase }: { idBase: string }) {
             <Button variant="success">{t("button.success")}</Button>
             <Button variant="danger">{t("button.danger")}</Button>
             <Button variant="neutral">{t("button.neutral")}</Button>
+            <Button variant="secondary">{t("button.secondary")}</Button>
           </div>
         </Case>
         <Case label={t("state.disabled")}>
@@ -89,6 +90,7 @@ export function Gallery({ idBase }: { idBase: string }) {
             <Button variant="accent" disabled>{t("button.accent")}</Button>
             <Button variant="danger" disabled>{t("button.danger")}</Button>
             <Button variant="neutral" disabled>{t("button.neutral")}</Button>
+            <Button variant="secondary" disabled>{t("button.secondary")}</Button>
           </div>
         </Case>
         <Case label={t("state.sizes")}>

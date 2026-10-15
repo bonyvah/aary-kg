@@ -36,7 +36,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
             {format.dateTime(new Date(report.finishedAt), { dateStyle: "long", timeStyle: "short" })}
           </p>
         </div>
-        <ButtonLink href={home} variant="neutral">
+        <ButtonLink href={home} variant="secondary">
           {t("toDashboard")}
         </ButtonLink>
       </div>

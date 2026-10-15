@@ -142,7 +142,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
       onClose={onClose}
       title={t("title", { nickname: savedNickname })}
       actions={
-        <Button variant="neutral" onClick={onClose}>
+        <Button variant="secondary" onClick={onClose}>
           {t("close")}
         </Button>
       }

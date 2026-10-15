@@ -57,7 +57,7 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          <ButtonLink href={home} variant="neutral">
+          <ButtonLink href={home} variant="secondary">
             {t("back")}
           </ButtonLink>
           <StaffMenu />

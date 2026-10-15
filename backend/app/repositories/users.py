@@ -15,8 +15,11 @@ async def get_by_login(session: AsyncSession, login: str) -> User | None:
     return result.scalar_one_or_none()
 
 
-async def list_all(session: AsyncSession) -> list[User]:
-    result = await session.execute(select(User).order_by(User.created_at, User.name))
+async def list_all(session: AsyncSession, *, exclude: uuid.UUID | None = None) -> list[User]:
+    stmt = select(User).order_by(User.created_at, User.name)
+    if exclude is not None:
+        stmt = stmt.where(User.id != exclude)
+    result = await session.execute(stmt)
     return list(result.scalars())
 
 

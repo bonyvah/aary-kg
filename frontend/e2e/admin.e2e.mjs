@@ -1,5 +1,5 @@
 // Sign in, the route guard, and managing users: create (password shown once), disable, enable, sign out.
-import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, page, signIn, unique, waitText } from "./helpers.mjs";
+import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, openMenu, page, signIn, unique, waitText } from "./helpers.mjs";
 
 export default async function run(browser, t) {
   const p = await page(browser, t, "admin");
@@ -13,12 +13,19 @@ export default async function run(browser, t) {
   await waitText(p, "Неверный логин или пароль");
   t.ok("a wrong password is refused with a message", true);
 
-  await signIn(p, ADMIN_LOGIN, ADMIN_PASSWORD);
-  await p.goto(`${BASE}/admin`);
+  await signIn(p, ADMIN_LOGIN, ADMIN_PASSWORD, "admin");
+  t.ok("an admin lands on /admin", true);
   await p.waitForSelector("table");
+  t.ok("the admin is not in the user list", (await p.locator("tbody tr", { hasText: ADMIN_LOGIN }).count()) === 0);
+  for (const path of ["/dashboard", "/quizzes/new", "/contests/new"]) {
+    await p.goto(`${BASE}${path}`);
+    await p.waitForURL("**/admin");
+  }
+  t.ok("an admin is kept off the dashboard, the quiz editor and contest creation", true);
 
   const login = `ulan.${unique()}`;
   await p.getByRole("button", { name: "Создать пользователя" }).click();
+  t.ok("there is no role to pick: admins create regular users only", (await p.locator("dialog[open] select").count()) === 0);
   await p.getByLabel("Имя").fill("Улан Касымов");
   await p.getByLabel("Логин").fill(ADMIN_LOGIN);
   await p.getByRole("button", { name: "Создать", exact: true }).click();
@@ -41,8 +48,7 @@ export default async function run(browser, t) {
   await row.getByRole("button", { name: "Включить" }).click();
   await waitText(p, "Пользователь включён");
   t.ok("and enabled again", (await row.innerText()).includes("Активен"));
-  const self = p.locator("tbody tr", { hasText: ADMIN_LOGIN }).first();
-  t.ok("an admin cannot disable themselves", await self.getByRole("button", { name: "Отключить" }).isDisabled());
+  t.ok("a user row has no avatar or initial circle", (await row.locator("td").first().locator("[class*=size-10]").count()) === 0);
 
   // the new user can sign in; the reset password ends that session
   const user = await page(browser, t, "new user");
@@ -61,7 +67,7 @@ export default async function run(browser, t) {
 
   await p.reload();
   await p.waitForSelector("table");
-  await p.getByRole("button", { name: "Открыть меню" }).click();
+  await openMenu(p);
   await p.getByRole("button", { name: "Выйти" }).click();
   await p.waitForURL("**/login");
   await p.goto(`${BASE}/dashboard`);

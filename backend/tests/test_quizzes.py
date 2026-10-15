@@ -56,19 +56,24 @@ async def test_shape_errors_are_validation_errors(as_user):
         assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR"), body
 
 
-async def test_other_users_cannot_see_or_edit_but_admin_can(as_user):
+async def test_a_quiz_belongs_to_its_owner_alone_not_even_an_admin_edits_it(as_user):
     owner, _ = await as_user("ulan")
     other, _ = await as_user("omur")
     admin, _ = await as_user("root", role="admin")
     qid = (await owner.post("/quizzes", json=quiz())).json()["id"]
 
-    for c in (other,):
+    for c in (other, admin):
         assert (await c.get(f"/quizzes/{qid}")).json()["code"] == "QUIZ_NOT_FOUND"
-        assert (await c.put(f"/quizzes/{qid}", json=quiz())).status_code == 404
-    assert (await other.get("/quizzes")).json() == []
-    assert (await admin.get(f"/quizzes/{qid}")).status_code == 200
-    assert (await admin.put(f"/quizzes/{qid}", json=quiz(title="Fixed"))).json()["title"] == "Fixed"
-    assert (await owner.get(f"/quizzes/{qid}")).json()["title"] == "Fixed"
+        assert (await c.put(f"/quizzes/{qid}", json=quiz(title="Hijacked"))).status_code == 404
+    assert (await other.get("/quizzes")).json() == [] and (await admin.get("/quizzes")).json() == []
+    assert (await owner.get(f"/quizzes/{qid}")).json()["title"] == "Math"
+
+
+async def test_an_admin_cannot_create_a_quiz(as_user):
+    admin, _ = await as_user("root", role="admin")
+    r = await admin.post("/quizzes", json=quiz())
+    assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN")
+    assert (await admin.get("/quizzes")).json() == []
 
 
 async def test_unknown_quiz_is_404(as_user):

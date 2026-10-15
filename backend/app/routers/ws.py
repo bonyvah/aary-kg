@@ -88,7 +88,7 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
 
     engine, hub = get_engine(), get_hub()
     state = await engine.repo.get_game(game_id)
-    if state is None or (state.owner_id != str(user.id) and user.role != "admin"):
+    if state is None or state.owner_id != str(user.id):
         return await ws.close(code=FORBIDDEN)  # same answer for «no such game» and «not yours»
 
     conn = _make_conn(ws, "host")

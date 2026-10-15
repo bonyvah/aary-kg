@@ -43,8 +43,9 @@ async def test_creating_a_game_needs_login_and_your_own_quiz(client, as_user):
     other, _ = await as_user("other")
     r = await other.post("/games", json={"quizId": quiz["id"]})
     assert (r.status_code, r.json()["code"]) == (404, "QUIZ_NOT_FOUND")
-    admin, _ = await as_user("root", role="admin")
-    assert (await admin.post("/games", json={"quizId": quiz["id"]})).status_code == 201
+    admin, _ = await as_user("root", role="admin")  # admins don't host games, not even for their own users
+    r = await admin.post("/games", json={"quizId": quiz["id"]})
+    assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN")
 
 
 async def test_the_game_keeps_its_own_copy_of_the_quiz(as_user):

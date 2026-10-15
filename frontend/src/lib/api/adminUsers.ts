@@ -1,9 +1,9 @@
-import type { ManagedUser, UserRole } from "@/types/user";
+import type { ManagedUser } from "@/types/user";
 import { apiFetch } from "./client";
 
 export const listUsers = () => apiFetch<ManagedUser[]>("/admin/users");
 
-export const createUser = (input: { name: string; login: string; role: UserRole }) =>
+export const createUser = (input: { name: string; login: string }) =>
   apiFetch<{ user: ManagedUser; password: string }>("/admin/users", { method: "POST", body: input });
 
 export const setUserActive = (id: string, active: boolean) =>

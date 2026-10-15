@@ -40,33 +40,3 @@ export function Avatar({ character, size = "default", className }: AvatarProps) 
     </svg>
   );
 }
-
-const initialTones = {
-  blue: "bg-tile-blue text-on-tile",
-  red: "bg-tile-red text-on-tile",
-  yellow: "bg-tile-yellow text-on-tile-yellow",
-  green: "bg-tile-green text-on-tile",
-} as const;
-
-type AvatarInitialProps = {
-  name: string;
-  tone?: keyof typeof initialTones;
-  className?: string;
-};
-
-/** Staff lists (admins, users, juries): an initial in a circle. */
-export function AvatarInitial({ name, tone = "blue", className }: AvatarInitialProps) {
-  const initial = Array.from(name.trim())[0]?.toLocaleUpperCase() ?? "";
-  return (
-    <span
-      aria-hidden="true"
-      className={cx(
-        "grid size-10 flex-none place-items-center rounded-full text-body-lg font-black",
-        initialTones[tone],
-        className,
-      )}
-    >
-      {initial}
-    </span>
-  );
-}

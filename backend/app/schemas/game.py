@@ -62,6 +62,8 @@ class GameReport(CamelModel):
     finished_at: datetime
     duration_seconds: int
     question_count: int
+    # How many times an admin corrected this game's data. The host can read, never change, it.
+    edit_count: int
     players: list[ReportPlayer]
     questions: list[ReportQuestion]
 
@@ -69,6 +71,7 @@ class GameReport(CamelModel):
 class GameSummary(CamelModel):
     id: uuid.UUID
     quiz_title: str
+    owner_name: str  # who hosted it
     finished_at: datetime
     player_count: int
     question_count: int

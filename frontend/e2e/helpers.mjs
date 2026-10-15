@@ -50,12 +50,32 @@ export const text = (p) => p.locator("body").innerText();
 export const waitText = (p, t, timeout = 8000) => p.getByText(t, { exact: false }).first().waitFor({ timeout });
 export const unique = () => `${Date.now().toString(36).slice(-4)}${Math.floor(Math.random() * 36).toString(36)}`;
 
-export async function signIn(p, login, password) {
+/** Signs in and waits for the start page of the role: /dashboard for users, /admin for admins. */
+export async function signIn(p, login, password, landing = "dashboard") {
   await p.goto(`${BASE}/login`);
   await p.fill("input[autocomplete=username]", login);
   await p.fill("input[type=password]", password);
   await p.click("button[type=submit]");
-  await p.waitForURL("**/dashboard");
+  await p.waitForURL(`**/${landing}`);
+}
+
+/** Opens the account menu (the user's name in the top bar). */
+export const openMenu = (p) => p.locator("header button").first().click();
+
+let setupAdmin = null;
+
+/**
+ * Admins do not create quizzes, contests or games, so those tests run as a regular user the admin
+ * creates here. One admin session is kept for the whole run (sign-in attempts are rate limited).
+ * Returns the user's login, password and name.
+ */
+export async function createUser(browser, report, login, name) {
+  if (!setupAdmin) {
+    setupAdmin = await page(browser, report, "admin (setup)");
+    await signIn(setupAdmin, ADMIN_LOGIN, ADMIN_PASSWORD, "admin");
+  }
+  const created = await api(setupAdmin, "POST", "/admin/users", { login, name });
+  return { login, name, password: created.body.password };
 }
 
 /** Calls the API as the signed-in user of this page (same origin, cookies included). */

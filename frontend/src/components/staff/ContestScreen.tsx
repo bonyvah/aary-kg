@@ -1,5 +1,6 @@
 "use client";
 
+import { useHomePath } from "./SessionProvider";
 import { useState } from "react";
 import { closeContest, openContest } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
@@ -22,6 +23,7 @@ type Pending = "open" | "close" | null;
 /** One contest: its state, what the viewer can do with it, its jury, entries and criteria. */
 export function ContestScreen({ contest: initial }: { contest: Contest }) {
   const t = useTranslations("contest.page");
+  const home = useHomePath();
   const tc = useTranslations("contest");
   const tcommon = useTranslations("common");
   const { toast, show } = useToast();
@@ -55,7 +57,7 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          <ButtonLink href="/dashboard" variant="neutral">
+          <ButtonLink href={home} variant="neutral">
             {t("back")}
           </ButtonLink>
           <StaffMenu />

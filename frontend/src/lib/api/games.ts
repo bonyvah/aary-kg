@@ -17,6 +17,8 @@ export const createGame = (quizId: string, shuffleQuestions = false) =>
 export type GameSummary = {
   id: string;
   quizTitle: string;
+  /** Name of the host. Only the admin's list needs it. */
+  ownerName: string;
   finishedAt: string;
   playerCount: number;
   questionCount: number;

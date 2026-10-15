@@ -36,7 +36,9 @@ class GamePlayer(Base):
     game_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("games.id", ondelete="CASCADE"), index=True)
     nickname: Mapped[str] = mapped_column(String(20))
     character: Mapped[dict[str, str]] = mapped_column(JSONB)
+    # score = the points of the answers + `adjustment`: what an admin added or took away by hand.
     score: Mapped[int] = mapped_column(Integer)
+    adjustment: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     rank: Mapped[int] = mapped_column(Integer)
     correct: Mapped[int] = mapped_column(Integer)
     # Hints for the host, never proof: [{kind, count}].

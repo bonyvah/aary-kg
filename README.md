@@ -23,7 +23,7 @@ The interface is available in Kyrgyz and Russian.
 
 | Role   | How they get in               | What they can do                                                  |
 |--------|-------------------------------|-------------------------------------------------------------------|
-| Admin  | Seeded / created by an admin  | Create and manage users, manage contests, full visibility         |
+| Admin  | Seeded with the CLI           | Create and disable users (never other admins), see all contests and games and correct a finished game's data. Does not create quizzes or contests or host games |
 | User   | Created by an admin           | Create quizzes, host games, create contests, act as jury          |
 | Player | No auth, joins with a PIN     | Join and play live games                                          |
 
@@ -67,6 +67,8 @@ Needs Docker (with compose), [uv](https://docs.astral.sh/uv/), pnpm and Node 22.
 make up                                          # Postgres + Redis, migrations, backend, web app
 make admin LOGIN=aizhan NAME="Your Name"         # first time: prints a password once
 ```
+
+The admin only manages: sign in at `/login`, create a user (Admin area, Users tab), then sign in as that user to build quizzes and host games.
 
 Then open http://localhost:3000. `make help` lists the rest: `make logs`, `make status`, `make down`,
 `make test`, `make check`, `make e2e`. Without Docker, start your own Postgres and Redis (the URLs

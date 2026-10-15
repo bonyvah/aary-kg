@@ -35,4 +35,6 @@ export type GameReport = {
   questionCount: number;
   players: ReportPlayer[];
   questions: ReportQuestion[];
+  /** How many times an admin corrected this game afterwards. */
+  editCount: number;
 };

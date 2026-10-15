@@ -196,9 +196,9 @@ async def test_host_socket_needs_the_owners_session(room, as_user):
     stranger, _ = await as_user("stranger")
     peer = await room.host(cookie=stranger.cookies["aary_token"])
     assert await peer.wait_closed() == 4403
-    admin, _ = await as_user("root", role="admin")
-    ok = await room.host(cookie=admin.cookies["aary_token"])
-    assert (await ok.wait("host.state"))["pin"] == room.game["pin"]
+    admin, _ = await as_user("root", role="admin")  # an admin can't run somebody's game either
+    refused = await room.host(cookie=admin.cookies["aary_token"])
+    assert await refused.wait_closed() == 4403
     # a player token is not a staff session
     token = (await room.join("Aida"))["token"]
     as_player = await room.host(cookie=token)

@@ -31,7 +31,9 @@ class ManagedUser(CamelModel):
 class CreateUserIn(CamelModel):
     name: str = ""
     login: str = ""
-    role: UserRole = "user"
+    # An admin can only create regular users. The first admin comes from the command line
+    # (python -m app.cli create-admin); anything but "user" here is refused.
+    role: Literal["user"] = "user"
 
 
 class UserWithPassword(CamelModel):

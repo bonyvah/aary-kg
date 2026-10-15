@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, Request
 
-from app.deps import CurrentUser, Session
+from app.deps import AdminUser, CurrentUser, Session
 from app.errors import ApiError
 from app.game import ratelimit
 from app.game.models import GameError
@@ -24,6 +24,7 @@ from app.services import games as service
 from app.services import quizzes as quizzes_service
 
 router = APIRouter(prefix="/games", tags=["games"])
+admin_router = APIRouter(tags=["admin"])
 
 
 # A whole classroom often shares ONE public address (the school's Wi-Fi), so a plain per-address
@@ -58,6 +59,8 @@ async def _guard_pin_guessing[T](request: Request, attempt: Callable[[], Awaitab
 @router.post("", status_code=201, response_model=CreateGameOut, response_model_by_alias=True)
 async def create_game(body: CreateGameIn, user: CurrentUser, session: Session) -> CreateGameOut:
     """The host starts a lobby for one of their quizzes. The quiz is copied: later edits don't touch it."""
+    if user.role == "admin":
+        raise ApiError(403, "FORBIDDEN")  # admins don't host games, they manage the data of finished ones
     quiz = await quizzes_service.get_editable(session, user, body.quiz_id)
     snapshot = {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
     state = await get_engine().create_game(str(user.id), snapshot, body.shuffle_questions)
@@ -79,6 +82,11 @@ async def join(body: JoinIn, request: Request) -> JoinOut:
         token=create_player_token(state.id, player.id),
         player=JoinedPlayer(id=player.id, nickname=player.nickname, character=player.character),
     )
+
+
+@admin_router.get("/admin/games", response_model=list[GameSummary], response_model_by_alias=True)
+async def all_games(_: AdminUser, session: Session) -> list[GameSummary]:
+    return await service.list_all_games(session)
 
 
 @router.get("", response_model=list[GameSummary], response_model_by_alias=True)

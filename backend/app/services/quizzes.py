@@ -34,6 +34,8 @@ def _check(payload: QuizIn) -> None:
 
 
 async def create(session: AsyncSession, owner: User, payload: QuizIn) -> Quiz:
+    if owner.role == "admin":
+        raise ApiError(403, "FORBIDDEN")  # admins manage the platform; quizzes are the users' own
     _check(payload)
     quiz = Quiz(
         owner_id=owner.id,
@@ -47,9 +49,10 @@ async def create(session: AsyncSession, owner: User, payload: QuizIn) -> Quiz:
 
 
 async def get_editable(session: AsyncSession, user: User, quiz_id: uuid.UUID) -> Quiz:
-    """The owner and admins. Anyone else gets the same answer as for a quiz that doesn't exist."""
+    """Only the owner: not even an admin edits somebody's quiz. Anyone else gets the same answer as for
+    a quiz that doesn't exist."""
     quiz = await repo.get(session, quiz_id)
-    if not quiz or (quiz.owner_id != user.id and user.role != "admin"):
+    if not quiz or quiz.owner_id != user.id:
         raise ApiError(404, "QUIZ_NOT_FOUND")
     return quiz
 

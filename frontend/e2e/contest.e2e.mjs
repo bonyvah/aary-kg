@@ -1,13 +1,15 @@
 // A quiz in the editor, then a whole contest: create, open, two jury members score, close, results.
-import { ADMIN_LOGIN, ADMIN_PASSWORD, BASE, api, page, signIn, unique, waitText } from "./helpers.mjs";
+import { BASE, api, createUser, page, signIn, unique, waitText } from "./helpers.mjs";
 
 export default async function run(browser, t) {
-  const admin = await page(browser, t, "owner");
-  await signIn(admin, ADMIN_LOGIN, ADMIN_PASSWORD);
   const tag = unique();
+  // The owner is a regular user: admins do not create quizzes or contests.
+  const owner = await createUser(browser, t, `owner.${tag}`, `Организатор ${tag}`);
+  const admin = await page(browser, t, "owner");
+  await signIn(admin, owner.login, owner.password);
 
   // jury members
-  const make = async (login, name) => (await api(admin, "POST", "/admin/users", { login, name, role: "user" })).body.password;
+  const make = async (login, name) => (await createUser(browser, t, login, name)).password;
   const omur = { login: `omur.${tag}`, name: `Өмүр ${tag}` };
   const gulzat = { login: `gulzat.${tag}`, name: `Гүлзат ${tag}` };
   omur.password = await make(omur.login, omur.name);

@@ -33,11 +33,6 @@ export function DashboardScreen() {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          {user.role === "admin" ? (
-            <ButtonLink href="/admin" variant="neutral">
-              {t("admin")}
-            </ButtonLink>
-          ) : null}
           <StaffMenu />
         </div>
       }

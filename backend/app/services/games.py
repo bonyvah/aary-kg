@@ -67,25 +67,37 @@ def _visible(game: Game, user: User) -> bool:
     return user.role == "admin" or game.owner_id == user.id
 
 
-async def list_games(session: AsyncSession, user: User) -> list[GameSummary]:
-    """The user's finished games, newest first."""
+async def _summaries(session: AsyncSession, owner_id: uuid.UUID | None) -> list[GameSummary]:
     counts = select(GamePlayer.game_id, func.count().label("n")).group_by(GamePlayer.game_id).subquery()
     stmt = (
-        select(Game, func.coalesce(counts.c.n, 0))
+        select(Game, func.coalesce(counts.c.n, 0), User.name)
         .outerjoin(counts, counts.c.game_id == Game.id)
-        .where(Game.owner_id == user.id)
+        .join(User, User.id == Game.owner_id)
         .order_by(Game.finished_at.desc())
     )
+    if owner_id is not None:
+        stmt = stmt.where(Game.owner_id == owner_id)
     return [
         GameSummary(
             id=g.id,
             quiz_title=g.quiz_title,
+            owner_name=owner_name,
             finished_at=g.finished_at,
             player_count=n,
             question_count=len(g.questions),
         )
-        for g, n in (await session.execute(stmt)).all()
+        for g, n, owner_name in (await session.execute(stmt)).all()
     ]
+
+
+async def list_games(session: AsyncSession, user: User) -> list[GameSummary]:
+    """The games this user hosted, newest first."""
+    return await _summaries(session, user.id)
+
+
+async def list_all_games(session: AsyncSession) -> list[GameSummary]:
+    """Every finished game of everybody, newest first. For admins."""
+    return await _summaries(session, None)
 
 
 async def report(session: AsyncSession, user: User, game_id: uuid.UUID) -> GameReport:
@@ -122,6 +134,7 @@ async def report(session: AsyncSession, user: User, game_id: uuid.UUID) -> GameR
             "finishedAt": game.finished_at,
             "durationSeconds": game.duration_seconds,
             "questionCount": len(game.questions),
+            "editCount": sum(1 for e in game.audit if e.get("type") == "admin.edit"),
             "players": [
                 {
                     "id": str(r.id),

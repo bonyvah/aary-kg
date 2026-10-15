@@ -11,22 +11,29 @@ import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/useToast";
+import { listDirectory } from "@/lib/api/users";
+import { knownCode } from "@/lib/api/client";
 import { weightsTotal } from "@/lib/contestScoring";
 import { weightValue } from "@/lib/contestForm/reducer";
 import { useContestForm } from "@/lib/contestForm/useContestForm";
-import { mockUsers } from "@/mocks/users";
+import { ResourceView, useResource } from "./Resource";
 
 export function ContestForm() {
   const t = useTranslations("contest.form");
   const te = useTranslations("contest.errors");
-  const { state, send } = useContestForm();
+  const tc = useTranslations("common");
+  const { state, send, save, saving } = useContestForm();
+  const directory = useResource(listDirectory);
   const { toast, show } = useToast();
 
   useEffect(() => {
     if (!state.saveResult) return;
-    show(state.saveResult === "saved" ? "success" : "danger", t(state.saveResult === "saved" ? "saved" : "saveFailed"));
+    show(
+      "danger",
+      state.saveResult === "invalid" ? t("saveFailed") : tc(`apiError.${knownCode(state.failedCode ?? "UNKNOWN")}`),
+    );
     send({ type: "SAVE_RESULT_SEEN" });
-  }, [state.saveResult, show, send, t]);
+  }, [state.saveResult, state.failedCode, show, send, t, tc]);
 
   const errorFor = (field: string) => {
     const issue = state.issues.find((item) => item.field === field);
@@ -35,7 +42,6 @@ export function ContestForm() {
 
   const total = weightsTotal(state.criteria.map((c) => ({ weight: weightValue(c.weight) || 0 })));
   const totalOk = total === 100;
-  const juryCandidates = mockUsers.filter((user) => user.active);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -50,11 +56,12 @@ export function ContestForm() {
               label={t("titleLabel")}
               placeholder={t("titleLabel")}
               value={state.title}
+              maxLength={200}
               onChange={(event) => send({ type: "TITLE_CHANGED", value: event.target.value })}
               error={errorFor("title")}
             />
           </div>
-          <Button variant="success" onClick={() => send({ type: "SAVED" })}>
+          <Button variant="success" disabled={saving} onClick={() => void save()}>
             {t("save")}
           </Button>
         </div>
@@ -64,6 +71,7 @@ export function ContestForm() {
         <Input
           label={t("descriptionLabel")}
           value={state.description}
+          maxLength={1000}
           onChange={(event) => send({ type: "DESCRIPTION_CHANGED", value: event.target.value })}
         />
 
@@ -78,6 +86,7 @@ export function ContestForm() {
                 <Input
                   label={t("criteria.name")}
                   value={criterion.name}
+                  maxLength={100}
                   onChange={(event) => send({ type: "CRITERION_CHANGED", id: criterion.id, field: "name", value: event.target.value })}
                   error={errorFor(`criterion:${criterion.id}:name`)}
                 />
@@ -120,12 +129,14 @@ export function ContestForm() {
                 <Input
                   label={t("entries.name")}
                   value={entry.name}
+                  maxLength={100}
                   onChange={(event) => send({ type: "ENTRY_CHANGED", id: entry.id, field: "name", value: event.target.value })}
                   error={errorFor(`entry:${entry.id}:name`)}
                 />
                 <Input
                   label={t("entries.description")}
                   value={entry.description}
+                  maxLength={500}
                   onChange={(event) => send({ type: "ENTRY_CHANGED", id: entry.id, field: "description", value: event.target.value })}
                 />
                 <IconButton label={t("entries.remove")} onClick={() => send({ type: "ENTRY_REMOVED", id: entry.id })}>
@@ -147,18 +158,21 @@ export function ContestForm() {
             {t("jury.title")}
           </h2>
           <p className="text-body text-ink-muted">{t("jury.hint")}</p>
-          <ul className="grid gap-1 sm:grid-cols-2">
-            {juryCandidates.map((user) => (
-              <li key={user.id}>
-                <Checkbox
-                  label={user.name}
-                  hint={user.login}
-                  checked={state.juryIds.includes(user.id)}
-                  onChange={() => send({ type: "JURY_TOGGLED", userId: user.id })}
-                />
-              </li>
-            ))}
-          </ul>
+          <ResourceView resource={directory} inline>
+            {(people) => (
+              <ul className="grid gap-1 sm:grid-cols-2">
+                {people.map((person) => (
+                  <li key={person.id}>
+                    <Checkbox
+                      label={person.name}
+                      checked={state.juryIds.includes(person.id)}
+                      onChange={() => send({ type: "JURY_TOGGLED", userId: person.id })}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ResourceView>
           {errorFor("jury") ? <p className="text-caption font-bold text-danger-text">{errorFor("jury")}</p> : null}
         </section>
       </main>

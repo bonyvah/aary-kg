@@ -13,7 +13,10 @@ export type ContestFormState = {
   nextNumber: number;
   /** What the last save found wrong. */
   issues: ContestIssue[];
-  saveResult: "saved" | "invalid" | null;
+  /** «invalid»: something is wrong in the form. «failed»: the server could not be reached or said no. */
+  saveResult: "invalid" | "failed" | null;
+  /** The error code behind a «failed» save. */
+  failedCode: string | null;
 };
 
 export type ContestFormEvent =
@@ -26,7 +29,11 @@ export type ContestFormEvent =
   | { type: "ENTRY_REMOVED"; id: string }
   | { type: "ENTRY_CHANGED"; id: string; field: "name" | "description"; value: string }
   | { type: "JURY_TOGGLED"; userId: string }
-  | { type: "SAVED" }
+  /** Save pressed: the client-side check. Nothing is sent while it finds problems. */
+  | { type: "VALIDATED" }
+  /** The server found problems the client check let through. */
+  | { type: "SAVE_REJECTED"; issues: ContestIssue[] }
+  | { type: "SAVE_FAILED"; code: string }
   | { type: "SAVE_RESULT_SEEN" };
 
 export const initialContestForm: ContestFormState = {
@@ -38,6 +45,7 @@ export const initialContestForm: ContestFormState = {
   nextNumber: 2,
   issues: [],
   saveResult: null,
+  failedCode: null,
 };
 
 export function weightValue(weight: string): number {
@@ -109,10 +117,14 @@ export function contestFormReducer(state: ContestFormState, event: ContestFormEv
           : [...state.juryIds, event.userId],
         issues: withoutIssue(state.issues, "jury"),
       };
-    case "SAVED": {
+    case "VALIDATED": {
       const issues = checkForm(state);
-      return { ...state, issues, saveResult: issues.length === 0 ? "saved" : "invalid" };
+      return { ...state, issues, saveResult: issues.length === 0 ? null : "invalid" };
     }
+    case "SAVE_REJECTED":
+      return { ...state, issues: event.issues, saveResult: "invalid" };
+    case "SAVE_FAILED":
+      return { ...state, saveResult: "failed", failedCode: event.code };
     case "SAVE_RESULT_SEEN":
       return { ...state, saveResult: null };
   }

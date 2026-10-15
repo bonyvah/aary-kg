@@ -1,5 +1,6 @@
 "use client";
 
+import { useHomePath } from "./SessionProvider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -38,7 +39,7 @@ export function useResource<T>(load: () => Promise<T>) {
 
 /** A failed load that is just «nothing there»: the link was old, or the item isn't yours. */
 function isMissing(code: KnownApiCode) {
-  return code === "QUIZ_NOT_FOUND" || code === "CONTEST_NOT_FOUND";
+  return code === "QUIZ_NOT_FOUND" || code === "CONTEST_NOT_FOUND" || code === "GAME_NOT_FOUND";
 }
 
 type ResourceViewProps<T> = {
@@ -52,6 +53,7 @@ type ResourceViewProps<T> = {
 export function ResourceView<T>({ resource, inline = false, children }: ResourceViewProps<T>) {
   const t = useTranslations("common");
   const { state, reload } = resource;
+  const home = useHomePath();
   if (state.status === "ready") return <>{children(state.data)}</>;
   return (
     <div className={inline ? "flex items-center justify-center py-8" : "flex min-h-dvh items-center justify-center p-4"}>
@@ -63,7 +65,7 @@ export function ResourceView<T>({ resource, inline = false, children }: Resource
           title={t(`apiError.${state.code}`)}
           action={
             isMissing(state.code) ? (
-              <ButtonLink href="/dashboard">{t("toDashboard")}</ButtonLink>
+              <ButtonLink href={home}>{t("toDashboard")}</ButtonLink>
             ) : (
               <Button onClick={() => void reload()}>{t("retry")}</Button>
             )

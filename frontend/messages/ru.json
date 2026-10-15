@@ -101,7 +101,6 @@
         "title": "Конкурсы скоро появятся",
         "description": "Создайте конкурс и выберите жюри."
       },
-      "admin": "Админ",
       "createContest": "Создать конкурс",
       "quizzesEmpty": {
         "title": "Пока нет викторин",
@@ -160,7 +159,8 @@
         "SAME_TIMING": "Одинаковое время с другими: {count}",
         "STEADY_TIMING": "Слишком ровное время ответов: {count}"
       },
-      "questionsTitle": "Точность по вопросам"
+      "questionsTitle": "Точность по вопросам",
+      "edited": "{count, plural, one {Администратор исправил данные игры # раз.} few {Администратор исправил данные игры # раза.} many {Администратор исправил данные игры # раз.} other {Администратор исправил данные игры # раза.}} Показаны исправленные результаты."
     }
   },
   "design": {
@@ -358,7 +358,16 @@
       "INVALID_STATE": "Сейчас это действие недоступно.",
       "BAD_MESSAGE": "Не удалось отправить команду.",
       "BUSY": "Сервер занят, попробуйте ещё раз.",
-      "RATE_LIMITED": "Слишком много запросов. Подождите минуту."
+      "RATE_LIMITED": "Слишком много запросов. Подождите минуту.",
+      "CANNOT_MANAGE_ADMIN": "Действия с администраторами недоступны.",
+      "GAME_NOT_FOUND": "Игра не найдена.",
+      "PLAYER_NOT_FOUND": "Игрок не найден.",
+      "ANSWER_NOT_FOUND": "Игрок не отвечал на этот вопрос.",
+      "FLAG_NOT_FOUND": "Такого сигнала у игрока нет.",
+      "NICKNAME_TAKEN": "Такой ник в этой игре уже есть.",
+      "SCORE_NEGATIVE": "Очки не могут быть меньше нуля.",
+      "ANSWER_INCONSISTENT": "Неверный ответ стоит 0 очков, верный — от 1 до 1000.",
+      "NOTHING_TO_CHANGE": "Нечего менять."
     },
     "toDashboard": "На главную"
   },
@@ -400,7 +409,6 @@
   },
   "admin": {
     "title": "Управление",
-    "toDashboard": "На главную",
     "createUser": "Создать пользователя",
     "cancel": "Отмена",
     "columns": {
@@ -424,13 +432,11 @@
       "enable": "Включить",
       "resetPassword": "Сбросить пароль"
     },
-    "selfNote": "Нельзя отключить себя",
     "create": {
       "title": "Новый пользователь",
       "name": "Имя",
       "login": "Логин",
       "loginHelp": "Латиница, цифры, точка и дефис",
-      "role": "Роль",
       "submit": "Создать",
       "cancel": "Отмена"
     },
@@ -466,7 +472,8 @@
     "tabsLabel": "Разделы",
     "tabs": {
       "users": "Пользователи",
-      "contests": "Конкурсы"
+      "contests": "Конкурсы",
+      "games": "Игры"
     },
     "contests": {
       "title": "Название",
@@ -474,6 +481,92 @@
       "status": "Статус",
       "entries": "Участники",
       "jury": "Жюри"
+    },
+    "games": {
+      "quiz": "Викторина",
+      "host": "Ведущий",
+      "finished": "Завершена",
+      "players": "Игроки",
+      "empty": {
+        "title": "Сыгранных игр пока нет",
+        "description": "Здесь появятся игры, которые провели пользователи."
+      }
+    },
+    "game": {
+      "meta": "Ведущий: {host} · {date} · {minutes} мин.",
+      "back": "К списку",
+      "cancel": "Отмена",
+      "deleteGame": "Удалить игру",
+      "playersTitle": "Игроки",
+      "note": "Здесь можно исправить данные сыгранной игры: очки, ответы, ники и сигналы. Саму викторину это не меняет. Ведущий видит исправления, но менять их не может.",
+      "columns": {
+        "rank": "№",
+        "player": "Игрок",
+        "score": "Очки",
+        "correct": "Верных ответов",
+        "signals": "Сигналы",
+        "actions": "Действия"
+      },
+      "adjusted": "правка: {delta}",
+      "correctOf": "{correct} из {total}",
+      "noSignals": "Сигналов нет",
+      "edit": {
+        "title": "Правка: {nickname}",
+        "close": "Готово",
+        "nickname": "Ник",
+        "saveNickname": "Сохранить ник",
+        "pointsTitle": "Очки",
+        "currentScore": "Сейчас: {score}",
+        "adjustLabel": "Изменить на",
+        "adjustHelp": "Например 100 или -50",
+        "adjustApply": "Применить",
+        "totalLabel": "Задать итог",
+        "totalApply": "Задать",
+        "numberInvalid": "Введите целое число.",
+        "answersTitle": "Ответы",
+        "question": "Вопрос {number}",
+        "noAnswer": "Не отвечал.",
+        "correct": "Верно",
+        "points": "Очки за ответ",
+        "pointsInvalid": "Верный ответ стоит от 1 до 1000 очков, неверный — 0.",
+        "saveAnswer": "Сохранить",
+        "flagsTitle": "Сигналы",
+        "noFlags": "Сигналов нет.",
+        "clearFlag": "Снять сигнал: {flag}"
+      },
+      "removePlayer": "Убрать из игры",
+      "logTitle": "Журнал исправлений",
+      "logEmpty": "Исправлений пока не было.",
+      "log": {
+        "adjust_score": "{nickname}: очки {delta}, стало {after}.",
+        "set_score": "{nickname}: итог изменён с {before} на {after}.",
+        "edit_answer_right": "{nickname}: ответ на вопрос {number} засчитан, {points} очков.",
+        "edit_answer_wrong": "{nickname}: ответ на вопрос {number} не засчитан.",
+        "rename_player": "Ник «{before}» изменён на «{after}».",
+        "remove_player": "{nickname} убран из игры.",
+        "clear_flag": "{nickname}: снят сигнал «{kind}»."
+      },
+      "flagNames": {
+        "TAB_BLUR": "Переключил вкладку",
+        "PASTE": "Вставил текст",
+        "FAST_ANSWERS": "Слишком быстрые ответы",
+        "SAME_TIMING": "Одинаковое время с другими",
+        "STEADY_TIMING": "Слишком ровное время ответов"
+      },
+      "confirmRemove": {
+        "title": "Убрать игрока?",
+        "body": "{nickname} исчезнет из результатов этой игры, места пересчитаются.",
+        "confirm": "Убрать"
+      },
+      "confirmDelete": {
+        "title": "Удалить игру?",
+        "body": "Игра «{title}» и её отчёт пропадут у всех, это нельзя отменить.",
+        "confirm": "Удалить"
+      },
+      "toast": {
+        "saved": "Сохранено.",
+        "removed": "Игрок убран из игры."
+      }
     }
   },
   "contest": {

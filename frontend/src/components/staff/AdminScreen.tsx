@@ -1,28 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/useToast";
 import * as api from "@/lib/api/adminUsers";
+import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
 import { WarningCircle } from "@phosphor-icons/react";
-import type { ManagedUser, UserRole } from "@/types/user";
+import type { ManagedUser } from "@/types/user";
+import { AdminGamesTable } from "./AdminGamesTable";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
 import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
-import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
@@ -31,16 +30,15 @@ type Pending =
   | { kind: "reset"; user: ManagedUser }
   | null;
 
-const TABS = ["users", "contests"] as const;
+const TABS = ["users", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
-  const router = useRouter();
-  const me = useCurrentUser();
   const [tab, setTab] = useState<Tab>("users");
   const allContests = useResource(listAllContests);
+  const allGames = useResource(listAllGames);
   const idBase = useId();
   const format = useFormatter();
   const { toast, show } = useToast();
@@ -60,18 +58,16 @@ export function AdminScreen() {
     }
   }, []);
 
-  // The server refuses non-admins too; this only keeps them off a screen that would show an error.
-  const isAdmin = me.role === "admin";
+  // The session guard keeps non-admins out of /admin; the server refuses them too.
   useEffect(() => {
-    if (!isAdmin) router.replace("/dashboard");
-    else void loadUsers();
-  }, [isAdmin, router, loadUsers]);
+    void loadUsers();
+  }, [loadUsers]);
 
   function fail(error: unknown) {
     show("danger", tc(`apiError.${toKnownCode(error)}`));
   }
 
-  async function createUser(input: { name: string; login: string; role: UserRole }) {
+  async function createUser(input: { name: string; login: string }) {
     const created = await api.createUser(input);
     setUsers((current) => [...(current ?? []), created.user]);
     setCreating(false);
@@ -116,9 +112,6 @@ export function AdminScreen() {
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          <ButtonLink href="/dashboard" variant="neutral">
-            {t("toDashboard")}
-          </ButtonLink>
           <StaffMenu />
         </div>
       }
@@ -141,7 +134,11 @@ export function AdminScreen() {
       </div>
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
-        {tab === "contests" ? (
+        {tab === "games" ? (
+          <ResourceView resource={allGames} inline>
+            {(items) => <AdminGamesTable games={items} />}
+          </ResourceView>
+        ) : tab === "contests" ? (
           <ResourceView resource={allContests} inline>
             {(items) => <ContestsTable contests={items} />}
           </ResourceView>
@@ -169,7 +166,8 @@ export function AdminScreen() {
           </thead>
           <tbody>
             {users.map((user) => {
-              const isSelf = user.id === me.id;
+              // Other admins are listed for information only: the server refuses any action on them.
+              const isAdminUser = user.role === "admin";
               return (
                 <tr key={user.id}>
                   <Td>
@@ -186,30 +184,22 @@ export function AdminScreen() {
                     {format.dateTime(new Date(user.createdAt), { dateStyle: "medium" })}
                   </Td>
                   <Td>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {user.active ? (
-                        <Button
-                          variant="neutral"
-                          disabled={isSelf}
-                          aria-describedby={isSelf ? `self-${user.id}` : undefined}
-                          onClick={() => setPending({ kind: "disable", user })}
-                        >
-                          {t("actions.disable")}
+                    {isAdminUser ? null : (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {user.active ? (
+                          <Button variant="neutral" onClick={() => setPending({ kind: "disable", user })}>
+                            {t("actions.disable")}
+                          </Button>
+                        ) : (
+                          <Button variant="neutral" onClick={() => setActive(user, true)}>
+                            {t("actions.enable")}
+                          </Button>
+                        )}
+                        <Button variant="neutral" onClick={() => setPending({ kind: "reset", user })}>
+                          {t("actions.resetPassword")}
                         </Button>
-                      ) : (
-                        <Button variant="neutral" onClick={() => setActive(user, true)}>
-                          {t("actions.enable")}
-                        </Button>
-                      )}
-                      <Button variant="neutral" onClick={() => setPending({ kind: "reset", user })}>
-                        {t("actions.resetPassword")}
-                      </Button>
-                      {isSelf ? (
-                        <span id={`self-${user.id}`} className="text-caption text-ink-muted">
-                          {t("selfNote")}
-                        </span>
-                      ) : null}
-                    </div>
+                      </div>
+                    )}
                   </Td>
                 </tr>
               );

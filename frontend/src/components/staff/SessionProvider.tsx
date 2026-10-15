@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { me, logout } from "@/lib/api/auth";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
+import { homePath, redirectFor } from "@/lib/staffRoutes";
 import type { ManagedUser } from "@/types/user";
 import { WarningCircle } from "@phosphor-icons/react";
 
@@ -55,8 +56,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.status !== "ready") return;
     if (!user && !onLogin) router.replace(LOGIN_PATH);
-    if (user && onLogin) router.replace("/dashboard");
-  }, [state.status, user, onLogin, router]);
+    if (user && onLogin) router.replace(homePath(user.role));
+    else if (user) {
+      const elsewhere = redirectFor(user.role, pathname);
+      if (elsewhere) router.replace(elsewhere);
+    }
+  }, [state.status, user, onLogin, pathname, router]);
 
   const session: Session = {
     user,
@@ -81,7 +86,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     );
   }
   // Children only render when they are allowed to: no flash of a staff screen before a redirect.
-  const allowed = state.status === "ready" && (onLogin ? !user : user !== null);
+  const allowed =
+    state.status === "ready" && (onLogin ? !user : user !== null && redirectFor(user.role, pathname) === null);
   if (!allowed) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
@@ -102,4 +108,10 @@ export function useCurrentUser(): ManagedUser {
   const user = useContext(SessionContext)?.user;
   if (!user) throw new Error("useCurrentUser needs a signed-in staff session");
   return user;
+}
+
+/** The start page of the signed-in user: the dashboard, or the admin area for admins. */
+export function useHomePath(): string {
+  const user = useContext(SessionContext)?.user;
+  return user ? homePath(user.role) : "/dashboard";
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { homePath } from "@/lib/staffRoutes";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export function LoginScreen() {
     try {
       const user = await signIn(login, password);
       session?.signedIn(user);
-      router.push("/dashboard");
+      router.push(homePath(user.role));
     } catch (failure) {
       const code = failure instanceof ApiRequestError ? failure.code : "";
       setError(code === "INVALID_CREDENTIALS" ? t("errors.INVALID_CREDENTIALS") : tc(`apiError.${toKnownCode(failure)}`));

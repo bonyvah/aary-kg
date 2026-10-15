@@ -1,3 +1,4 @@
+import { useHomePath } from "./SessionProvider";
 import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Avatar } from "@/components/game/Avatar";
@@ -21,6 +22,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 /** What happened in one finished game: the numbers, every player with the signals the server logged, and every question. */
 export function ReportScreen({ report }: { report: GameReport }) {
   const t = useTranslations("staff.report");
+  const home = useHomePath();
   const format = useFormatter();
   const average = report.questions.reduce((sum, q) => sum + q.correctShare, 0) / Math.max(1, report.questions.length);
   const minutes = Math.max(1, Math.round(report.durationSeconds / 60));
@@ -34,10 +36,16 @@ export function ReportScreen({ report }: { report: GameReport }) {
             {format.dateTime(new Date(report.finishedAt), { dateStyle: "long", timeStyle: "short" })}
           </p>
         </div>
-        <ButtonLink href="/dashboard" variant="neutral">
+        <ButtonLink href={home} variant="neutral">
           {t("toDashboard")}
         </ButtonLink>
       </div>
+
+      {report.editCount > 0 ? (
+        <p role="note" className="rounded-md bg-surface-raised px-4 py-3 text-body">
+          {t("edited", { count: report.editCount })}
+        </p>
+      ) : null}
 
       <section aria-label={t("summary")} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label={t("players")} value={format.number(report.players.length)} />

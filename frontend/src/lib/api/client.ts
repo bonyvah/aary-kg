@@ -17,7 +17,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-type RequestOptions = { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown };
+type RequestOptions = { method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; body?: unknown };
 
 export async function apiFetch<T>(path: string, { method = "GET", body }: RequestOptions = {}): Promise<T> {
   let response: Response;
@@ -53,6 +53,15 @@ const KNOWN_CODES = [
   "FORBIDDEN",
   "USER_NOT_FOUND",
   "CANNOT_DISABLE_SELF",
+  "CANNOT_MANAGE_ADMIN",
+  "GAME_NOT_FOUND",
+  "PLAYER_NOT_FOUND",
+  "ANSWER_NOT_FOUND",
+  "FLAG_NOT_FOUND",
+  "NICKNAME_TAKEN",
+  "SCORE_NEGATIVE",
+  "ANSWER_INCONSISTENT",
+  "NOTHING_TO_CHANGE",
   "VALIDATION_ERROR",
   "QUIZ_NOT_FOUND",
   "CONTEST_NOT_FOUND",

@@ -6,17 +6,16 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Select } from "@/components/ui/Select";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { validateNewUser, type AdminErrorCode } from "@/lib/adminUsers";
-import type { ManagedUser, UserRole } from "@/types/user";
+import type { ManagedUser } from "@/types/user";
 
 type CreateUserModalProps = {
   open: boolean;
   existing: readonly ManagedUser[];
   onClose: () => void;
   /** Rejects with ApiRequestError when the server says no. */
-  onCreate: (input: { name: string; login: string; role: UserRole }) => Promise<void>;
+  onCreate: (input: { name: string; login: string }) => Promise<void>;
 };
 
 const FORM_ID = "create-user-form";
@@ -24,11 +23,9 @@ const FORM_ID = "create-user-form";
 export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUserModalProps) {
   const t = useTranslations("admin.create");
   const te = useTranslations("admin.errors");
-  const tr = useTranslations("admin.roles");
   const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [login, setLogin] = useState("");
-  const [role, setRole] = useState<UserRole>("user");
   const [errors, setErrors] = useState<{ name?: AdminErrorCode; login?: AdminErrorCode }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -38,7 +35,6 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
     if (open) {
       setName("");
       setLogin("");
-      setRole("user");
       setErrors({});
       setFormError(null);
       setBusy(false);
@@ -53,7 +49,7 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
     if (found.name || found.login) return;
     setBusy(true);
     try {
-      await onCreate({ name: name.trim(), login: login.trim().toLowerCase(), role });
+      await onCreate({ name: name.trim(), login: login.trim().toLowerCase() });
     } catch (failure) {
       // The server checks the same rules: its answer for a field shows under that field.
       const known: readonly string[] = ["FIELD_REQUIRED", "LOGIN_INVALID", "LOGIN_TAKEN"];
@@ -99,10 +95,6 @@ export function CreateUserModal({ open, existing, onClose, onCreate }: CreateUse
           autoCapitalize="none"
           error={errors.login ? te(errors.login) : undefined}
         />
-        <Select label={t("role")} value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
-          <option value="user">{tr("user")}</option>
-          <option value="admin">{tr("admin")}</option>
-        </Select>
         {formError ? (
           <p role="alert" className="text-caption font-bold text-danger-text">
             {formError}

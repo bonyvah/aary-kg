@@ -28,7 +28,15 @@ def migrated() -> None:
 async def clean_db(migrated: None):
     yield
     async with engine.begin() as conn:
-        await conn.execute(text("TRUNCATE users, quizzes, contests CASCADE"))
+        await conn.execute(text("TRUNCATE users, quizzes, contests, games CASCADE"))
+
+
+@pytest.fixture(autouse=True)
+async def clean_redis():
+    from app.redis import get_redis
+
+    await get_redis().flushdb()
+    yield
 
 
 @pytest.fixture

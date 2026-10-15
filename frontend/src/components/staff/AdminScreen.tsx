@@ -171,7 +171,7 @@ export function AdminScreen() {
               return (
                 <tr key={user.id}>
                   <Td>
-                    <span className="min-w-0 break-words font-bold">{user.name}</span>
+                    <span className="min-w-0 wrap-break-word font-bold">{user.name}</span>
                   </Td>
                   <Td>{user.login}</Td>
                   <Td>

@@ -45,6 +45,8 @@ export function AnswerEditor({ position, value, correct, error, onChange, onMark
           type="button"
           role="radio"
           aria-checked={correct}
+          // Tab goes from one answer text to the next; the mark is a click (or tap) away.
+          tabIndex={-1}
           aria-label={t("correctOption", { shape: shapeName })}
           onClick={onMarkCorrect}
           className={cx(

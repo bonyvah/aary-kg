@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +18,7 @@ import { QuestionList } from "./QuestionList";
 
 const POSITIONS: readonly AnswerPosition[] = [1, 2, 3, 4];
 const TOAST_MS = 3000;
+const QUESTION_INPUT_ID = "editor-question-text";
 
 export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const t = useTranslations("staff.editor");
@@ -33,6 +34,14 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
     const timer = setTimeout(editor.clearSaveResult, TOAST_MS);
     return () => clearTimeout(timer);
   }, [state.saveResult, editor.clearSaveResult]);
+
+  // Opening another question (picking it, or adding one) puts the cursor in its text box.
+  const shownId = useRef(question?.id);
+  useEffect(() => {
+    if (!question || shownId.current === question.id) return;
+    shownId.current = question.id;
+    document.getElementById(QUESTION_INPUT_ID)?.focus();
+  }, [question]);
 
   if (!question) return null;
 
@@ -95,6 +104,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
         />
         <main className="flex min-w-0 flex-col gap-6 p-4 md:p-6">
           <Input
+            id={QUESTION_INPUT_ID}
             label={t("questionLabel")}
             value={question.text}
             maxLength={500}

@@ -8,7 +8,8 @@
     "staff",
     "host",
     "admin",
-    "contest"
+    "contest",
+    "errorPage"
   ],
   "app": {
     "name": "aary kg"
@@ -620,5 +621,17 @@
         "back": "Сынакка кайтуу"
       }
     }
+  },
+  "errorPage": {
+    "notFound": {
+      "title": "Бет табылган жок",
+      "description": "Мындай бет жок."
+    },
+    "error": {
+      "title": "Бир нерсе бузулду",
+      "description": "Бул бетти ачуу мүмкүн болгон жок."
+    },
+    "retry": "Кайра аракет кылуу",
+    "home": "Башкы бетке"
   }
 }

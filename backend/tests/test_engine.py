@@ -525,3 +525,30 @@ async def test_host_can_switch_shuffle_in_the_lobby_only(env):
     with pytest.raises(GameError) as e:
         await env.engine.set_shuffle(state.id, True)
     assert e.value.code == "INVALID_STATE"
+
+
+# --- a stale «continue» ---------------------------------------------------------------------
+
+
+async def test_a_continue_pressed_on_an_old_screen_is_ignored(env):
+    state, *_ = await new_game(env, n=2)
+    phase = lambda: env.repo.get_game(state.id)  # noqa: E731
+    await env.engine.start(state.id)
+    await env.engine.next(state.id, from_phase="question")  # closes the question
+    assert (await phase()).phase == "counts"
+    await env.engine.next(state.id, from_phase="question")  # a double click: still thinks it is on «question»
+    assert (await phase()).phase == "counts"
+    await env.engine.next(state.id, from_phase="counts")
+    assert (await phase()).phase == "leaderboard"
+    await env.engine.next(state.id, from_phase="counts")  # stale again
+    assert (await phase()).phase == "leaderboard"
+    await env.engine.next(state.id, from_phase="leaderboard")
+    assert (await phase()).phase == "question" and (await phase()).round == 1
+
+
+async def test_double_click_at_the_same_instant_moves_one_step_only(env):
+    state, *_ = await new_game(env, n=3)
+    await env.engine.start(state.id)
+    await env.engine.next(state.id)  # results screen
+    await asyncio.gather(*(env.engine.next(state.id, from_phase="counts") for _ in range(5)))
+    assert (await env.repo.get_game(state.id)).phase == "leaderboard"

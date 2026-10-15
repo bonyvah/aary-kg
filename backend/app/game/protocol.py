@@ -60,6 +60,10 @@ class Next(_In):
     """Host: close the question early, show the leaderboard, go on to the next question or the end."""
 
     type: Literal["next"]
+    # The phase the host was looking at when they pressed the button. If the game has moved on since
+    # (a double click, a timer that closed the question first), the press is ignored instead of
+    # skipping a screen.
+    from_phase: Phase | None = None
 
 
 class Kick(_In):

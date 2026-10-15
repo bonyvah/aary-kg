@@ -70,7 +70,8 @@ export type PlayerMessage =
 
 export type HostMessage =
   | { type: "start" }
-  | { type: "next" }
+  /** `fromPhase`: the screen it was pressed on. The server ignores a press that is out of date. */
+  | { type: "next"; fromPhase: "question" | "counts" | "leaderboard" }
   | { type: "end" }
   | { type: "kick"; playerId: string }
   | { type: "settings"; shuffleQuestions: boolean };

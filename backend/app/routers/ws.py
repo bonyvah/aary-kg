@@ -108,7 +108,7 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
                     case p.Start():
                         await engine.start(game_id)
                     case p.Next():
-                        await engine.next(game_id)
+                        await engine.next(game_id, message.from_phase)
                     case p.Kick():
                         await engine.kick(game_id, message.player_id)
                     case p.End():

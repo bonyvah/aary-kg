@@ -30,7 +30,7 @@ Close codes: `4400` bad first message, `4401` not authenticated, `4403` not allo
 ## Phases
 `lobby` -> `question` -> `counts` (results) -> `leaderboard` -> `question` ... -> `ended`
 
-The host moves the game with `next`: during a question it closes it early, on the results screen it shows the leaderboard, on the leaderboard it starts the next question (or ends the game after the last). A question also closes by itself when time is up (+0.4 s grace for answers in flight) and when everybody has answered.
+The host moves the game with `next`. It carries `fromPhase`, the screen the host pressed it on: if the game has already moved on (a double click, or the timer closed the question first) the press is ignored instead of skipping a screen. Without it: during a question it closes it early, on the results screen it shows the leaderboard, on the leaderboard it starts the next question (or ends the game after the last). A question also closes by itself when time is up (+0.4 s grace for answers in flight) and when everybody has answered.
 
 ## Client -> server
 
@@ -44,7 +44,7 @@ Player (after `hello`):
 | `pong` | `n` | answer to the server's `ping`. The server halves the round trip to estimate the delay (max 300 ms) and takes it off the answer time. |
 | `character.set` | `character {shape, color, face}` | lobby only; the three ids must come from the fixed lists |
 
-Host: `start`, `next`, `kick {playerId}`, `end`, `settings {shuffleQuestions}` (lobby only).
+Host: `start`, `next {fromPhase}`, `kick {playerId}`, `end`, `settings {shuffleQuestions}` (lobby only).
 
 ## Server -> client
 

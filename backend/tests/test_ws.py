@@ -434,3 +434,21 @@ async def test_host_shuffle_setting_over_the_socket(room):
     await host.send(type="settings", shuffleQuestions="yes")  # not a boolean: refused
     await host.wait("error")
     assert (await ws_module.get_engine().repo.get_game(room.game["gameId"])).shuffle is True
+
+
+async def test_a_double_click_on_continue_moves_the_game_one_step(room):
+    host = await room.host()
+    pa = await room.play((await room.join("Aida"))["token"])
+    await pa.wait("state")
+    await host.send(type="start")
+    await host.wait("question.started")
+    await host.send(type="next", fromPhase="question")  # closes the question
+    await host.send(type="next", fromPhase="question")  # the same press again: out of date
+    await host.wait("question.closed")
+    await asyncio.sleep(0.3)
+    assert "leaderboard" not in host.types()  # it did not run on to the leaderboard
+    await host.send(type="next", fromPhase="counts")
+    await host.send(type="next", fromPhase="counts")
+    await host.wait("leaderboard")
+    await asyncio.sleep(0.3)
+    assert host.types().count("question.started") == 1  # and not on to question 2

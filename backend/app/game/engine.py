@@ -255,10 +255,16 @@ class GameEngine:
             await self.audit(game_id, "game.started", order=order)
             await self._begin_question(state, quiz, 0)
 
-    async def next(self, game_id: str) -> None:
-        """Host's «continue»: question -> close early, results -> leaderboard, leaderboard -> next/end."""
+    async def next(self, game_id: str, from_phase: str | None = None) -> None:
+        """Host's «continue»: question -> close early, results -> leaderboard, leaderboard -> next/end.
+
+        `from_phase` is the screen the host pressed it on. When the game is no longer there, the
+        press is stale (a double click, or the timer got there first) and does nothing.
+        """
         async with self.repo.lock(game_id):
             state = await self._game(game_id)
+            if from_phase is not None and state.phase != from_phase:
+                return
             if state.phase == "question":
                 await self._close_locked(state)
             elif state.phase == "counts":

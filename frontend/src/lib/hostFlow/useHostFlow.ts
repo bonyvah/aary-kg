@@ -75,7 +75,10 @@ export function useHostFlow(quiz: Quiz) {
     }, []),
     start: useCallback(() => send({ type: "start" }), [send]),
     /** The host's «continue»: close the question, show the leaderboard, go to the next question or the end. */
-    advance: useCallback(() => send({ type: "next" }), [send]),
+    advance: useCallback(() => {
+      // Says which screen the button was on, so a double click doesn't skip the next one.
+      if (phase === "question" || phase === "counts" || phase === "leaderboard") send({ type: "next", fromPhase: phase });
+    }, [send, phase]),
     kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
     setShuffle: useCallback((shuffleQuestions: boolean) => send({ type: "settings", shuffleQuestions }), [send]),
   };

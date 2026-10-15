@@ -28,7 +28,7 @@ def migrated() -> None:
 async def clean_db(migrated: None):
     yield
     async with engine.begin() as conn:
-        await conn.execute(text("TRUNCATE users CASCADE"))
+        await conn.execute(text("TRUNCATE users, quizzes, contests CASCADE"))
 
 
 @pytest.fixture
@@ -54,3 +54,20 @@ async def make_user(login: str, role: str = "user", password: str = "pw-12345", 
 async def login_as(client: AsyncClient, login: str, password: str = "pw-12345") -> None:
     r = await client.post("/auth/login", json={"login": login, "password": password})
     assert r.status_code == 200, r.text
+
+
+@pytest.fixture
+async def as_user():
+    """as_user("ulan", role="admin") -> (client logged in as that user, user). Separate cookie jars."""
+    clients: list[AsyncClient] = []
+
+    async def make(login: str, role: str = "user"):
+        user = await make_user(login, role=role)
+        c = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+        clients.append(c)
+        await login_as(c, login)
+        return c, user
+
+    yield make
+    for c in clients:
+        await c.aclose()

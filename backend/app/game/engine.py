@@ -153,6 +153,15 @@ class GameEngine:
         await self.repo.save_players(game_id, [player])
         await self._lobby_updated(game_id)
 
+    async def set_shuffle(self, game_id: str, shuffle: bool) -> None:
+        """Host setting: play the questions in a random order. Only before the game starts."""
+        async with self.repo.lock(game_id):
+            state = await self._game(game_id)
+            if state.phase != "lobby":
+                raise GameError("INVALID_STATE")
+            state.shuffle = shuffle
+            await self.repo.save_game(state)
+
     async def kick(self, game_id: str, player_id: str) -> None:
         player = await self.repo.get_player(game_id, player_id)
         if player is None:
@@ -187,6 +196,8 @@ class GameEngine:
             correct = self._question(quiz, state, state.round)["correct"]
             result = (await self.repo.get_results(game_id, state.round)).get(player_id)
             event.reveal = p.Reveal(correct=correct, points=result["points"] if result else 0)
+            # What they tapped, so the results screen can say right, wrong or too late.
+            event.answered = result["position"] if result else None
         elif state.phase == "leaderboard":
             event.top = standings[:LEADERBOARD_TOP]
         else:
@@ -200,6 +211,7 @@ class GameEngine:
         event = p.HostStateEvent(
             game_id=state.id,
             pin=state.pin,
+            shuffle=state.shuffle,
             phase=state.phase,
             total=len(quiz["questions"]),
             players=self._public(players),

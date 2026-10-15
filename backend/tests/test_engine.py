@@ -451,6 +451,8 @@ async def test_snapshots_bring_a_reconnecting_player_up_to_date_in_every_phase(e
     await env.engine.next(state.id)
     snap = await env.engine.player_snapshot(state.id, aida.id)
     assert snap.phase == "counts" and snap.reveal.correct == 1 and snap.reveal.points == 0
+    assert snap.answered == 3  # what Aida tapped, so the results screen can say right or wrong
+    assert (await env.engine.player_snapshot(state.id, bek.id)).answered is None  # Bek ran out of time
     hsnap = await env.engine.host_snapshot(state.id)
     assert hsnap.phase == "counts" and hsnap.correct == 1 and hsnap.counts == [0, 0, 1, 0]
 
@@ -509,3 +511,16 @@ async def test_events_reach_players_connected_to_another_instance(env):
         assert of(events, "question.closed")[0]["reveal"]["correct"] == 1
     finally:
         await other_instance.detach(state.id, conn)
+
+
+async def test_host_can_switch_shuffle_in_the_lobby_only(env):
+    state, *_ = await new_game(env, players=("A1",), n=8)
+    assert (await env.engine.host_snapshot(state.id)).shuffle is False
+    await env.engine.set_shuffle(state.id, True)
+    assert (await env.engine.host_snapshot(state.id)).shuffle is True
+    await env.engine.set_shuffle(state.id, False)
+    assert (await env.repo.get_game(state.id)).shuffle is False
+    await env.engine.start(state.id)
+    with pytest.raises(GameError) as e:
+        await env.engine.set_shuffle(state.id, True)
+    assert e.value.code == "INVALID_STATE"

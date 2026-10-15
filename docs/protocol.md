@@ -44,7 +44,7 @@ Player (after `hello`):
 | `pong` | `n` | answer to the server's `ping`. The server halves the round trip to estimate the delay (max 300 ms) and takes it off the answer time. |
 | `character.set` | `character {shape, color, face}` | lobby only; the three ids must come from the fixed lists |
 
-Host: `start`, `next`, `kick {playerId}`, `end`.
+Host: `start`, `next`, `kick {playerId}`, `end`, `settings {shuffleQuestions}` (lobby only).
 
 ## Server -> client
 

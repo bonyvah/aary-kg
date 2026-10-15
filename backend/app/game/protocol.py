@@ -7,7 +7,7 @@ Server -> client messages are built from the models below, so their shape is fix
 
 from typing import Annotated, Any, Literal
 
-from pydantic import Field, TypeAdapter, ValidationError
+from pydantic import Field, StrictBool, TypeAdapter, ValidationError
 
 from app.schemas.base import CamelModel
 
@@ -71,8 +71,15 @@ class End(_In):
     type: Literal["end"]
 
 
+class Settings(_In):
+    """Host: change a setting. Only in the lobby."""
+
+    type: Literal["settings"]
+    shuffle_questions: StrictBool  # a real true/false, not "yes" or 1
+
+
 PlayerMessage = Annotated[Hello | Answer | Signal | Pong | SetCharacter, Field(discriminator="type")]
-HostMessage = Annotated[Start | Next | Kick | End, Field(discriminator="type")]
+HostMessage = Annotated[Start | Next | Kick | End | Settings, Field(discriminator="type")]
 
 _player = TypeAdapter(PlayerMessage)
 _host = TypeAdapter(HostMessage)
@@ -85,7 +92,7 @@ def parse_player(data: Any) -> Hello | Answer | Signal | Pong | SetCharacter | N
         return None
 
 
-def parse_host(data: Any) -> Start | Next | Kick | End | None:
+def parse_host(data: Any) -> Start | Next | Kick | End | Settings | None:
     try:
         return _host.validate_python(data)
     except ValidationError:
@@ -148,6 +155,7 @@ class HostStateEvent(_Out):
     type: Literal["host.state"] = "host.state"
     game_id: str
     pin: str
+    shuffle: bool = False
     phase: Phase
     total: int
     players: list[PlayerPublic]

@@ -146,7 +146,7 @@ export function Dropdown({ label, value, options, onChange, selectedLabel, custo
         {open ? (
           <div
             className={cx(
-              "absolute left-0 z-20 w-full min-w-[280px] rounded-md border-2 border-border-control bg-surface-raised p-3",
+              "absolute left-0 z-20 w-full rounded-md border-2 border-border-control bg-surface-raised p-3",
               "shadow-[0_4px_0_0_var(--border-control)]",
               placement === "up" ? "bottom-full mb-3" : "top-full mt-3",
             )}

@@ -89,6 +89,14 @@ function missingForNext(question: QuizQuestion): string[] {
   return missing;
 }
 
+/** Once a question has what it needs to be followed by another, its leftover marks on blank answers go. */
+function settled(state: EditorState): EditorState {
+  const question = state.quiz.questions.find((q) => q.id === state.selectedId);
+  if (!question || missingForNext(question).length > 0) return state;
+  const errors = new Set([...state.errors].filter((key) => !key.startsWith(`${question.id}:answer:`)));
+  return errors.size === state.errors.size ? state : { ...state, errors };
+}
+
 function without(errors: ReadonlySet<string>, key: string): ReadonlySet<string> {
   const next = new Set(errors);
   next.delete(key);
@@ -122,19 +130,19 @@ export function editorReducer(state: EditorState, event: EditorEvent): EditorSta
     case "QUESTION_SELECTED":
       return state.quiz.questions.some((q) => q.id === event.id) ? { ...state, selectedId: event.id } : state;
     case "QUESTION_TEXT_CHANGED":
-      return {
+      return settled({
         ...updateSelected(state, (q) => ({ ...q, text: event.text })),
         errors: without(state.errors, textKey(state.selectedId)),
-      };
+      });
     case "ANSWER_TEXT_CHANGED":
-      return {
+      return settled({
         ...updateSelected(state, (q) => {
           const answers: QuizQuestion["answers"] = [...q.answers];
           answers[event.position - 1] = event.text;
           return { ...q, answers };
         }),
         errors: without(state.errors, answerKey(state.selectedId, event.position)),
-      };
+      });
     case "CORRECT_CHANGED":
       return updateSelected(state, (q) => ({ ...q, correct: event.position }));
     case "SECONDS_CHANGED":

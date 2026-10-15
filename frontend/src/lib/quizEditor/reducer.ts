@@ -5,6 +5,8 @@ export const SECONDS_OPTIONS = [10, 20, 30, 60] as const;
 export const DEFAULT_SECONDS = 20;
 export const MIN_SECONDS = 5;
 export const MAX_SECONDS = 300;
+/** A question needs its text and at least this many filled answers before the next one is added. */
+export const MIN_FILLED_ANSWERS = 2;
 
 export type EditorState = {
   quiz: Quiz;
@@ -76,6 +78,17 @@ export function validateQuiz(quiz: Quiz): string[] {
   return missing;
 }
 
+/** Keys of what is missing before a question may be followed by a new one. */
+function missingForNext(question: QuizQuestion): string[] {
+  const missing: string[] = [];
+  if (question.text.trim() === "") missing.push(textKey(question.id));
+  const blank = question.answers
+    .map((answer, index) => (answer.trim() === "" ? answerKey(question.id, (index + 1) as AnswerPosition) : null))
+    .filter((key): key is string => key !== null);
+  if (question.answers.length - blank.length < MIN_FILLED_ANSWERS) missing.push(...blank);
+  return missing;
+}
+
 function without(errors: ReadonlySet<string>, key: string): ReadonlySet<string> {
   const next = new Set(errors);
   next.delete(key);
@@ -127,8 +140,13 @@ export function editorReducer(state: EditorState, event: EditorEvent): EditorSta
     case "SECONDS_CHANGED":
       return updateSelected(state, (q) => ({ ...q, seconds: event.seconds }));
     case "QUESTION_ADDED": {
+      const current = state.quiz.questions.find((q) => q.id === state.selectedId);
+      const missing = current ? missingForNext(current) : [];
+      if (missing.length > 0) return { ...state, errors: new Set(missing), saveResult: "invalid" };
       const id = `question-${state.nextNumber}`;
-      const blank: QuizQuestion = { id, text: "", answers: ["", "", "", ""], correct: 1, seconds: DEFAULT_SECONDS };
+      // The new question starts with the time of the one before it.
+      const seconds = current?.seconds ?? DEFAULT_SECONDS;
+      const blank: QuizQuestion = { id, text: "", answers: ["", "", "", ""], correct: 1, seconds };
       return {
         ...state,
         quiz: { ...state.quiz, questions: [...state.quiz.questions, blank] },

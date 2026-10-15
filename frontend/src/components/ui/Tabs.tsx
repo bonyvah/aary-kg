@@ -53,7 +53,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
           aria-controls={panelId(idBase)}
           tabIndex={value === tab.id ? 0 : -1}
           variant={value === tab.id ? "primary" : "neutral"}
-          className="min-w-0 flex-1 px-2"
+          className="min-w-0 flex-1 max-sm:px-1 max-sm:text-body"
           onClick={() => onChange(tab.id)}
           onKeyDown={(event) => onKeyDown(event, index)}
         >

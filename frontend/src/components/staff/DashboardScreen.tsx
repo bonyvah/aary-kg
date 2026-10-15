@@ -2,15 +2,15 @@
 
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Trophy } from "@phosphor-icons/react/ssr";
+import { Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
-import { mockCurrentUser } from "@/mocks/staff";
-import { useCurrentUser } from "./SessionProvider";
-import { contestsForUser } from "@/mocks/contests";
-import { mockQuizSummaries } from "@/mocks/quizzes";
+import { listContests } from "@/lib/api/contests";
+import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
+import { ResourceView, useResource } from "./Resource";
+import { useCurrentUser } from "./SessionProvider";
 import { QuizCard } from "./QuizCard";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -23,7 +23,8 @@ export function DashboardScreen() {
   const t = useTranslations("staff.dashboard");
   const [tab, setTab] = useState<Tab>("quizzes");
   const idBase = useId();
-  const contests = contestsForUser(mockCurrentUser.id);
+  const quizzes = useResource(listQuizzes);
+  const contests = useResource(listContests);
 
   return (
     <StaffShell
@@ -60,27 +61,41 @@ export function DashboardScreen() {
       </div>
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
-          <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-            {mockQuizSummaries.map((quiz) => (
-              <li key={quiz.id} className="flex">
-                <div className="flex-1">
-                  <QuizCard quiz={quiz} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : contests.length > 0 ? (
-          <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-            {contests.map((contest) => (
-              <li key={contest.id} className="flex">
-                <div className="flex-1">
-                  <ContestCard contest={contest} userId={mockCurrentUser.id} />
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ResourceView resource={quizzes} inline>
+            {(items) =>
+              items.length > 0 ? (
+                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((quiz) => (
+                    <li key={quiz.id} className="flex">
+                      <div className="flex-1">
+                        <QuizCard quiz={quiz} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />
+              )
+            }
+          </ResourceView>
         ) : (
-          <EmptyState icon={Trophy} title={t("contestsEmpty.title")} description={t("contestsEmpty.description")} />
+          <ResourceView resource={contests} inline>
+            {(items) =>
+              items.length > 0 ? (
+                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((contest) => (
+                    <li key={contest.id} className="flex">
+                      <div className="flex-1">
+                        <ContestCard contest={contest} userId={user.id} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState icon={Trophy} title={t("contestsEmpty.title")} description={t("contestsEmpty.description")} />
+              )
+            }
+          </ResourceView>
         )}
       </div>
     </StaffShell>

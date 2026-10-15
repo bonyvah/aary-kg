@@ -43,16 +43,18 @@ function isMissing(code: KnownApiCode) {
 
 type ResourceViewProps<T> = {
   resource: ReturnType<typeof useResource<T>>;
+  /** Part of a screen (a tab) instead of the whole page. */
+  inline?: boolean;
   children: (data: T) => ReactNode;
 };
 
 /** Spinner while loading, a message with retry on failure, the screen when the data is here. */
-export function ResourceView<T>({ resource, children }: ResourceViewProps<T>) {
+export function ResourceView<T>({ resource, inline = false, children }: ResourceViewProps<T>) {
   const t = useTranslations("common");
   const { state, reload } = resource;
   if (state.status === "ready") return <>{children(state.data)}</>;
   return (
-    <div className="flex min-h-dvh items-center justify-center p-4">
+    <div className={inline ? "flex items-center justify-center py-8" : "flex min-h-dvh items-center justify-center p-4"}>
       {state.status === "loading" ? (
         <Spinner label={t("loading")} />
       ) : (

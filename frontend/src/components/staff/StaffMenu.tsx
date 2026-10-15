@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Gear } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/useToast";
 import type { ManagedUser } from "@/types/user";
 import { ChangeLoginModal } from "./ChangeLoginModal";
@@ -12,11 +14,12 @@ import { SettingsModal } from "./SettingsModal";
 
 type View = "none" | "settings" | "login" | "password";
 
-/** The user's name opens the account settings; from there the login and the password can be changed. */
+/** The gear opens the account settings; from there the login and the password can be changed. */
 export function StaffMenu() {
-  const { name, login } = useCurrentUser();
+  const { login } = useCurrentUser();
   const session = useSession();
   const t = useTranslations("staff.account");
+  const tm = useTranslations("staff.menu");
   const { toast, show } = useToast();
   const [view, setView] = useState<View>("none");
   // Switching dialogs closes the old one, which reports `close` too: only the open one may reset the view.
@@ -30,8 +33,14 @@ export function StaffMenu() {
 
   return (
     <>
-      <Button variant="secondary" aria-haspopup="dialog" onClick={() => setView("settings")} className="max-w-[220px] truncate">
-        {name}
+      <Button
+        variant="secondary"
+        aria-haspopup="dialog"
+        aria-label={tm("title")}
+        onClick={() => setView("settings")}
+        className="size-11 p-0!"
+      >
+        <Icon icon={Gear} weight="bold" />
       </Button>
       <SettingsModal
         open={view === "settings"}

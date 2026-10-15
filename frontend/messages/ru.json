@@ -44,7 +44,7 @@
       "timeUp": "Время вышло"
     },
     "leaderboard": {
-      "title": "Лидеры",
+      "title": "Подиум",
       "you": "Ты"
     },
     "podium": {
@@ -451,7 +451,7 @@
       "continue": "Продолжить",
       "correct": "Правильный ответ",
       "count": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
-      "leaderboard": "Лидеры",
+      "leaderboard": "Подиум",
       "winner": "Победитель!",
       "crown": "Победитель",
       "viewReport": "Открыть отчёт",

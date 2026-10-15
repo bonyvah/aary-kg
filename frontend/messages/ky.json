@@ -56,7 +56,7 @@
       "timeUp": "Убакыт бүттү"
     },
     "leaderboard": {
-      "title": "Лидерлер",
+      "title": "Подиум",
       "you": "Сен"
     },
     "podium": {
@@ -463,7 +463,7 @@
       "continue": "Улантуу",
       "correct": "Туура жооп",
       "count": "{count, plural, one {# ойноочу} other {# ойноочу}}",
-      "leaderboard": "Лидерлер",
+      "leaderboard": "Подиум",
       "winner": "Жеңүүчү!",
       "crown": "Жеңүүчү",
       "viewReport": "Отчётту көрүү",

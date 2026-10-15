@@ -2,8 +2,10 @@
 
     uv run python scripts/loadtest.py --login aizhan --password '...' [--players 60] [--questions 5]
 
-Needs a running stack (backend, Postgres, Redis) and the login of a regular user (an admin cannot host games). Point --base at the backend
-(http://localhost:8000) or at the web app (http://localhost:3000 with --prefix /api).
+Needs a running stack (backend, Postgres, Redis) and the login of a regular
+user (an admin cannot host games). Point --base at the backend
+(http://localhost:8000) or at the web app (http://localhost:3000 with
+--prefix /api).
 
 Rate limits would stop one machine pretending to be 60 phones (30 joins a minute per address), so
 start the server under test with AARY_TRUSTED_PROXY_HOPS=1: this script then sends a different

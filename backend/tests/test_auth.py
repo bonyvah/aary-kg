@@ -40,3 +40,15 @@ async def test_logout_clears_session(client):
     await login_as(client, "aizhan")
     await client.post("/auth/logout")
     assert (await client.get("/auth/me")).status_code == 401
+
+
+async def test_disabling_takes_effect_on_existing_token(client):
+    await make_user("root", role="admin")
+    u = await make_user("ulan")
+    await login_as(client, "ulan")
+    assert (await client.get("/auth/me")).status_code == 200
+    admin = type(client)(transport=client._transport, base_url="http://test")
+    await login_as(admin, "root")
+    assert (await admin.post(f"/admin/users/{u.id}/disable")).status_code == 200
+    assert (await client.get("/auth/me")).status_code == 401
+    await admin.aclose()

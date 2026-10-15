@@ -4,7 +4,6 @@ import asyncio
 import json
 import logging
 import time
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -18,8 +17,8 @@ from app.game.models import GameError
 from app.game.runtime import get_engine, get_hub
 from app.netutil import client_ip, origin_allowed
 from app.redis import get_redis
-from app.repositories import users as users_repo
-from app.security import decode_player_token, decode_token
+from app.security import decode_player_token
+from app.services.auth import user_from_token
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -81,16 +80,9 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
     if (refused := await _refuse(ws)) is not None:
         return await ws.close(code=refused)
 
-    token = ws.cookies.get(COOKIE_NAME)
-    sub = decode_token(token) if token else None
-    user = None
-    if sub:
-        try:
-            async with SessionLocal() as session:
-                user = await users_repo.get(session, uuid.UUID(sub))
-        except ValueError:
-            user = None
-    if user is None or not user.active:
+    async with SessionLocal() as session:
+        user = await user_from_token(session, ws.cookies.get(COOKIE_NAME))
+    if user is None:
         return await ws.close(code=UNAUTHENTICATED)
 
     engine, hub = get_engine(), get_hub()

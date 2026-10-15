@@ -55,5 +55,6 @@ async def reset_password(session: AsyncSession, user_id: uuid.UUID) -> str:
     user = await _get(session, user_id)
     password = generate_password()
     user.password_hash = hash_password(password)
+    user.token_version += 1  # every open session of this user ends
     await session.commit()
     return password

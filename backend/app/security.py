@@ -1,5 +1,6 @@
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 
 import jwt
 from argon2 import PasswordHasher
@@ -32,10 +33,15 @@ def generate_password() -> str:
     return "-".join(groups)
 
 
-def create_token(user_id: str) -> str:
+class TokenClaims(NamedTuple):
+    sub: str
+    ver: int
+
+
+def create_token(user_id: str, version: int = 0) -> str:
     s = get_settings()
     exp = datetime.now(UTC) + timedelta(minutes=s.jwt_ttl_minutes)
-    return jwt.encode({"sub": user_id, "exp": exp}, s.jwt_secret, algorithm="HS256")
+    return jwt.encode({"sub": user_id, "ver": version, "exp": exp}, s.jwt_secret, algorithm="HS256")
 
 
 PLAYER_TTL = timedelta(hours=12)
@@ -59,10 +65,12 @@ def decode_player_token(token: str) -> tuple[str, str] | None:
     return gid, pid
 
 
-def decode_token(token: str) -> str | None:
+def decode_token(token: str) -> TokenClaims | None:
     try:
         data = jwt.decode(token, get_settings().jwt_secret, algorithms=["HS256"])
     except jwt.PyJWTError:
         return None
-    sub = data.get("sub")
-    return sub if isinstance(sub, str) else None
+    sub, ver = data.get("sub"), data.get("ver", 0)
+    if not isinstance(sub, str) or not isinstance(ver, int) or isinstance(ver, bool):
+        return None
+    return TokenClaims(sub, ver)

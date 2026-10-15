@@ -8,7 +8,8 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
-import { answerKey, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import { knownCode } from "@/lib/api/client";
+import { answerKey, NEW_QUIZ_ID, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Quiz } from "@/types/quiz";
 import { AnswerEditor } from "./AnswerEditor";
@@ -19,6 +20,7 @@ const TOAST_MS = 3000;
 
 export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const t = useTranslations("staff.editor");
+  const tc = useTranslations("common");
   const editor = useQuizEditor(quiz);
   const { state } = editor;
   const index = Math.max(0, state.quiz.questions.findIndex((q) => q.id === state.selectedId));
@@ -49,14 +51,22 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
               hideLabel
               label={t("titleLabel")}
               value={state.quiz.title}
+              maxLength={200}
               onChange={(event) => editor.setTitle(event.target.value)}
               error={state.errors.has("title") ? required : undefined}
             />
           </div>
-          <ButtonLink href={`/host/${state.quiz.id}`} variant="accent">
-            {t("host")}
-          </ButtonLink>
-          <Button variant="success" onClick={editor.save}>
+          {/* There is nothing to host until the quiz is saved. */}
+          {state.quiz.id === NEW_QUIZ_ID ? (
+            <Button variant="accent" disabled>
+              {t("host")}
+            </Button>
+          ) : (
+            <ButtonLink href={`/host/${state.quiz.id}`} variant="accent">
+              {t("host")}
+            </ButtonLink>
+          )}
+          <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
             {t("save")}
           </Button>
         </div>
@@ -74,6 +84,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
           <Input
             label={t("questionLabel")}
             value={question.text}
+            maxLength={500}
             onChange={(event) => editor.setQuestionText(event.target.value)}
             error={state.errors.has(textKey(question.id)) ? required : undefined}
           />
@@ -117,7 +128,11 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
       {state.saveResult ? (
         <ToastRegion>
           <Toast variant={state.saveResult === "saved" ? "success" : "danger"}>
-            {t(state.saveResult === "saved" ? "saved" : "saveFailed")}
+            {state.saveResult === "saved"
+              ? t("saved")
+              : state.saveResult === "invalid"
+                ? t("saveFailed")
+                : tc(`apiError.${knownCode(state.failedCode ?? "UNKNOWN")}`)}
           </Toast>
         </ToastRegion>
       ) : null}

@@ -35,6 +35,7 @@ export function AnswerEditor({ position, value, correct, error, onChange, onMark
           hideLabel
           label={t("answerLabel", { shape: shapeName })}
           value={value}
+          maxLength={200}
           onChange={(event) => onChange(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}

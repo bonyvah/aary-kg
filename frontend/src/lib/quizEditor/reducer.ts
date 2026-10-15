@@ -11,8 +11,10 @@ export type EditorState = {
   nextNumber: number;
   /** Keys of the fields that failed the last save: `title`, `<id>:text`, `<id>:answer:<position>`. */
   errors: ReadonlySet<string>;
-  /** The last save result, so the screen can show a toast. */
-  saveResult: "saved" | "invalid" | null;
+  /** The last save result, so the screen can show a toast. «failed»: the server could not be reached or said no. */
+  saveResult: "saved" | "invalid" | "failed" | null;
+  /** The error code behind a «failed» save. */
+  failedCode: string | null;
 };
 
 export type EditorEvent =
@@ -24,7 +26,12 @@ export type EditorEvent =
   | { type: "SECONDS_CHANGED"; seconds: number }
   | { type: "QUESTION_ADDED" }
   | { type: "QUESTION_REMOVED"; id: string }
-  | { type: "SAVED" }
+  /** Save pressed: the client-side check. Anything missing is marked and nothing is sent. */
+  | { type: "VALIDATED" }
+  | { type: "SAVE_SUCCEEDED"; quiz: Quiz }
+  /** The server found blank fields the client check let through. */
+  | { type: "SAVE_REJECTED"; keys: string[] }
+  | { type: "SAVE_FAILED"; code: string }
   | { type: "SAVE_RESULT_SEEN" };
 
 export function initialEditorState(quiz: Quiz): EditorState {
@@ -34,6 +41,20 @@ export function initialEditorState(quiz: Quiz): EditorState {
     nextNumber: quiz.questions.length + 1,
     errors: new Set(),
     saveResult: null,
+    failedCode: null,
+  };
+}
+
+/** The id of a quiz that has not been saved yet. */
+export const NEW_QUIZ_ID = "new";
+
+/** A new, empty quiz: one blank question so the editor has something to edit. */
+export function blankQuiz(): Quiz {
+  return {
+    id: NEW_QUIZ_ID,
+    title: "",
+    status: "draft",
+    questions: [{ id: "question-1", text: "", answers: ["", "", "", ""], correct: 1, seconds: DEFAULT_SECONDS }],
   };
 }
 
@@ -66,6 +87,16 @@ function updateSelected(state: EditorState, change: (question: QuizQuestion) => 
       ...state.quiz,
       questions: state.quiz.questions.map((q) => (q.id === state.selectedId ? change(q) : q)),
     },
+  };
+}
+
+function markInvalid(state: EditorState, missing: string[]): EditorState {
+  const firstQuestion = state.quiz.questions.find((q) => missing.some((key) => key.startsWith(`${q.id}:`)));
+  return {
+    ...state,
+    errors: new Set(missing),
+    saveResult: "invalid",
+    selectedId: firstQuestion?.id ?? state.selectedId,
   };
 }
 
@@ -113,17 +144,17 @@ export function editorReducer(state: EditorState, event: EditorEvent): EditorSta
         state.selectedId === event.id ? (questions[Math.min(index, questions.length - 1)]?.id ?? "") : state.selectedId;
       return { ...state, quiz: { ...state.quiz, questions }, selectedId };
     }
-    case "SAVED": {
+    case "VALIDATED": {
       const missing = validateQuiz(state.quiz);
-      if (missing.length === 0) return { ...state, errors: new Set(), saveResult: "saved" };
-      const firstQuestion = state.quiz.questions.find((q) => missing.some((key) => key.startsWith(`${q.id}:`)));
-      return {
-        ...state,
-        errors: new Set(missing),
-        saveResult: "invalid",
-        selectedId: firstQuestion?.id ?? state.selectedId,
-      };
+      return missing.length === 0 ? { ...state, errors: new Set() } : markInvalid(state, missing);
     }
+    case "SAVE_SUCCEEDED":
+      // A first save gets its real id from the server.
+      return { ...state, quiz: { ...state.quiz, id: event.quiz.id, status: event.quiz.status }, saveResult: "saved" };
+    case "SAVE_REJECTED":
+      return markInvalid(state, event.keys);
+    case "SAVE_FAILED":
+      return { ...state, saveResult: "failed", failedCode: event.code };
     case "SAVE_RESULT_SEEN":
       return { ...state, saveResult: null };
   }

@@ -1,6 +1,5 @@
-import { EditorScreen } from "@/components/staff/EditorScreen";
-import { newMockQuiz } from "@/mocks/quizzes";
+import { QuizEditorLoader } from "@/components/staff/QuizEditorLoader";
 
 export default function NewQuizPage() {
-  return <EditorScreen quiz={newMockQuiz()} />;
+  return <QuizEditorLoader id={null} />;
 }

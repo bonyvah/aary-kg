@@ -67,7 +67,10 @@ const KNOWN_CODES = [
 ] as const;
 export type KnownApiCode = (typeof KNOWN_CODES)[number];
 
-export function toKnownCode(error: unknown): KnownApiCode {
-  const code = error instanceof ApiRequestError ? error.code : "UNKNOWN";
+export function knownCode(code: string): KnownApiCode {
   return (KNOWN_CODES as readonly string[]).includes(code) ? (code as KnownApiCode) : "UNKNOWN";
+}
+
+export function toKnownCode(error: unknown): KnownApiCode {
+  return knownCode(error instanceof ApiRequestError ? error.code : "UNKNOWN");
 }

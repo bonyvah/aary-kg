@@ -11,8 +11,8 @@ export const joinGame = (pin: string, nickname: string) =>
   apiFetch<Joined>("/games/join", { method: "POST", body: { pin, nickname } });
 
 /** The host's side: a signed-in staff user. */
-export const createGame = (quizId: string, shuffleQuestions = false) =>
-  apiFetch<{ gameId: string; pin: string }>("/games", { method: "POST", body: { quizId, shuffleQuestions } });
+export const createGame = (quizId: string) =>
+  apiFetch<{ gameId: string; pin: string }>("/games", { method: "POST", body: { quizId } });
 
 export type GameSummary = {
   id: string;

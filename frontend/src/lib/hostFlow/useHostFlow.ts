@@ -27,26 +27,77 @@ export function useHostFlow(quiz: Quiz) {
   useEffect(() => {
     let cancelled = false;
     setFailed(null);
-    creation.current ??= createGame(quiz.id);
-    creation.current
-      .then(({ gameId, pin }) => {
-        if (cancelled) return;
-        dispatch({ type: "CREATED", gameId, pin, totalQuestions: quiz.questions.length });
-        socket.current = openGameSocket<HostEvent>({
-          path: `/ws/host/${gameId}`,
-          onEvent: (event) => {
-            dispatch({ type: "SERVER", event });
-            if (event.type === "error") setRefused(event.code);
-          },
-          onClosed: () => {
-            socket.current = null;
-          },
-        });
-      })
-      .catch((error: unknown) => {
-        creation.current = null;
-        if (!cancelled) setFailed(toKnownCode(error));
+    const storageKey = `aary.hostGame.${quiz.id}`;
+
+    // A refresh keeps the game: its id and PIN are remembered for this tab, and the server sends the
+    // picture of where the game is as soon as the screen connects again.
+    const remembered = (): { gameId: string; pin: string } | null => {
+      try {
+        const value: unknown = JSON.parse(window.sessionStorage.getItem(storageKey) ?? "null");
+        if (typeof value === "object" && value !== null && "gameId" in value && "pin" in value) {
+          const { gameId, pin } = value;
+          if (typeof gameId === "string" && typeof pin === "string") return { gameId, pin };
+        }
+      } catch {
+        // Storage can be blocked or hold something else: start a new game then.
+      }
+      return null;
+    };
+    const remember = (game: { gameId: string; pin: string } | null) => {
+      try {
+        if (game) window.sessionStorage.setItem(storageKey, JSON.stringify(game));
+        else window.sessionStorage.removeItem(storageKey);
+      } catch {
+        // The game still works, it just does not survive a refresh.
+      }
+    };
+
+    const open = (gameId: string, pin: string, resumed: boolean) => {
+      dispatch({ type: "CREATED", gameId, pin, totalQuestions: quiz.questions.length });
+      let heard = false;
+      socket.current = openGameSocket<HostEvent>({
+        path: `/ws/host/${gameId}`,
+        onEvent: (event) => {
+          if (cancelled) return;
+          // A remembered game that is already over is not worth showing again: host a new one.
+          if (resumed && !heard && event.type === "host.state" && event.phase === "ended") return startOver();
+          heard = true;
+          dispatch({ type: "SERVER", event });
+          if (event.type === "error") setRefused(event.code);
+        },
+        onClosed: (code) => {
+          socket.current = null;
+          // The server no longer has this game (or it is not ours): host a new one.
+          if (resumed && !heard && !cancelled && code === 4403) startOver();
+        },
       });
+    };
+
+    const create = () => {
+      creation.current ??= createGame(quiz.id);
+      creation.current
+        .then(({ gameId, pin }) => {
+          if (cancelled) return;
+          remember({ gameId, pin });
+          open(gameId, pin, false);
+        })
+        .catch((error: unknown) => {
+          creation.current = null;
+          if (!cancelled) setFailed(toKnownCode(error));
+        });
+    };
+
+    function startOver() {
+      socket.current?.close();
+      socket.current = null;
+      remember(null);
+      create();
+    }
+
+    const saved = remembered();
+    if (saved) open(saved.gameId, saved.pin, true);
+    else create();
+
     return () => {
       cancelled = true;
       socket.current?.close();

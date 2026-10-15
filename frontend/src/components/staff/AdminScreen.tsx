@@ -67,7 +67,7 @@ export function AdminScreen() {
     show("danger", tc(`apiError.${toKnownCode(error)}`));
   }
 
-  async function createUser(input: { name: string; login: string }) {
+  async function createUser(input: { firstName: string; lastName: string; login: string }) {
     const created = await api.createUser(input);
     setUsers((current) => [...(current ?? []), created.user]);
     setCreating(false);

@@ -74,7 +74,8 @@ export async function createUser(browser, report, login, name) {
     setupAdmin = await page(browser, report, "admin (setup)");
     await signIn(setupAdmin, ADMIN_LOGIN, ADMIN_PASSWORD, "admin");
   }
-  const created = await api(setupAdmin, "POST", "/admin/users", { login, name });
+  const [firstName, ...rest] = name.split(" ");
+  const created = await api(setupAdmin, "POST", "/admin/users", { login, firstName, lastName: rest.join(" ") || "Тестов" });
   return { login, name, password: created.body.password };
 }
 

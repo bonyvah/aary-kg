@@ -30,3 +30,19 @@ The quiz is never touched, only the data of that game:
 live game ranks (score, then time of the correct answers, then nickname). Every change is appended
 to the game's audit trail (`type: "admin.edit"`, who, when, what) and shown in the edit log; the
 host's report shows how many corrections were made.
+
+## Accounts: names, login, password
+
+- A user has a **first name** and a **last name** (both required). Lists and messages show them as
+  "first last". Accounts that existed before were split on the first space.
+- Everybody (admins too) can change their own **login** and **password** from the name button in
+  the top bar. Both ask for the current password again; wrong guesses are rate limited (8 per 15
+  minutes, then `RATE_LIMITED`). Changing the password signs the user out everywhere else.
+- A chosen password needs 8 to 128 characters, at least one letter (any alphabet) and one digit.
+  No capital or special character is required.
+- It must not contain the first name, last name or login (`PASSWORD_CONTAINS_NAME`,
+  `PASSWORD_CONTAINS_LOGIN`). The comparison ignores alphabet and spelling: «Айжан», «Aizhan»,
+  «ayzhan» and «AIJAN» are the same, and ө/ү/ң match o/u/n (or ö/ü/ng). Compound names are checked
+  word by word; parts shorter than 3 letters are skipped. See `backend/app/password_policy.py`.
+- The password an admin generates or resets is random and not checked against this rule, and users
+  are not forced to change it. They can, in the settings.

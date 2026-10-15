@@ -9,13 +9,17 @@ import { useCurrentUser, useSession } from "./SessionProvider";
 type SettingsModalProps = {
   open: boolean;
   onClose: () => void;
+  /** Left out on the live host screen: nobody changes a password in the middle of a game. */
+  onChangeLogin?: () => void;
+  onChangePassword?: () => void;
 };
 
-/** Account settings: who is signed in, the language switcher and sign out. */
-export function SettingsModal({ open, onClose }: SettingsModalProps) {
-  const { name } = useCurrentUser();
+/** Account settings: who is signed in, change login and password, the language switcher and sign out. */
+export function SettingsModal({ open, onClose, onChangeLogin, onChangePassword }: SettingsModalProps) {
+  const { name, login } = useCurrentUser();
   const session = useSession();
   const t = useTranslations("staff.menu");
+  const ta = useTranslations("staff.account");
   const tc = useTranslations("common");
 
   return (
@@ -35,7 +39,18 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       }
     >
       <div className="flex flex-col gap-2">
-        <p className="text-body font-bold">{name}</p>
+        <p className="text-body font-bold [overflow-wrap:anywhere]">{name}</p>
+        <p className="text-body text-ink-muted [overflow-wrap:anywhere]">{ta("loginIs", { login })}</p>
+        {onChangeLogin && onChangePassword ? (
+          <div className="mb-2 flex flex-wrap gap-3">
+            <Button variant="secondary" onClick={onChangeLogin}>
+              {ta("login.open")}
+            </Button>
+            <Button variant="secondary" onClick={onChangePassword}>
+              {ta("password.open")}
+            </Button>
+          </div>
+        ) : null}
         <p className="text-body font-bold text-ink-muted">{tc("language")}</p>
         <LocaleSwitcher />
       </div>

@@ -3,7 +3,7 @@ import { apiFetch } from "./client";
 
 export const listUsers = () => apiFetch<ManagedUser[]>("/admin/users");
 
-export const createUser = (input: { name: string; login: string }) =>
+export const createUser = (input: { firstName: string; lastName: string; login: string }) =>
   apiFetch<{ user: ManagedUser; password: string }>("/admin/users", { method: "POST", body: input });
 
 export const setUserActive = (id: string, active: boolean) =>

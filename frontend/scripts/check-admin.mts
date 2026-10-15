@@ -1,5 +1,6 @@
 // Checks the admin helpers: the «create user» rules and the generated password.
 // Run: pnpm check:admin
+import { passwordProblem } from "../src/lib/account.ts";
 import { describeEdit, parseWhole } from "../src/lib/adminGame.ts";
 import { homePath, redirectFor } from "../src/lib/staffRoutes.ts";
 import { generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
@@ -11,9 +12,10 @@ const check = (name: string, ok: boolean, detail = "") => {
 };
 
 const existing = [{ login: "aizhan.m" }, { login: "Ulan.E" }];
-const codes = (name: string, login: string) => JSON.stringify(validateNewUser({ name, login }, existing));
+const codes = (name: string, login: string) => JSON.stringify(validateNewUser({ firstName: name, lastName: "Касымов", login }, existing));
 check("a good name and login pass", codes("Айжан", "new.user") === "{}");
-check("empty name and login are FIELD_REQUIRED", codes(" ", " ") === '{"name":"FIELD_REQUIRED","login":"FIELD_REQUIRED"}');
+check("empty names and login are FIELD_REQUIRED", JSON.stringify(validateNewUser({ firstName: " ", lastName: "", login: " " }, existing)) === '{"firstName":"FIELD_REQUIRED","lastName":"FIELD_REQUIRED","login":"FIELD_REQUIRED"}');
+check("the last name is required on its own", JSON.stringify(validateNewUser({ firstName: "Айжан", lastName: " ", login: "new.user" }, existing)) === '{"lastName":"FIELD_REQUIRED"}');
 check("a short login is LOGIN_INVALID", codes("A", "ab") === '{"login":"LOGIN_INVALID"}');
 check("capitals are lowered, so they are fine", codes("A", "New.User") === "{}");
 check("spaces and cyrillic are LOGIN_INVALID", codes("A", "бек зат") === '{"login":"LOGIN_INVALID"}');
@@ -28,6 +30,12 @@ const counts = new Map<string, number>();
 for (const p of passwords) for (const ch of p.replace(/-/g, "")) counts.set(ch, (counts.get(ch) ?? 0) + 1);
 const values = [...counts.values()];
 check("characters are spread evenly", values.length === 55 && Math.max(...values) / Math.min(...values) < 1.6, `${values.length} chars, min ${Math.min(...values)}, max ${Math.max(...values)}`);
+
+// A chosen password: 8+, a letter (any alphabet), a digit; no capitals or symbols needed.
+check("a good password passes", ["tulpar-9421", "abcd1234", "парольчик1", "ALLCAPS123"].every((p) => passwordProblem(p) === null));
+check("short, no digit, no letter", passwordProblem("a1b2c3") === "PASSWORD_TOO_SHORT" && passwordProblem("abcdefgh") === "PASSWORD_NEEDS_DIGIT" && passwordProblem("12345678") === "PASSWORD_NEEDS_LETTER");
+check("a Cyrillic word without a digit needs one", passwordProblem("абвгдежз") === "PASSWORD_NEEDS_DIGIT");
+check("a 129 character password is too long", passwordProblem("a1" + "x".repeat(127)) === "PASSWORD_TOO_LONG");
 
 // Where each role may go.
 check("admins land on /admin, users on /dashboard", homePath("admin") === "/admin" && homePath("user") === "/dashboard");

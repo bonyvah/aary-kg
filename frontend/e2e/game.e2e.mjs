@@ -28,7 +28,10 @@ export default async function run(browser, t) {
     const p = await page(browser, t, label, { viewport: PHONE });
     await p.goto(viaLink ? `${BASE}/?pin=${pin}` : `${BASE}/`);
     if (!viaLink) await p.locator("input").first().fill(pin);
-    else t.ok("the link's PIN fills the join screen", (await p.locator("input").first().inputValue()) === pin);
+    else {
+      await p.waitForFunction((value) => document.querySelector("input")?.value === value, pin, { timeout: 5000 }).catch(() => undefined);
+      t.ok("the link's PIN fills the join screen", (await p.locator("input").first().inputValue()) === pin);
+    }
     await p.getByRole("button", { name: "Войти" }).click();
     await p.getByLabel("Никнейм").fill(nickname);
     await p.getByRole("button", { name: "Войти" }).click();

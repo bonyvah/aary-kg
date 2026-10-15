@@ -3,15 +3,19 @@ import type { ManagedUser } from "@/types/user";
 /** Stable codes of a failed «create user». The frontend turns them into translated text. */
 export type AdminErrorCode = "FIELD_REQUIRED" | "LOGIN_INVALID" | "LOGIN_TAKEN";
 
-const LOGIN_PATTERN = /^[a-z0-9][a-z0-9._-]{2,31}$/;
+/** The rule for a login, here and when changing it in the account settings. Same as the server's. */
+export const LOGIN_PATTERN = /^[a-z0-9][a-z0-9._-]{2,31}$/;
+
+export type NewUserField = "firstName" | "lastName" | "login";
 
 /** What the server checks on «create user». Returns the first error per field. */
 export function validateNewUser(
-  input: { name: string; login: string },
+  input: { firstName: string; lastName: string; login: string },
   existing: readonly Pick<ManagedUser, "login">[],
-): { name?: AdminErrorCode; login?: AdminErrorCode } {
-  const errors: { name?: AdminErrorCode; login?: AdminErrorCode } = {};
-  if (input.name.trim() === "") errors.name = "FIELD_REQUIRED";
+): Partial<Record<NewUserField, AdminErrorCode>> {
+  const errors: Partial<Record<NewUserField, AdminErrorCode>> = {};
+  if (input.firstName.trim() === "") errors.firstName = "FIELD_REQUIRED";
+  if (input.lastName.trim() === "") errors.lastName = "FIELD_REQUIRED";
   const login = input.login.trim().toLowerCase();
   if (login === "") errors.login = "FIELD_REQUIRED";
   else if (!LOGIN_PATTERN.test(login)) errors.login = "LOGIN_INVALID";

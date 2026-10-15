@@ -9,14 +9,15 @@
     "prebuild": "npm run tokens",
     "build": "next build",
     "start": "next start",
-    "check": "npm run check:scoring && npm run check:admin && npm run check:contest-form && npm run check:jury && npm run check:player",
+    "check": "npm run check:scoring && npm run check:admin && npm run check:contest-form && npm run check:jury && npm run check:player && npm run check:host",
     "check:jury": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-jury.mts",
     "check:contest-form": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-contest-form.mts",
     "check:admin": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-admin.mts",
     "check:scoring": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-scoring.mts",
     "tokens:check": "node scripts/generate-tokens.mjs --check",
     "lint": "node scripts/generate-tokens.mjs --check && eslint",
-    "check:player": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-player-flow.mts"
+    "check:player": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-player-flow.mts",
+    "check:host": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-host-flow.mts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

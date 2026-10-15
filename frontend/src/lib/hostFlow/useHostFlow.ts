@@ -1,79 +1,82 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
-import { answeredAt, distributeCounts, mockJoiners } from "@/mocks/hostGame";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { createGame } from "@/lib/api/games";
+import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
+import type { HostEvent, HostMessage } from "@/lib/game/events";
+import { openGameSocket, type GameSocket } from "@/lib/game/socket";
 import type { Quiz } from "@/types/quiz";
-import { hostReducer, initialHostState, type HostPhase, type HostState } from "./reducer";
-import { useMockJoiners } from "./useMockJoiners";
-
-const JOIN_INTERVAL_MS = 700;
+import { hostReducer, initialHostState } from "./reducer";
 
 /**
- * The host side of one game on mock data: players joining, the clock, answers coming in, the
- * counts, the leaderboard. Stands in for the host socket until Phase 5.
+ * The host's side of one live game. It creates the lobby on the server, connects to it, and turns
+ * what the server sends (players joining, answers coming in, counts, leaderboard) into screen state.
+ * The host's buttons only send commands: the server runs the game.
  */
 export function useHostFlow(quiz: Quiz) {
   const [state, dispatch] = useReducer(hostReducer, initialHostState);
-  const [paused, setPaused] = useState(false);
-  const joined = useMockJoiners(mockJoiners, JOIN_INTERVAL_MS, paused || state.phase !== "lobby");
-  // In the lobby players arrive one by one; once the game runs, everyone who had joined plays.
-  const players = state.phase === "lobby" ? joined : mockJoiners.slice(0, state.total);
-  const question = quiz.questions[state.round - 1] ?? null;
-  const totalQuestions = quiz.questions.length;
+  const [failed, setFailed] = useState<KnownApiCode | null>(null);
+  /** The code of the last command the server refused, so the screen can say why. */
+  const [refused, setRefused] = useState<string | null>(null);
+  const socket = useRef<GameSocket | null>(null);
+  // One lobby per screen. React runs effects twice in development (and on a retry we start over),
+  // so the request is kept here and shared instead of being sent again.
+  const creation = useRef<ReturnType<typeof createGame> | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
-  const closeQuestion = useCallback(() => {
-    if (!question) return;
-    const answered = answeredAt(state.total, question.seconds - state.secondsLeft, question.seconds);
-    dispatch({ type: "CLOSED", counts: distributeCounts(Math.max(state.answered, answered), question.correct) });
-  }, [question, state.total, state.secondsLeft, state.answered]);
-
-  // One tick per second while a question is open; answers come in on the way.
   useEffect(() => {
-    if (paused || state.phase !== "question" || !question) return;
-    const timer = setInterval(() => {
-      const elapsed = question.seconds - state.secondsLeft + 1;
-      dispatch({ type: "TICK", answered: answeredAt(state.total, elapsed, question.seconds) });
-    }, 1000);
+    let cancelled = false;
+    setFailed(null);
+    creation.current ??= createGame(quiz.id);
+    creation.current
+      .then(({ gameId, pin }) => {
+        if (cancelled) return;
+        dispatch({ type: "CREATED", gameId, pin, totalQuestions: quiz.questions.length });
+        socket.current = openGameSocket<HostEvent>({
+          path: `/ws/host/${gameId}`,
+          onEvent: (event) => {
+            dispatch({ type: "SERVER", event });
+            if (event.type === "error") setRefused(event.code);
+          },
+          onClosed: () => {
+            socket.current = null;
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        creation.current = null;
+        if (!cancelled) setFailed(toKnownCode(error));
+      });
+    return () => {
+      cancelled = true;
+      socket.current?.close();
+      socket.current = null;
+    };
+  }, [quiz.id, quiz.questions.length, attempt]);
+
+  // The clock only draws what the server said: one tick per second while a question is open.
+  const { phase } = state;
+  useEffect(() => {
+    if (phase !== "question") return;
+    const timer = setInterval(() => dispatch({ type: "TICK" }), 1000);
     return () => clearInterval(timer);
-  }, [paused, state.phase, state.secondsLeft, state.total, question]);
+  }, [phase]);
 
-  // Time ran out: the question closes by itself.
-  useEffect(() => {
-    if (!paused && state.phase === "question" && state.secondsLeft === 0) closeQuestion();
-  }, [paused, state.phase, state.secondsLeft, closeQuestion]);
+  const send = useCallback((message: HostMessage) => socket.current?.send(message), []);
 
-  const start = useCallback(() => {
-    const first = quiz.questions[0];
-    if (first && joined.length > 0) dispatch({ type: "STARTED", total: joined.length, seconds: first.seconds });
-  }, [quiz, joined.length]);
-
-  /** The host's «continue» button: skip the rest of the question, then step through the screens. */
-  const advance = useCallback(() => {
-    if (state.phase === "question") closeQuestion();
-    else if (state.phase === "counts") dispatch({ type: "LEADERBOARD_SHOWN" });
-    else if (state.phase === "leaderboard") {
-      const next = quiz.questions[state.round];
-      if (next) dispatch({ type: "QUESTION_STARTED", seconds: next.seconds });
-      else dispatch({ type: "GAME_ENDED" });
-    }
-  }, [state.phase, state.round, quiz, closeQuestion]);
-
-  /** Dev bar only: jump to a screen as if the game had got there. */
-  const jumpTo = useCallback(
-    (phase: HostPhase) => {
-      const first = quiz.questions[0];
-      if (!first) return;
-      const total = mockJoiners.length;
-      const round = phase === "lobby" ? 0 : 1;
-      const base: HostState = { phase, round, secondsLeft: 0, answered: 0, counts: null, total: phase === "lobby" ? 0 : total };
-      if (phase === "question") dispatch({ type: "JUMPED", state: { ...base, secondsLeft: first.seconds - 8, answered: answeredAt(total, 8, first.seconds) } });
-      else if (phase === "counts")
-        dispatch({ type: "JUMPED", state: { ...base, counts: distributeCounts(answeredAt(total, first.seconds, first.seconds), first.correct) } });
-      else if (phase === "podium") dispatch({ type: "JUMPED", state: { ...base, round: totalQuestions } });
-      else dispatch({ type: "JUMPED", state: base });
-    },
-    [quiz, totalQuestions],
-  );
-
-  return { state, players, question, totalQuestions, paused, setPaused, start, advance, jumpTo };
+  return {
+    state,
+    failed,
+    refused,
+    clearRefused: useCallback(() => setRefused(null), []),
+    retry: useCallback(() => {
+      creation.current = null;
+      setAttempt((n) => n + 1);
+    }, []),
+    start: useCallback(() => send({ type: "start" }), [send]),
+    /** The host's «continue»: close the question, show the leaderboard, go to the next question or the end. */
+    advance: useCallback(() => send({ type: "next" }), [send]),
+    kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
+    setShuffle: useCallback((shuffleQuestions: boolean) => send({ type: "settings", shuffleQuestions }), [send]),
+  };
 }

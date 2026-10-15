@@ -64,6 +64,11 @@ const KNOWN_CODES = [
   "SCORING_INCOMPLETE",
   "ENTRY_NOT_FOUND",
   "CRITERION_NOT_FOUND",
+  "NO_PLAYERS",
+  "INVALID_STATE",
+  "BAD_MESSAGE",
+  "BUSY",
+  "RATE_LIMITED",
 ] as const;
 export type KnownApiCode = (typeof KNOWN_CODES)[number];
 

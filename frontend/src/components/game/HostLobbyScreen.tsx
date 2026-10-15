@@ -1,8 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Cross } from "@/components/icons";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { IconButton } from "@/components/ui/IconButton";
 import { formatPin, JOIN_HOST, joinUrl } from "@/lib/joinLink";
 import type { Player } from "@/types/game";
 import { LobbyChip } from "./LobbyChip";
@@ -10,14 +14,21 @@ import { LobbyChip } from "./LobbyChip";
 type HostLobbyScreenProps = {
   pin: string;
   players: readonly Player[];
+  shuffle: boolean;
+  onShuffleChange: (shuffle: boolean) => void;
+  /** Removes a player from the lobby. */
+  onKick: (playerId: string) => void;
   onStart: () => void;
 };
 
 const plate = "rounded-lg bg-field text-on-field shadow-[0_4px_0_0_var(--border)]";
 
 /** What the projector shows before the game: how to join, who has joined, and the start button. */
-export function HostLobbyScreen({ pin, players, onStart }: HostLobbyScreenProps) {
+export function HostLobbyScreen({ pin, players, shuffle, onShuffleChange, onKick, onStart }: HostLobbyScreenProps) {
   const t = useTranslations("host.lobby");
+  // The QR code opens the site the host screen is on.
+  const [origin, setOrigin] = useState<string | undefined>(undefined);
+  useEffect(() => setOrigin(window.location.origin), []);
 
   return (
     <div className="flex flex-1 flex-col items-center gap-8">
@@ -27,20 +38,24 @@ export function HostLobbyScreen({ pin, players, onStart }: HostLobbyScreenProps)
           <p className="text-display-xl font-black tabular-nums">{formatPin(pin)}</p>
         </div>
         <div role="img" aria-label={t("qrLabel")} className={`${plate} grid place-items-center p-4`}>
-          <QRCodeSVG value={joinUrl(pin)} size={112} marginSize={0} bgColor="transparent" fgColor="currentColor" aria-hidden="true" />
+          <QRCodeSVG value={joinUrl(pin, origin)} size={112} marginSize={0} bgColor="transparent" fgColor="currentColor" aria-hidden="true" />
         </div>
       </div>
 
       <ul aria-label={t("players")} className="flex max-w-[1000px] flex-wrap justify-center gap-3">
         {players.map((player) => (
-          <li key={player.id}>
+          <li key={player.id} className="flex items-center gap-1">
             <LobbyChip nickname={player.nickname} character={player.character} animate />
+            <IconButton label={t("kick", { name: player.nickname })} onClick={() => onKick(player.id)}>
+              <Cross width={20} height={20} />
+            </IconButton>
           </li>
         ))}
       </ul>
       {players.length === 0 ? <p className="text-body-lg text-ink-muted">{t("waiting")}</p> : null}
 
-      <div className="mt-auto pb-4">
+      <div className="mt-auto flex flex-col items-center gap-4 pb-4">
+        <Checkbox label={t("shuffle")} checked={shuffle} onChange={(event) => onShuffleChange(event.target.checked)} />
         <Button variant="accent" size="lg" disabled={players.length === 0} onClick={onStart}>
           {t("start")}
         </Button>

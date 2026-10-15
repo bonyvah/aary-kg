@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { cx } from "@/lib/cx";
-import type { QuizQuestion } from "@/types/quiz";
+import type { HostQuestion } from "@/lib/game/events";
 import { AnswerTile, type AnswerPosition } from "./AnswerTile";
 import { HostQuestionHeader, POSITIONS } from "./HostQuestionScreen";
 
@@ -15,14 +15,16 @@ const BAR_COLOR: Record<AnswerPosition, string> = {
 };
 
 type HostCountsScreenProps = {
-  question: QuizQuestion;
+  question: Pick<HostQuestion, "text" | "answers">;
+  /** The right answer, known only now that the question has closed. */
+  correct: AnswerPosition;
   round: number;
   totalQuestions: number;
   counts: readonly [number, number, number, number];
 };
 
 /** After the question closed: the right answer keeps its color with a check, the rest are dimmed, each with its count. */
-export function HostCountsScreen({ question, round, totalQuestions, counts }: HostCountsScreenProps) {
+export function HostCountsScreen({ question, correct, round, totalQuestions, counts }: HostCountsScreenProps) {
   const t = useTranslations("host.live");
   const format = useFormatter();
   const most = Math.max(1, ...counts);
@@ -33,7 +35,7 @@ export function HostCountsScreen({ question, round, totalQuestions, counts }: Ho
       <h1 className="text-display font-black [overflow-wrap:anywhere]">{question.text}</h1>
       <div className="grid grid-cols-1 gap-x-4 gap-y-6 pb-2 sm:grid-cols-2">
         {POSITIONS.map((position) => {
-          const right = position === question.correct;
+          const right = position === correct;
           const count = counts[position - 1] ?? 0;
           const barVars = { "--pct": `${(count / most) * 100}%` } as CSSProperties;
           return (

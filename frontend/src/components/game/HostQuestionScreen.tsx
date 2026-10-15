@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
-import type { QuizQuestion } from "@/types/quiz";
+import type { HostQuestion } from "@/lib/game/events";
 import { AnswerTile, type AnswerPosition } from "./AnswerTile";
 import { TimerBar } from "./TimerBar";
 
@@ -26,7 +26,7 @@ export function HostQuestionHeader({ round, totalQuestions, answered }: HostQues
 }
 
 type HostQuestionScreenProps = {
-  question: QuizQuestion;
+  question: Pick<HostQuestion, "text" | "answers" | "seconds">;
   round: number;
   totalQuestions: number;
   secondsLeft: number;

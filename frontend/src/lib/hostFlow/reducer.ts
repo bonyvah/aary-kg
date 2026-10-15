@@ -1,57 +1,125 @@
+import type { AnswerPosition } from "@/components/game/AnswerTile";
+import type { HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
+import type { Player, Standing } from "@/types/game";
+
 export type HostPhase = "lobby" | "question" | "counts" | "leaderboard" | "podium";
+type Counts = [number, number, number, number];
 
 export type HostState = {
   phase: HostPhase;
+  gameId: string;
+  pin: string;
+  /** Play the questions in a random order. Can only be changed in the lobby. */
+  shuffle: boolean;
   /** The question being played, from 1. 0 in the lobby. */
   round: number;
+  totalQuestions: number;
+  /** Everyone in the game. */
+  players: Player[];
+  /** The open question with its four answer texts. The right one is not known until it closes. */
+  question: HostQuestion | null;
   secondsLeft: number;
   /** Players who sent an answer to the current question. */
   answered: number;
   /** Answers per position after the question closed. */
-  counts: [number, number, number, number] | null;
-  /** Players in the game, fixed when it starts. */
-  total: number;
+  counts: Counts | null;
+  correct: AnswerPosition | null;
+  standings: Standing[];
+  /** Another host screen took over this game: this one is finished. */
+  replaced: boolean;
 };
 
-export type HostEvent =
-  | { type: "STARTED"; total: number; seconds: number }
-  | { type: "TICK"; answered: number }
-  | { type: "CLOSED"; counts: [number, number, number, number] }
-  | { type: "LEADERBOARD_SHOWN" }
-  | { type: "QUESTION_STARTED"; seconds: number }
-  | { type: "GAME_ENDED" }
-  | { type: "JUMPED"; state: HostState };
+export type HostFlowEvent =
+  | { type: "CREATED"; gameId: string; pin: string; totalQuestions: number }
+  | { type: "SERVER"; event: HostEvent }
+  | { type: "TICK" };
 
 export const initialHostState: HostState = {
   phase: "lobby",
+  gameId: "",
+  pin: "",
+  shuffle: false,
   round: 0,
+  totalQuestions: 0,
+  players: [],
+  question: null,
   secondsLeft: 0,
   answered: 0,
   counts: null,
-  total: 0,
+  correct: null,
+  standings: [],
+  replaced: false,
 };
 
-export function hostReducer(state: HostState, event: HostEvent): HostState {
+const PHASE: Record<ServerPhase, HostPhase> = {
+  lobby: "lobby",
+  question: "question",
+  counts: "counts",
+  leaderboard: "leaderboard",
+  ended: "podium",
+};
+
+const toPlayers = (players: readonly PlayerPublic[]): Player[] => players.map((p) => ({ ...p, score: 0 }));
+const toStandings = (rows: readonly ServerStanding[]): Standing[] => rows.map((row) => ({ ...row, isYou: false }));
+const toCounts = (counts: readonly number[]): Counts => [counts[0] ?? 0, counts[1] ?? 0, counts[2] ?? 0, counts[3] ?? 0];
+
+function applyServerEvent(state: HostState, event: HostEvent): HostState {
   switch (event.type) {
-    case "STARTED":
-      return state.phase === "lobby"
-        ? { phase: "question", round: 1, secondsLeft: event.seconds, answered: 0, counts: null, total: event.total }
-        : state;
+    case "host.state":
+      // The picture the server sends after every connect: everything is set from it.
+      return {
+        ...state,
+        phase: PHASE[event.phase],
+        gameId: event.gameId,
+        pin: event.pin,
+        shuffle: event.shuffle,
+        round: event.question?.index ?? (event.phase === "ended" || event.phase === "leaderboard" ? event.total : 0),
+        totalQuestions: event.total,
+        players: toPlayers(event.players),
+        question: event.question,
+        secondsLeft:
+          event.remainingMs === null ? (event.question?.seconds ?? 0) : Math.ceil(event.remainingMs / 1000),
+        answered: event.answered,
+        counts: event.counts ? toCounts(event.counts) : null,
+        correct: event.correct,
+        standings: event.standings ? toStandings(event.standings) : [],
+      };
+    case "lobby.updated":
+      return { ...state, players: toPlayers(event.players) };
+    case "question.started":
+      return {
+        ...state,
+        phase: "question",
+        round: event.question.index,
+        question: event.question,
+        secondsLeft: event.question.seconds,
+        answered: 0,
+        counts: null,
+        correct: null,
+      };
+    case "answer.count":
+      return state.phase === "question" ? { ...state, answered: event.answered } : state;
+    case "question.closed":
+      return { ...state, phase: "counts", counts: toCounts(event.counts), correct: event.correct };
+    case "leaderboard":
+      return { ...state, phase: "leaderboard", standings: toStandings(event.standings) };
+    case "game.ended":
+      return { ...state, phase: "podium", gameId: event.gameId, standings: toStandings(event.standings) };
+    case "replaced":
+      return { ...state, replaced: true };
+    case "error":
+      return state;
+  }
+}
+
+export function hostReducer(state: HostState, event: HostFlowEvent): HostState {
+  switch (event.type) {
+    case "CREATED":
+      return { ...state, gameId: event.gameId, pin: event.pin, totalQuestions: event.totalQuestions };
+    case "SERVER":
+      return applyServerEvent(state, event.event);
     case "TICK":
-      return state.phase === "question"
-        ? { ...state, secondsLeft: Math.max(0, state.secondsLeft - 1), answered: event.answered }
-        : state;
-    case "CLOSED":
-      return state.phase === "question" ? { ...state, phase: "counts", counts: event.counts } : state;
-    case "LEADERBOARD_SHOWN":
-      return state.phase === "counts" ? { ...state, phase: "leaderboard" } : state;
-    case "QUESTION_STARTED":
-      return state.phase === "leaderboard"
-        ? { ...state, phase: "question", round: state.round + 1, secondsLeft: event.seconds, answered: 0, counts: null }
-        : state;
-    case "GAME_ENDED":
-      return state.phase === "leaderboard" ? { ...state, phase: "podium" } : state;
-    case "JUMPED":
-      return event.state;
+      // Only draws the clock. The server closes the question.
+      return state.phase === "question" ? { ...state, secondsLeft: Math.max(0, state.secondsLeft - 1) } : state;
   }
 }

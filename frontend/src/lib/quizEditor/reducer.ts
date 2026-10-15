@@ -3,6 +3,8 @@ import type { Quiz, QuizQuestion } from "@/types/quiz";
 
 export const SECONDS_OPTIONS = [10, 20, 30, 60] as const;
 export const DEFAULT_SECONDS = 20;
+export const MIN_SECONDS = 5;
+export const MAX_SECONDS = 300;
 
 export type EditorState = {
   quiz: Quiz;

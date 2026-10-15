@@ -141,6 +141,9 @@
       "correctOption": "Туура жооп катары белгилөө: {shape}",
       "timeLabel": "Жооп берүү убактысы",
       "timeOption": "{seconds} сек",
+      "customTimeLabel": "Башка убакыт",
+      "customTimeHint": "{min}–{max} сек аралыгында",
+      "customTimeInvalid": "Сан {min}–{max} аралыгында болушу керек",
       "errors": {
         "FIELD_REQUIRED": "Талааны толтуруңуз."
       }

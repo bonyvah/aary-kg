@@ -6,10 +6,11 @@ import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
 import { knownCode } from "@/lib/api/client";
-import { answerKey, NEW_QUIZ_ID, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import { answerKey, MAX_SECONDS, MIN_SECONDS, NEW_QUIZ_ID, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Quiz } from "@/types/quiz";
 import { AnswerEditor } from "./AnswerEditor";
@@ -22,6 +23,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const t = useTranslations("staff.editor");
   const tc = useTranslations("common");
   const editor = useQuizEditor(quiz);
+  const customSeconds = useCustomSeconds();
   const { state } = editor;
   const index = Math.max(0, state.quiz.questions.findIndex((q) => q.id === state.selectedId));
   const question = state.quiz.questions[index];
@@ -35,6 +37,12 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   if (!question) return null;
 
   const required = t("errors.FIELD_REQUIRED");
+  // The presets, the times typed earlier and the times already in this quiz, in one ascending list.
+  const secondsOptions = Array.from(
+    new Set([...SECONDS_OPTIONS, ...customSeconds.values, ...state.quiz.questions.map((q) => q.seconds)]),
+  )
+    .sort((a, b) => a - b)
+    .map((seconds) => ({ value: seconds, label: t("timeOption", { seconds }) }));
   const invalidIds = new Set(
     state.quiz.questions.filter((q) => [...state.errors].some((key) => key.startsWith(`${q.id}:`))).map((q) => q.id),
   );
@@ -102,18 +110,25 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
             ))}
           </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <Select
+            <Dropdown
               label={t("timeLabel")}
               wrapperClassName="w-full max-w-[240px]"
+              placement="up"
               value={question.seconds}
-              onChange={(event) => editor.setSeconds(Number(event.target.value))}
-            >
-              {SECONDS_OPTIONS.map((seconds) => (
-                <option key={seconds} value={seconds}>
-                  {t("timeOption", { seconds })}
-                </option>
-              ))}
-            </Select>
+              options={secondsOptions}
+              onChange={editor.setSeconds}
+              custom={{
+                label: t("customTimeLabel"),
+                hint: t("customTimeHint", { min: MIN_SECONDS, max: MAX_SECONDS }),
+                invalid: t("customTimeInvalid", { min: MIN_SECONDS, max: MAX_SECONDS }),
+                min: MIN_SECONDS,
+                max: MAX_SECONDS,
+                onCommit: (seconds) => {
+                  customSeconds.add(seconds);
+                  editor.setSeconds(seconds);
+                },
+              }}
+            />
             <Button
               variant="danger"
               disabled={state.quiz.questions.length <= 1}

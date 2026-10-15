@@ -110,7 +110,8 @@
       "tabsLabel": "Разделы",
       "tabs": {
         "quizzes": "Викторины",
-        "contests": "Конкурсы"
+        "contests": "Конкурсы",
+        "games": "Игры"
       },
       "createQuiz": "Создать викторину",
       "draft": "Черновик",
@@ -124,7 +125,12 @@
       "quizzesEmpty": {
         "title": "Пока нет викторин",
         "description": "Создайте первую викторину и проведите игру."
-      }
+      },
+      "gamesEmpty": {
+        "title": "Сыгранных игр пока нет",
+        "description": "Проведите игру по викторине, и отчёт появится здесь."
+      },
+      "gamePlayers": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}"
     },
     "editor": {
       "back": "Назад",
@@ -170,7 +176,8 @@
         "TAB_BLUR": "Переключил вкладку: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
         "PASTE": "Вставил текст: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
         "FAST_ANSWERS": "Слишком быстрые ответы: {count}",
-        "SAME_TIMING": "Одинаковое время с другими: {count}"
+        "SAME_TIMING": "Одинаковое время с другими: {count}",
+        "STEADY_TIMING": "Слишком ровное время ответов: {count}"
       },
       "questionsTitle": "Точность по вопросам"
     }

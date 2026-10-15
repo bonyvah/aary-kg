@@ -2,20 +2,22 @@
 
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Question, Trophy } from "@phosphor-icons/react/ssr";
+import { ClockCounterClockwise, Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
+import { listGames } from "@/lib/api/games";
 import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
+import { GameCard } from "./GameCard";
 import { ResourceView, useResource } from "./Resource";
 import { useCurrentUser } from "./SessionProvider";
 import { QuizCard } from "./QuizCard";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
-const TABS = ["quizzes", "contests"] as const;
+const TABS = ["quizzes", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function DashboardScreen() {
@@ -25,6 +27,7 @@ export function DashboardScreen() {
   const idBase = useId();
   const quizzes = useResource(listQuizzes);
   const contests = useResource(listContests);
+  const games = useResource(listGames);
 
   return (
     <StaffShell
@@ -53,11 +56,11 @@ export function DashboardScreen() {
           <ButtonLink href="/quizzes/new" variant="accent">
             {t("createQuiz")}
           </ButtonLink>
-        ) : (
+        ) : tab === "contests" ? (
           <ButtonLink href="/contests/new" variant="accent">
             {t("createContest")}
           </ButtonLink>
-        )}
+        ) : null}
       </div>
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
@@ -75,6 +78,24 @@ export function DashboardScreen() {
                 </ul>
               ) : (
                 <EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />
+              )
+            }
+          </ResourceView>
+        ) : tab === "games" ? (
+          <ResourceView resource={games} inline>
+            {(items) =>
+              items.length > 0 ? (
+                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((game) => (
+                    <li key={game.id} className="flex">
+                      <div className="flex-1">
+                        <GameCard game={game} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState icon={ClockCounterClockwise} title={t("gamesEmpty.title")} description={t("gamesEmpty.description")} />
               )
             }
           </ResourceView>

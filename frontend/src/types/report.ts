@@ -4,7 +4,7 @@ import type { Character } from "@/components/game/avatar/characters";
  * Anti-cheat signals the server logged for a player. They are hints for the host, never proof,
  * and nobody is removed from a game because of them.
  */
-export type FlagKind = "TAB_BLUR" | "PASTE" | "FAST_ANSWERS" | "SAME_TIMING";
+export type FlagKind = "TAB_BLUR" | "PASTE" | "FAST_ANSWERS" | "SAME_TIMING" | "STEADY_TIMING";
 
 export type AntiCheatFlag = { kind: FlagKind; count: number };
 
@@ -26,6 +26,7 @@ export type ReportQuestion = {
 };
 
 export type GameReport = {
+  gameId: string;
   quizId: string;
   quizTitle: string;
   /** ISO date and time the game ended. */

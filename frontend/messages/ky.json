@@ -121,7 +121,8 @@
       "tabsLabel": "Бөлүмдөр",
       "tabs": {
         "quizzes": "Викториналар",
-        "contests": "Сынактар"
+        "contests": "Сынактар",
+        "games": "Оюндар"
       },
       "createQuiz": "Викторина түзүү",
       "draft": "Жасалууда",
@@ -135,7 +136,12 @@
       "quizzesEmpty": {
         "title": "Азырынча викторина жок",
         "description": "Биринчи викторинаңызды түзүп, оюн өткөрүңүз."
-      }
+      },
+      "gamesEmpty": {
+        "title": "Азырынча оюн өткөрүлө элек",
+        "description": "Викторина боюнча оюн өткөрүңүз, отчет ушул жерде пайда болот."
+      },
+      "gamePlayers": "{count, plural, one {# оюнчу} other {# оюнчу}}"
     },
     "editor": {
       "back": "Артка",
@@ -181,7 +187,8 @@
         "TAB_BLUR": "Өтмөктү алмаштырды: {count, plural, one {# жолу} other {# жолу}}",
         "PASTE": "Текст койду: {count, plural, one {# жолу} other {# жолу}}",
         "FAST_ANSWERS": "Өтө тез жооптор: {count}",
-        "SAME_TIMING": "Башкалар менен бирдей убакыт: {count}"
+        "SAME_TIMING": "Башкалар менен бирдей убакыт: {count}",
+        "STEADY_TIMING": "Жооп берүү убактысы өтө бирдей: {count}"
       },
       "questionsTitle": "Суроолор боюнча тактык"
     }

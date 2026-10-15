@@ -1,12 +1,11 @@
 "use client";
 
-import { getQuiz } from "@/lib/api/quizzes";
-import { buildMockReport } from "@/mocks/report";
+import { getReport } from "@/lib/api/games";
 import { ReportScreen } from "./ReportScreen";
 import { ResourceView, useResource } from "./Resource";
 
-/** The quiz is real; the players and flags in the report are still mock until games are stored. */
+/** /reports/<game id>: the report of a finished game, as the server saved it. */
 export function ReportLoader({ id }: { id: string }) {
-  const resource = useResource(() => getQuiz(id));
-  return <ResourceView resource={resource}>{(quiz) => <ReportScreen report={buildMockReport(quiz)} />}</ResourceView>;
+  const resource = useResource(() => getReport(id));
+  return <ResourceView resource={resource}>{(report) => <ReportScreen report={report} />}</ResourceView>;
 }

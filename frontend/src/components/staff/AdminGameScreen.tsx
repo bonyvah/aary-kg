@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
+import { useDateTime } from "@/lib/useDateTime";
 import { Avatar } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -30,6 +31,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
   const tf = useTranslations("staff.report.flags");
   const tn = useTranslations("admin.game.flagNames");
   const format = useFormatter();
+  const dateTime = useDateTime();
   const router = useRouter();
   const { toast, show } = useToast();
   const [game, setGame] = useState(initial);
@@ -84,7 +86,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
           <p className="text-body text-ink-muted">
             {t("meta", {
               host: game.ownerName,
-              date: format.dateTime(new Date(game.finishedAt), { dateStyle: "long", timeStyle: "short" }),
+              date: dateTime(new Date(game.finishedAt), { long: true }),
               minutes,
             })}
           </p>
@@ -175,7 +177,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
               return (
                 <li key={`${edit.at}-${edit.action}-${edit.nickname ?? ""}`} className="flex flex-wrap gap-x-3 gap-y-1 rounded-md bg-surface-raised px-4 py-3">
                   <span className="text-body text-ink-muted">
-                    {format.dateTime(new Date(edit.at), { dateStyle: "medium", timeStyle: "short" })} · {edit.adminName}
+                    {dateTime(new Date(edit.at))} · {edit.adminName}
                   </span>
                   <span className="min-w-[200px] flex-1 text-body [overflow-wrap:anywhere]">{t(`log.${line.key}`, values)}</span>
                 </li>

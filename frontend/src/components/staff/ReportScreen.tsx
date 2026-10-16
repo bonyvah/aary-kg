@@ -1,6 +1,7 @@
 import { useHomePath } from "./SessionProvider";
 import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useDateTime } from "@/lib/useDateTime";
 import { Avatar } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -24,6 +25,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
   const t = useTranslations("staff.report");
   const home = useHomePath();
   const format = useFormatter();
+  const dateTime = useDateTime();
   const average = report.questions.reduce((sum, q) => sum + q.correctShare, 0) / Math.max(1, report.questions.length);
   const minutes = Math.max(1, Math.round(report.durationSeconds / 60));
 
@@ -33,7 +35,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-h1 font-black wrap-anywhere">{report.quizTitle}</h1>
           <p className="text-body text-ink-muted">
-            {format.dateTime(new Date(report.finishedAt), { dateStyle: "long", timeStyle: "short" })}
+            {dateTime(new Date(report.finishedAt), { long: true })}
           </p>
         </div>
         <ButtonLink href={home} variant="secondary">

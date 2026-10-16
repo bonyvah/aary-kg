@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useDateTime } from "@/lib/useDateTime";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -40,7 +41,7 @@ export function AdminScreen() {
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
   const idBase = useId();
-  const format = useFormatter();
+  const dateTime = useDateTime();
   const { toast, show } = useToast();
   const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
   const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
@@ -181,7 +182,7 @@ export function AdminScreen() {
                     <Badge variant={user.active ? "success" : "neutral"}>{t(user.active ? "status.active" : "status.disabled")}</Badge>
                   </Td>
                   <Td className="whitespace-nowrap">
-                    {format.dateTime(new Date(user.createdAt), { dateStyle: "medium" })}
+                    {dateTime(new Date(user.createdAt), { time: false })}
                   </Td>
                   <Td>
                     {isAdminUser ? null : (

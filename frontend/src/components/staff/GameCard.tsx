@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useDateTime } from "@/lib/useDateTime";
 import { Card } from "@/components/ui/Card";
 import type { GameSummary } from "@/lib/api/games";
 
 /** A finished game on the dashboard. The whole card is the link to its report. */
 export function GameCard({ game }: { game: GameSummary }) {
   const t = useTranslations("staff.dashboard");
-  const format = useFormatter();
+  const dateTime = useDateTime();
 
   return (
     <Card
@@ -22,7 +23,7 @@ export function GameCard({ game }: { game: GameSummary }) {
         </Link>
       </h2>
       <p className="text-body text-ink-muted">
-        {format.dateTime(new Date(game.finishedAt), { dateStyle: "medium", timeStyle: "short" })}
+        {dateTime(new Date(game.finishedAt))}
       </p>
       <p className="mt-auto text-body text-ink-muted">
         {t("gamePlayers", { count: game.playerCount })} · {t("questionCount", { count: game.questionCount })}

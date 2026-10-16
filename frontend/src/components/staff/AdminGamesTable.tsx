@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
+import { useDateTime } from "@/lib/useDateTime";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ssr";
@@ -9,6 +10,7 @@ import type { GameSummary } from "@/lib/api/games";
 export function AdminGamesTable({ games }: { games: readonly GameSummary[] }) {
   const t = useTranslations("admin.games");
   const format = useFormatter();
+  const dateTime = useDateTime();
 
   if (games.length === 0) {
     return <EmptyState icon={ClockCounterClockwise} title={t("empty.title")} description={t("empty.description")} />;
@@ -37,7 +39,7 @@ export function AdminGamesTable({ games }: { games: readonly GameSummary[] }) {
             </Td>
             <Td>{game.ownerName}</Td>
             <Td className="whitespace-nowrap">
-              {format.dateTime(new Date(game.finishedAt), { dateStyle: "medium", timeStyle: "short" })}
+              {dateTime(new Date(game.finishedAt))}
             </Td>
             <Td className="text-right tabular-nums">{format.number(game.playerCount)}</Td>
           </tr>

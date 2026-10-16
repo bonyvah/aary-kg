@@ -56,6 +56,8 @@ export type PlayerQuestion = {
   total: number;
   text: string;
   seconds: number;
+  /** The shapes that have an answer: a question can have two or three, and the rest are not shown. */
+  positions: AnswerPosition[];
 };
 
 /** Sent only after the question closed. */

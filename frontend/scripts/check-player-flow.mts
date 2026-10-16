@@ -2,6 +2,7 @@
 // Run: pnpm check:player
 import { flowReducer, initialState, toStandings, type FlowEvent, type FlowState } from "../src/lib/playerFlow/reducer.ts";
 import type { PlayerEvent, ServerStanding } from "../src/lib/game/events.ts";
+import type { AnswerPosition } from "../src/components/game/AnswerTile.tsx";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -13,7 +14,7 @@ const run = (events: FlowEvent[], from: FlowState = initialState) => events.redu
 const server = (event: PlayerEvent): FlowEvent => ({ type: "SERVER", event });
 const character = { shape: "star", color: "teal", face: "shy" } as const;
 const row = (id: string, rank: number, score: number): ServerStanding => ({ id, nickname: id.toUpperCase(), character, score, rank });
-const question = { index: 1, total: 3, text: "Q?", seconds: 20 };
+const question = { index: 1, total: 3, text: "Q?", seconds: 20, positions: [1, 2, 3, 4] as AnswerPosition[] };
 const you = row("me", 2, 700);
 
 const joined = run([

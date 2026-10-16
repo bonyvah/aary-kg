@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion } from "@/types/game";
-import { AnswerTile, type AnswerPosition } from "../AnswerTile";
+import { AnswerTile, lastTileSpan, type AnswerPosition } from "../AnswerTile";
 import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
 import { WaitingForOthers } from "./WaitingForOthers";
@@ -40,9 +40,10 @@ export function QuestionScreen({ question, secondsLeft, selected, onAnswer, onLe
           <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
           <div className="mt-auto grid grid-cols-2 gap-4 pb-2">
-            {POSITIONS.map(({ position, shape }) => (
+            {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) => (
               <AnswerTile
                 key={position}
+                className={lastTileSpan(index, shown.length)}
                 shapeOnly
                 position={position}
                 aria-label={tc(`answerShape.${shape}`)}

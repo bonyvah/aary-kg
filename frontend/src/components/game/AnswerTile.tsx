@@ -4,6 +4,9 @@ import { cx } from "@/lib/cx";
 
 export type AnswerPosition = 1 | 2 | 3 | 4;
 
+/** In a two-column grid with an odd number of tiles, the last one takes the whole row. */
+export const lastTileSpan = (index: number, count: number) => (count % 2 === 1 && index === count - 1 ? "col-span-2" : "");
+
 /** Color, shape and edge of the four answer positions. Also used by the quiz editor. */
 export const answerPositions = {
   1: { Shape: AnswerTriangle, tone: "bg-tile-red text-on-tile [--tile-e:var(--tile-red-edge)]" },

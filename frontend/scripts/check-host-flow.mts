@@ -14,7 +14,7 @@ const server = (event: HostEvent): HostFlowEvent => ({ type: "SERVER", event });
 const character = { shape: "star", color: "teal", face: "shy" } as const;
 const player = (id: string) => ({ id, nickname: id.toUpperCase(), character });
 const row = (id: string, rank: number, score: number): ServerStanding => ({ ...player(id), score, rank });
-const question: HostQuestion = { index: 1, total: 3, text: "Q?", seconds: 20, answers: ["a", "b", "c", "d"] };
+const question: HostQuestion = { index: 1, total: 3, text: "Q?", seconds: 20, positions: [1, 2, 3, 4], answers: ["a", "b", "c", "d"] };
 
 const lobby = run([
   { type: "CREATED", gameId: "g1", pin: "123456", totalQuestions: 3 },

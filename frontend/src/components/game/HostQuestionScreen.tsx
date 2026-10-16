@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { HostQuestion } from "@/lib/game/events";
+import { cx } from "@/lib/cx";
 import { AnswerTile, type AnswerPosition } from "./AnswerTile";
 import { TimerBar } from "./TimerBar";
 
@@ -26,7 +27,7 @@ export function HostQuestionHeader({ round, totalQuestions, answered }: HostQues
 }
 
 type HostQuestionScreenProps = {
-  question: Pick<HostQuestion, "text" | "answers" | "seconds">;
+  question: Pick<HostQuestion, "text" | "answers" | "seconds" | "positions">;
   round: number;
   totalQuestions: number;
   secondsLeft: number;
@@ -44,8 +45,13 @@ export function HostQuestionScreen({ question, round, totalQuestions, secondsLef
       <h1 className="text-display font-black [overflow-wrap:anywhere]">{question.text}</h1>
       <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
       <div className="grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2">
-        {POSITIONS.map((position) => (
-          <AnswerTile key={position} position={position} disabled className="pointer-events-none">
+        {POSITIONS.filter((position) => question.positions.includes(position)).map((position, index, shown) => (
+          <AnswerTile
+            key={position}
+            position={position}
+            disabled
+            className={cx("pointer-events-none", index === shown.length - 1 && shown.length % 2 === 1 && "sm:col-span-2")}
+          >
             {question.answers[position - 1]}
           </AnswerTile>
         ))}

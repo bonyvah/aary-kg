@@ -6,7 +6,7 @@ import { Check, Cross } from "@/components/icons";
 import { useCountUp } from "@/lib/useCountUp";
 import { cx } from "@/lib/cx";
 import type { PlayerQuestion, RevealPayload } from "@/types/game";
-import { AnswerTile, type AnswerPosition } from "../AnswerTile";
+import { AnswerTile, lastTileSpan, type AnswerPosition } from "../AnswerTile";
 import { PlayerScreen } from "../PlayerScreen";
 
 const POSITIONS = [
@@ -50,8 +50,13 @@ export function ResultScreen({ question, selected, reveal, onLeave }: ResultScre
         </p>
       </div>
       <div className="mt-auto grid grid-cols-2 gap-4 pb-2">
-        {POSITIONS.map(({ position, shape }) => {
-          const common = { shapeOnly: true, position, "aria-label": tc(`answerShape.${shape}`) } as const;
+        {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) => {
+          const common = {
+            shapeOnly: true,
+            position,
+            className: lastTileSpan(index, shown.length),
+            "aria-label": tc(`answerShape.${shape}`),
+          } as const;
           if (position === reveal.correct) {
             return <AnswerTile key={position} {...common} result="ok" resultLabel={t("result.correct")} />;
           }

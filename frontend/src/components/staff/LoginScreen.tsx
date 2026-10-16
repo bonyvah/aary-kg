@@ -4,11 +4,14 @@ import { homePath } from "@/lib/staffRoutes";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { GameController } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
+import { IconLink } from "@/components/ui/IconLink";
 import { Input } from "@/components/ui/Input";
+import { PlayerSettings } from "@/components/game/PlayerSettings";
 import { login as signIn } from "@/lib/api/auth";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { useSession } from "./SessionProvider";
@@ -40,7 +43,17 @@ export function LoginScreen() {
   }
 
   return (
-    <StaffShell topRight={<ButtonLink href="/" variant="neutral">{t("joinGame")}</ButtonLink>} className="items-center justify-center">
+    <StaffShell
+      topRight={
+        <div className="flex items-center gap-2">
+          <IconLink href="/" label={t("joinGame")}>
+            <Icon icon={GameController} weight="bold" size={28} />
+          </IconLink>
+          <PlayerSettings />
+        </div>
+      }
+      className="items-center justify-center"
+    >
       <Card className="w-full max-w-[400px]">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
           <h1 className="sr-only">{t("title")}</h1>

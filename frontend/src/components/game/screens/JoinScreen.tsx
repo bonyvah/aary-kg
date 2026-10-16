@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { ChalkboardTeacher } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { IconLink } from "@/components/ui/IconLink";
 import { Input } from "@/components/ui/Input";
 import { errorMessageKey } from "@/lib/playerFlow/errors";
 import type { ErrorCode } from "@/types/game";
@@ -27,7 +29,13 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
   }
 
   return (
-    <PlayerScreen>
+    <PlayerScreen
+      topActions={
+        <IconLink href="/login" label={t("join.staffLogin")}>
+          <Icon icon={ChalkboardTeacher} weight="bold" size={28} />
+        </IconLink>
+      }
+    >
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
         <div className="flex flex-1 flex-col justify-center gap-6">
           <h1 className="text-display font-black [overflow-wrap:anywhere]">{t("join.title")}</h1>
@@ -44,12 +52,6 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
         <Button type="submit" size="lg" block>
           {t("join.submit")}
         </Button>
-        <Link
-          href="/login"
-          className="inline-flex min-h-11 items-center justify-center text-center font-bold underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
-          {t("join.staffLogin")}
-        </Link>
       </form>
     </PlayerScreen>
   );

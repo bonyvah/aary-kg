@@ -15,6 +15,8 @@ import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Quiz } from "@/types/quiz";
 import { AnswerEditor } from "./AnswerEditor";
 import { QuestionList } from "./QuestionList";
+import { StaffMenu } from "./StaffMenu";
+import { StaffTopBar } from "./StaffShell";
 
 const POSITIONS: readonly AnswerPosition[] = [1, 2, 3, 4];
 const TOAST_MS = 3000;
@@ -63,26 +65,25 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="bg-surface-raised">
-        <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-          <ButtonLink href="/dashboard" variant="secondary">
-            {t("back")}
-          </ButtonLink>
-          <div className="min-w-[200px] flex-1">
-            <Input
-              hideLabel
-              label={t("titleLabel")}
-              value={state.quiz.title}
-              maxLength={200}
-              onChange={(event) => editor.setTitle(event.target.value)}
-              error={state.errors.has("title") ? required : undefined}
-            />
-          </div>
-          <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
-            {t("save")}
-          </Button>
+      <StaffTopBar topRight={<StaffMenu />} />
+      <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 md:px-6">
+        <ButtonLink href="/dashboard" variant="secondary">
+          {t("back")}
+        </ButtonLink>
+        <div className="min-w-[200px] flex-1">
+          <Input
+            hideLabel
+            label={t("titleLabel")}
+            value={state.quiz.title}
+            maxLength={200}
+            onChange={(event) => editor.setTitle(event.target.value)}
+            error={state.errors.has("title") ? required : undefined}
+          />
         </div>
-      </header>
+        <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
+          {t("save")}
+        </Button>
+      </div>
 
       <div className="mx-auto grid w-full max-w-[1100px] flex-1 grid-cols-[minmax(0,1fr)] md:grid-cols-[280px_minmax(0,1fr)]">
         <QuestionList

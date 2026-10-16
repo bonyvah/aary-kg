@@ -9,16 +9,23 @@ type StaffShellProps = {
   className?: string;
 };
 
+/** The same top bar on every staff screen: the logo and, on the right, the account menu. */
+export function StaffTopBar({ topRight }: { topRight?: ReactNode }) {
+  return (
+    <header className="bg-surface-raised">
+      <div className="mx-auto flex min-h-[64px] w-full max-w-[1100px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
+        <StaffLogo />
+        {topRight}
+      </div>
+    </header>
+  );
+}
+
 /** Frame of every staff screen: top bar on the raised ground, content below. The theme comes from the layout. */
 export function StaffShell({ topRight, children, className }: StaffShellProps) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="bg-surface-raised">
-        <div className="mx-auto flex min-h-[64px] w-full max-w-[1100px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
-          <StaffLogo />
-          {topRight}
-        </div>
-      </header>
+      <StaffTopBar topRight={topRight} />
       <main className={cx("mx-auto flex w-full max-w-[1100px] flex-1 flex-col gap-6 p-4 md:p-6", className)}>
         {children}
       </main>

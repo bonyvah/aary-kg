@@ -381,21 +381,20 @@ async def test_full_game_to_the_podium_and_into_the_finished_record(env):
     assert e.value.code == "INVALID_STATE"
 
 
-async def instant_game(env):
-    """Four players who all left full screen during the game."""
+async def left_screen_game(env):
+    """Four players who all left full screen while question 1 was open; the host ends the game right away."""
     state, host, players, feeds = await new_game(env, players=("Aida", "Bek", "Cholpon", "Dana"))
     await env.engine.start(state.id)
     for player in players:
         await env.engine.signal(state.id, player.id, "FULLSCREEN_EXIT")
-    for right in (1, 2, 3):
-        await play_round(env, state, [(player, right) for player in players])
-        await env.engine.next(state.id)
+        await env.engine.answer(state.id, player.id, 1)
+    await env.engine.end(state.id)
     await settle()
     return state, host, players, feeds
 
 
 async def test_the_podium_lists_the_players_who_left_their_screen(env):
-    state, host, players, _ = await instant_game(env)
+    state, host, players, _ = await left_screen_game(env)
     ended = of(host, "game.ended")[0]
     assert {c["playerId"] for c in ended["cheaters"]} == {x.id for x in players}
     assert {f["kind"] for f in ended["cheaters"][0]["flags"]} == {"FULLSCREEN_EXIT"}
@@ -403,8 +402,49 @@ async def test_the_podium_lists_the_players_who_left_their_screen(env):
     assert len(snapshot.cheaters) == 4
 
 
+async def test_the_game_does_not_move_on_until_every_suspect_is_ruled_on(env):
+    state, host, (aida, bek, *_), _ = await new_game(env, players=("Aida", "Bek"), n=3)
+    await env.engine.start(state.id)
+    await env.engine.signal(state.id, aida.id, "TAB_BLUR")
+    await env.engine.answer(state.id, aida.id, 1)
+    await env.engine.answer(state.id, bek.id, 1)  # everyone answered: the question closes
+    await settle()
+    shown = of(host, "cheaters")[-1]["cheaters"]  # the list the host sees after the question
+    assert [c["playerId"] for c in shown] == [aida.id]
+
+    with pytest.raises(GameError) as e:
+        await env.engine.next(state.id)  # results -> leaderboard
+    assert e.value.code == "CHEATERS_UNRESOLVED"
+    await env.engine.rule(state.id, aida.id, "mercy")
+    await env.engine.next(state.id)
+    assert (await env.repo.get_game(state.id)).phase == "leaderboard"
+    assert of(host, "cheaters")[-1]["cheaters"] == []
+
+    # Leaving again after the ruling is new: it blocks the next step again.
+    await env.engine.signal(state.id, aida.id, "WINDOW_BLUR")
+    with pytest.raises(GameError) as e:
+        await env.engine.next(state.id)
+    assert e.value.code == "CHEATERS_UNRESOLVED"
+    await env.engine.rule(state.id, aida.id, "kick")
+    await env.engine.next(state.id)
+    assert (await env.repo.get_game(state.id)).phase == "question"
+    assert {x.id for x in await env.repo.get_players(state.id)} == {bek.id}
+
+
+async def test_a_ruling_after_a_question_changes_the_standings(env):
+    state, host, (aida, bek), _ = await new_game(env, players=("Aida", "Bek"))
+    await env.engine.start(state.id)
+    await env.engine.signal(state.id, aida.id, "TAB_BLUR")
+    await env.engine.answer(state.id, aida.id, 1)
+    await env.engine.answer(state.id, bek.id, 1)
+    await settle()
+    await env.engine.rule(state.id, aida.id, "void_last")
+    assert (await env.repo.get_player(state.id, aida.id)).score == 0
+    assert (await env.repo.get_player(state.id, bek.id)).score > 0
+
+
 async def test_host_rulings_change_the_score_the_podium_and_the_saved_game(env):
-    state, host, (aida, bek, chol, dana), feeds = await instant_game(env)
+    state, host, (aida, bek, chol, dana), feeds = await left_screen_game(env)
     before = {s["id"]: s["score"] for s in of(host, "game.ended")[0]["standings"]}
     assert before[aida.id] > 0
 
@@ -442,7 +482,7 @@ async def test_fast_answers_alone_are_not_cheating(env):
     assert of(host, "game.ended")[0]["cheaters"] == []
 
 
-async def test_rulings_only_after_the_game_ended(env):
+async def test_rulings_only_once_a_question_has_closed(env):
     state, _, (aida, *_), _ = await new_game(env)
     await env.engine.start(state.id)
     with pytest.raises(GameError) as e:

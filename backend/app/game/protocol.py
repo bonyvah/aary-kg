@@ -172,6 +172,13 @@ class Cheater(CamelModel):
     flags: list[CheaterFlag]
 
 
+class CheatersUpdated(_Out):
+    """Host: who is suspected right now (after a question, or after a ruling)."""
+
+    type: Literal["cheaters"] = "cheaters"
+    cheaters: list[Cheater]
+
+
 class HostStateEvent(_Out):
     type: Literal["host.state"] = "host.state"
     game_id: str

@@ -46,15 +46,15 @@ class PlayerState:
     correct: int = 0
     # Total time of the correct answers: breaks ties on the leaderboard (faster wins).
     time_ms: int = 0
-    # What the host decided about this player at the podium: zeroed, last_voided or mercy.
-    ruling: str | None = None
+    # The signal counts the host had already ruled on for this player: only what came after is new.
+    ruled_signals: dict[str, int] = field(default_factory=dict)
 
     def dump(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def load(cls, data: dict[str, Any]) -> "PlayerState":
-        return cls(**data)
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
 
 
 @dataclass

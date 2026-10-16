@@ -218,8 +218,8 @@ class GameEngine:
                 event.correct = self._question(quiz, state, state.round)["correct"]
         elif state.phase in ("leaderboard", "ended"):
             event.standings = self._standings(players)
-            if state.phase == "ended":
-                event.cheaters = await self._cheaters(state, players)
+        if state.phase in ("counts", "leaderboard", "ended"):
+            event.cheaters = await self._cheaters(state, players)
         return event
 
     @staticmethod
@@ -255,6 +255,10 @@ class GameEngine:
             state = await self._game(game_id)
             if from_phase is not None and state.phase != from_phase:
                 return
+            if state.phase in ("counts", "leaderboard") and await self._cheaters(
+                state, await self.repo.get_players(game_id)
+            ):
+                raise GameError("CHEATERS_UNRESOLVED")  # the host rules on every suspect first
             if state.phase == "question":
                 await self._close_locked(state)
             elif state.phase == "counts":
@@ -361,6 +365,7 @@ class GameEngine:
             game_id, "host", p.HostQuestionClosed(counts=self._counts(answers), correct=correct_pos)
         )
         await self.audit(game_id, "question.closed", round=rnd, answered=len(results))
+        await self._publish_cheaters(state)
 
     async def _leaderboard_locked(self, state: GameState) -> None:
         players = await self.repo.get_players(state.id)
@@ -418,28 +423,34 @@ class GameEngine:
         )
 
     async def _cheaters(self, state: GameState, players: list[PlayerState]) -> list[p.Cheater]:
-        """Players whose screen was left (tab, another window, full screen) and whom the host has not ruled on
-        yet, with every reason."""
-        flags = anticheat.flags_from_signals(await self.repo.signal_counts(state.id))
+        """Players whose screen was left (tab, another window, full screen) since the host last ruled
+        on them, with the reasons that are new."""
+        counts = await self.repo.signal_counts(state.id)
         suspects = []
         for player in players:
-            reasons = flags.get(player.id, [])
-            if player.ruling is None and any(f["kind"] in anticheat.SUSPECT_KINDS for f in reasons):
+            mine = counts.get(player.id, {})
+            fresh = {k: mine.get(k, 0) - player.ruled_signals.get(k, 0) for k in anticheat.KINDS}
+            if any(fresh[k] > 0 for k in anticheat.SUSPECT_KINDS):
                 suspects.append(
                     p.Cheater(
                         player_id=player.id,
                         nickname=player.nickname,
-                        flags=[p.CheaterFlag(kind=str(f["kind"]), count=int(f["count"])) for f in reasons],
+                        flags=[p.CheaterFlag(kind=k, count=n) for k, n in fresh.items() if n > 0],
                     )
                 )
         return suspects
 
+    async def _publish_cheaters(self, state: GameState) -> None:
+        cheaters = await self._cheaters(state, await self.repo.get_players(state.id))
+        await self._emit(state.id, "host", p.CheatersUpdated(cheaters=cheaters))
+
     async def rule(self, game_id: str, player_id: str, action: str) -> None:
-        """Host, on the podium: remove a suspected cheater, zero their score, void the last question's
-        points, or let them off. The database copy of the game and everybody's podium follow."""
+        """Host, after a question or on the podium: remove a suspected cheater, zero their score, void
+        the last question's points, or let them off. Until every suspect is ruled on, the game does not
+        move on. On the podium the saved game and everybody's screen follow."""
         async with self.repo.lock(game_id):
             state = await self._game(game_id)
-            if state.phase != "ended":
+            if state.phase not in ("counts", "leaderboard", "ended"):
                 raise GameError("INVALID_STATE")
             player = await self.repo.get_player(game_id, player_id)
             if player is None:
@@ -447,27 +458,30 @@ class GameEngine:
             if action == "kick":
                 await self._emit(game_id, f"p:{player_id}", p.Kicked())
                 await self.repo.remove_player(game_id, player_id, nicknames.skeleton(player.nickname))
-            elif action == "zero":
-                player.score, player.ruling = 0, "zeroed"
-                await self.repo.save_players(game_id, [player])
-            elif action == "void_last":
-                last = (await self.repo.get_results(game_id, state.round)).get(player_id)
-                if last is not None:
-                    player.score -= int(last["points"])
-                    last["points"] = 0
-                    await self.repo.put_results(game_id, state.round, {player_id: last})
-                player.ruling = "last_voided"
-                await self.repo.save_players(game_id, [player])
-            elif action == "mercy":
-                player.ruling = "mercy"
+            elif action in ("zero", "void_last", "mercy"):
+                if action == "zero":
+                    player.score = 0
+                elif action == "void_last":
+                    last = (await self.repo.get_results(game_id, state.round)).get(player_id)
+                    if last is not None:
+                        player.score -= int(last["points"])
+                        last["points"] = 0
+                        await self.repo.put_results(game_id, state.round, {player_id: last})
+                player.ruled_signals = dict((await self.repo.signal_counts(game_id)).get(player_id, {}))
                 await self.repo.save_players(game_id, [player])
             else:
                 raise GameError("BAD_MESSAGE")
             await self.audit(
                 game_id, "player.ruled", player=player_id, nickname=player.nickname, action=action
             )
-            await self._save_finished(state)
-            await self._publish_ended(state)
+            if state.phase == "ended":
+                await self._save_finished(state)
+                await self._publish_ended(state)
+            else:
+                if state.phase == "leaderboard":
+                    await self._leaderboard_locked(state)  # the standings changed: show them again
+                await self._lobby_updated(game_id)
+                await self._publish_cheaters(state)
 
     # --- player actions -------------------------------------------------------------------------
 
@@ -504,3 +518,5 @@ class GameEngine:
             return
         if await self.repo.add_signal(game_id, player_id, kind):
             await self.audit(game_id, "signal", player=player_id, kind=kind)
+            if kind in anticheat.SUSPECT_KINDS and state.phase in ("counts", "leaderboard"):
+                await self._publish_cheaters(state)

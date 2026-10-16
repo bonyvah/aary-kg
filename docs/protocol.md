@@ -44,13 +44,13 @@ Player (after `hello`):
 | `pong` | `n` | answer to the server's `ping`. The server halves the round trip to estimate the delay (max 300 ms) and takes it off the answer time. |
 | `character.set` | `character {shape, color, face}` | lobby only; the three ids must come from the fixed lists |
 
-Host: `start`, `next {fromPhase}`, `kick {playerId}`, `end`, and on the podium `rule {playerId, action}` with `action` one of `kick` (remove the player), `zero` (score becomes 0), `void_last` (the last question's points are taken away) or `mercy` (no change). A ruling saves the game again and sends everyone a fresh `game.ended`.
+Host: `start`, `next {fromPhase}` (refused with `CHEATERS_UNRESOLVED` while a suspect is not ruled on), `kick {playerId}`, `end`, and, after a question or on the podium, `rule {playerId, action}` with `action` one of `kick` (remove the player), `zero` (score becomes 0), `void_last` (the last question's points are taken away) or `mercy` (no change). On the podium a ruling saves the game again and sends everyone a fresh `game.ended`; during the game it updates the standings and the host's suspect list.
 
 ## Server -> client
 
 To a player: `state`, `lobby.updated {players}`, `question.started {question}`, `answer.accepted {position}`, `question.closed {reveal {correct, points}, score, rank}`, `leaderboard {top (best 5), you}`, `game.ended {top (best 3), you}`, `ping {n}`, `kicked`, `replaced`, `game.closed`, `error {code}`.
 
-To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players with `TAB_BLUR`, `WINDOW_BLUR` or `FULLSCREEN_EXIT` signals whom the host has not ruled on; `PASTE` is listed with them but is not a reason on its own), `replaced`, `error {code}`.
+To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `cheaters {cheaters}` (who is suspected right now: sent after every question, when a player leaves their screen while results or the leaderboard are shown, and after every ruling), `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players with `TAB_BLUR`, `WINDOW_BLUR` or `FULLSCREEN_EXIT` signals whom the host has not ruled on; `PASTE` is listed with them but is not a reason on its own), `replaced`, `error {code}`.
 
 A `question` for players is `{index (from 1), total, text, seconds}`. For the host it also has `answers`.
 

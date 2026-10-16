@@ -136,6 +136,8 @@ async def play_to_the_end(game, players, started=False):
         state = await engine.repo.get_game(gid)
         if state.phase == "question":
             await engine.next(gid)
+        for cheater in (await engine.host_snapshot(gid)).cheaters or []:
+            await engine.rule(gid, cheater.player_id, "mercy")  # the game waits for the host's decision
         await engine.next(gid)  # leaderboard
         await engine.next(gid)  # next question, or the end
 

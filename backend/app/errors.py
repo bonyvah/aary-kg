@@ -32,6 +32,7 @@ GAME_STATUS = {
     "GAME_FULL": 409,
     "INVALID_STATE": 409,
     "NO_PLAYERS": 409,
+    "CHEATERS_UNRESOLVED": 409,
     "BUSY": 503,
 }
 

@@ -1,5 +1,5 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
+import type { Cheater, HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
 import type { Player, Standing } from "@/types/game";
 
 export type HostPhase = "lobby" | "question" | "counts" | "leaderboard" | "podium";
@@ -23,6 +23,8 @@ export type HostState = {
   counts: Counts | null;
   correct: AnswerPosition | null;
   standings: Standing[];
+  /** Suspected cheaters on the podium that the host has not ruled on. */
+  cheaters: Cheater[];
   /** Another host screen took over this game: this one is finished. */
   replaced: boolean;
 };
@@ -45,6 +47,7 @@ export const initialHostState: HostState = {
   counts: null,
   correct: null,
   standings: [],
+  cheaters: [],
   replaced: false,
 };
 
@@ -79,6 +82,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         counts: event.counts ? toCounts(event.counts) : null,
         correct: event.correct,
         standings: event.standings ? toStandings(event.standings) : [],
+        cheaters: event.cheaters ?? [],
       };
     case "lobby.updated":
       return { ...state, players: toPlayers(event.players) };
@@ -100,7 +104,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
     case "leaderboard":
       return { ...state, phase: "leaderboard", standings: toStandings(event.standings) };
     case "game.ended":
-      return { ...state, phase: "podium", gameId: event.gameId, standings: toStandings(event.standings) };
+      return { ...state, phase: "podium", gameId: event.gameId, standings: toStandings(event.standings), cheaters: event.cheaters };
     case "replaced":
       return { ...state, replaced: true };
     case "error":

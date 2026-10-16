@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { createGame } from "@/lib/api/games";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
-import type { HostEvent, HostMessage } from "@/lib/game/events";
+import type { HostEvent, HostMessage, Ruling } from "@/lib/game/events";
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
 import type { Quiz } from "@/types/quiz";
 import { hostReducer, initialHostState } from "./reducer";
@@ -131,5 +131,6 @@ export function useHostFlow(quiz: Quiz) {
       if (phase === "question" || phase === "counts" || phase === "leaderboard") send({ type: "next", fromPhase: phase });
     }, [send, phase]),
     kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
+    rule: useCallback((playerId: string, action: Ruling) => send({ type: "rule", playerId, action }), [send]),
   };
 }

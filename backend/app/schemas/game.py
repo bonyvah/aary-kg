@@ -11,6 +11,10 @@ class CreateGameIn(CamelModel):
     quiz_id: uuid.UUID
 
 
+class HostTicketOut(CamelModel):
+    ticket: str
+
+
 class CreateGameOut(CamelModel):
     game_id: str
     pin: str

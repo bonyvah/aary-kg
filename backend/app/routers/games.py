@@ -15,11 +15,13 @@ from app.schemas.game import (
     CreateGameOut,
     GameReport,
     GameSummary,
+    HostTicketOut,
     JoinedPlayer,
     JoinIn,
     JoinOut,
 )
 from app.security import create_player_token
+from app.services import auth as auth_service
 from app.services import games as service
 from app.services import quizzes as quizzes_service
 
@@ -65,6 +67,14 @@ async def create_game(body: CreateGameIn, user: CurrentUser, session: Session) -
     snapshot = {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
     state = await get_engine().create_game(str(user.id), snapshot)
     return CreateGameOut(game_id=state.id, pin=state.pin)
+
+
+@router.post("/{game_id}/host-ticket", response_model=HostTicketOut, response_model_by_alias=True)
+async def host_ticket(game_id: str, user: CurrentUser) -> HostTicketOut:
+    """A one-minute ticket the host screen sends as the first message on its socket."""
+    state = await get_engine().repo.get_game(game_id) if len(game_id) <= 64 else None
+    owner = state.owner_id if state else None
+    return HostTicketOut(ticket=auth_service.host_ticket(user, owner, game_id))
 
 
 @router.get("/pin/{pin}", status_code=204)

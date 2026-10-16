@@ -83,14 +83,26 @@ class Peer:
 
 
 class Room:
-    def __init__(self, base, client, game, host_cookie):
-        self.base, self.client, self.game, self.host_cookie = base, client, game, host_cookie
+    def __init__(self, base, client, game, host_client):
+        self.base, self.client, self.game, self.host_client = base, client, game, host_client
         self.peers: list[Peer] = []
 
-    async def host(self, cookie=None):
-        headers = {"Cookie": f"aary_token={cookie or self.host_cookie}"}
-        peer = Peer(await connect(f"{self.base}/ws/host/{self.game['gameId']}", additional_headers=headers))
+    async def ticket(self, staff=None, game_id=None):
+        r = await (staff or self.host_client).post(f"/games/{game_id or self.game['gameId']}/host-ticket")
+        return r
+
+    async def host(self, ticket=None, headers=None, game_id=None):
+        if ticket is None:
+            r = await self.ticket()
+            assert r.status_code == 200, r.text
+            ticket = r.json()["ticket"]
+        url = f"{self.base}/ws/host/{game_id or self.game['gameId']}"
+        peer = Peer(await connect(url, additional_headers=headers or {}))
         self.peers.append(peer)
+        try:
+            await peer.send(type="hello", token=ticket)
+        except ConnectionClosed:
+            pass  # refused before the hello (a foreign page): the close code tells why
         # The server has attached this screen once it sends its snapshot (or closes it). Until then
         # an event published right away, like a player joining, could be missed.
         await peer.wait_first()
@@ -127,8 +139,8 @@ async def room(server, client, as_user):
     }
     quiz_id = (await host_client.post("/quizzes", json=quiz)).json()["id"]
     game = (await host_client.post("/games", json={"quizId": quiz_id})).json()
-    r = Room(server, client, game, host_client.cookies["aary_token"])
-    r.host_client, r.quiz_id = host_client, quiz_id
+    r = Room(server, client, game, host_client)
+    r.quiz_id = quiz_id
     yield r
     for peer in r.peers:
         try:
@@ -196,28 +208,45 @@ async def test_a_whole_game_over_sockets(room):
 # --- who may connect ---------------------------------------------------------------------------
 
 
-async def test_host_socket_needs_the_owners_session(room, as_user):
-    nobody = await room.host(cookie="nope")
-    assert await nobody.wait_closed() == 4401
+async def test_only_the_owner_gets_a_host_ticket(room, client, as_user):
+    assert (await room.ticket(staff=client)).status_code == 401  # not signed in
     stranger, _ = await as_user("stranger")
-    peer = await room.host(cookie=stranger.cookies["aary_token"])
-    assert await peer.wait_closed() == 4403
     admin, _ = await as_user("root", role="admin")  # an admin can't run somebody's game either
-    refused = await room.host(cookie=admin.cookies["aary_token"])
-    assert await refused.wait_closed() == 4403
-    # a player token is not a staff session
-    token = (await room.join("Aida"))["token"]
-    as_player = await room.host(cookie=token)
-    assert await as_player.wait_closed() == 4401
+    for staff in (stranger, admin):
+        r = await room.ticket(staff=staff)
+        assert (r.status_code, r.json()["code"]) == (404, "GAME_NOT_FOUND")
+    r = await room.ticket(game_id="ffffffffffffffffffffffffffffffff")
+    assert (r.status_code, r.json()["code"]) == (404, "GAME_NOT_FOUND")
 
 
-async def test_host_socket_to_a_game_that_does_not_exist(room):
-    headers = {"Cookie": f"aary_token={room.host_cookie}"}
-    peer = Peer(
-        await connect(f"{room.base}/ws/host/ffffffffffffffffffffffffffffffff", additional_headers=headers)
-    )
+async def test_host_socket_needs_a_ticket_for_this_game(room):
+    nobody = await room.host(ticket="nope")
+    assert await nobody.wait_closed() == 4401
+    token = (await room.join("Aida"))["token"]  # a player token is not a host ticket
+    assert await (await room.host(ticket=token)).wait_closed() == 4401
+    session = room.host_client.cookies["aary_token"]  # nor is the session token itself
+    assert await (await room.host(ticket=session)).wait_closed() == 4401
+    # a ticket for this game does not open another one
+    ticket = (await room.ticket()).json()["ticket"]
+    other = await room.host(ticket=ticket, game_id="ffffffffffffffffffffffffffffffff")
+    assert await other.wait_closed() == 4401
+
+
+async def test_host_socket_without_a_hello_is_closed(room):
+    peer = Peer(await connect(f"{room.base}/ws/host/{room.game['gameId']}"))
     room.peers.append(peer)
-    assert await peer.wait_closed() == 4403
+    await peer.send(type="start")  # not a hello
+    assert await peer.wait_closed() == 4400
+
+
+async def test_an_expired_host_ticket_is_refused(room, monkeypatch):
+    from datetime import timedelta
+
+    from app import security
+
+    monkeypatch.setattr(security, "HOST_TICKET_TTL", timedelta(seconds=-1))
+    ticket = (await room.ticket()).json()["ticket"]
+    assert await (await room.host(ticket=ticket)).wait_closed() == 4401
 
 
 async def test_player_socket_rejects_bad_hello(room):

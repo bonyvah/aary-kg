@@ -9,7 +9,6 @@ from typing import Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.db import SessionLocal
-from app.deps import COOKIE_NAME
 from app.game import protocol as p
 from app.game import ratelimit
 from app.game.hub import Conn
@@ -18,7 +17,7 @@ from app.game.runtime import get_engine, get_hub
 from app.netutil import client_ip, origin_allowed
 from app.redis import get_redis
 from app.security import decode_player_token
-from app.services.auth import user_from_token
+from app.services.auth import user_from_host_ticket
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -81,8 +80,16 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
     if (refused := await _refuse(ws)) is not None:
         return await ws.close(code=refused)
 
+    # First message: {type: "hello", token: <ticket from POST /games/{id}/host-ticket>}. Not the session
+    # cookie: when the web app is on another site than the backend, the browser does not send it here.
+    try:
+        first = p.parse_player(await asyncio.wait_for(_read(ws), HELLO_TIMEOUT_S))
+    except (TimeoutError, WebSocketDisconnect):
+        return await ws.close(code=BAD_MESSAGE)
+    if not isinstance(first, p.Hello):
+        return await ws.close(code=BAD_MESSAGE)
     async with SessionLocal() as session:
-        user = await user_from_token(session, ws.cookies.get(COOKIE_NAME))
+        user = await user_from_host_ticket(session, first.token, game_id)
     if user is None:
         return await ws.close(code=UNAUTHENTICATED)
 

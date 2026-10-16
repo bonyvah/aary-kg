@@ -9,7 +9,14 @@ from app.game import ratelimit
 from app.models.user import User
 from app.redis import get_redis
 from app.repositories import users as repo
-from app.security import DUMMY_HASH, decode_token, hash_password, verify_password
+from app.security import (
+    DUMMY_HASH,
+    create_host_ticket,
+    decode_host_ticket,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 from app.services import users as users_service
 
 # Per address: every attempt counts, so one machine can't try many logins quickly.
@@ -96,6 +103,28 @@ async def user_from_token(session: AsyncSession, token: str | None) -> User | No
     """
     claims = decode_token(token) if token else None
     if claims is None:
+        return None
+    try:
+        user = await repo.get(session, uuid.UUID(claims.sub))
+    except ValueError:
+        return None
+    if user is None or not user.active or user.token_version != claims.ver:
+        return None
+    return user
+
+
+def host_ticket(user: User, owner_id: str | None, game_id: str) -> str:
+    """A ticket for the host socket of a live game. Only its owner gets one; a missing game and
+    somebody else's game look the same."""
+    if owner_id is None or owner_id != str(user.id):
+        raise ApiError(404, "GAME_NOT_FOUND")
+    return create_host_ticket(str(user.id), user.token_version, game_id)
+
+
+async def user_from_host_ticket(session: AsyncSession, ticket: str, game_id: str) -> User | None:
+    """The host a ticket stands for, if it is for this game and their session is still valid."""
+    claims = decode_host_ticket(ticket)
+    if claims is None or claims.gid != game_id:
         return None
     try:
         user = await repo.get(session, uuid.UUID(claims.sub))

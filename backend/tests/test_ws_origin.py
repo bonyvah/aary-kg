@@ -57,26 +57,15 @@ async def test_a_foreign_page_cannot_open_either_socket(room, monkeypatch):  # n
     )
     a = await room.join("Aida")
 
-    host = Peer(
-        await connect(
-            f"{room.base}/ws/host/{room.game['gameId']}",
-            additional_headers={"Cookie": f"aary_token={room.host_cookie}", "Origin": "https://evil.example"},
-        )
-    )
+    host = await room.host(headers={"Origin": "https://evil.example"})
     player = Peer(
         await connect(f"{room.base}/ws/play", additional_headers={"Origin": "https://evil.example"})
     )
-    room.peers += [host, player]
+    room.peers.append(player)
     with contextlib.suppress(ConnectionClosed):  # the server may already have hung up
         await player.send(type="hello", token=a["token"])
     assert await host.wait_closed() == 4403
     assert await player.wait_closed() == 4403
 
-    ok = Peer(
-        await connect(
-            f"{room.base}/ws/host/{room.game['gameId']}",
-            additional_headers={"Cookie": f"aary_token={room.host_cookie}", "Origin": "https://aary.kg"},
-        )
-    )
-    room.peers.append(ok)
+    ok = await room.host(headers={"Origin": "https://aary.kg"})
     assert (await ok.wait("host.state"))["pin"] == room.game["pin"]

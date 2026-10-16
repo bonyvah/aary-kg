@@ -62,6 +62,8 @@ async def test_the_host_socket_refuses_a_session_a_reset_has_ended(room, as_user
     host_id = (await room.host_client.get("/auth/me")).json()["id"]
     ok = await room.host()  # the session works before the reset
     assert ok.events[0]["type"] == "host.state"
+    ticket = (await room.ticket()).json()["ticket"]
     await admin.post(f"/admin/users/{host_id}/reset-password")
-    stale = await room.host()
+    assert (await room.ticket()).status_code == 401  # no new ticket with the ended session
+    stale = await room.host(ticket=ticket)  # and one taken before the reset no longer works
     assert await stale.wait_closed() == 4401

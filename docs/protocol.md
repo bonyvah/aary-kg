@@ -20,7 +20,8 @@ JSON objects, camelCase keys, `"v": 1` and `"type"` on every message. A client m
 | Create a lobby | host (staff session) | `POST /games {quizId}` returns `{gameId, pin}`. The quiz is copied into the game. |
 | Check a PIN | player | `GET /games/pin/{pin}` returns 204, or `PIN_INVALID` / `GAME_NOT_FOUND` / `GAME_ENDED` (a game that is running can still be joined) |
 | Join | player | `POST /games/join {pin, nickname}` returns `{token, player}`. The token is a JWT good for this player in this game only (12 h); staff routes refuse it. |
-| Host socket | host | `GET /ws/host/{gameId}`, authenticated by the staff session cookie. Only the game's owner (admins do not host). |
+| Host ticket | host (staff session) | `POST /games/{gameId}/host-ticket` returns `{ticket}`, good for 60 s. Only the game's owner (admins do not host); otherwise `404 GAME_NOT_FOUND`. |
+| Host socket | host | `GET /ws/host/{gameId}`, first message `hello {token: <ticket>}`. Not the session cookie: when the web app and the backend are on different sites, the browser does not send it to the backend. A ticket for another game, an expired one, or one from a session that has since ended closes with `4401`. |
 | Player socket | player | `GET /ws/play`, then the **first message** is `{type:"hello", token}` within 5 s (the token is not in the URL, URLs get logged). |
 
 Close codes: `4400` bad first message, `4401` not authenticated, `4403` not allowed (not your game, or you were kicked), `4429` too many connections, `1009` message too big.

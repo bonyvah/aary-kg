@@ -49,6 +49,35 @@ def create_token(user_id: str, version: int = 0) -> str:
 
 
 PLAYER_TTL = timedelta(hours=12)
+# A host ticket opens one host socket. Short: the page asks for a fresh one before every connect.
+HOST_TICKET_TTL = timedelta(seconds=60)
+
+
+class HostTicket(NamedTuple):
+    sub: str
+    ver: int
+    gid: str
+
+
+def create_host_ticket(user_id: str, version: int, game_id: str) -> str:
+    """Proves the host on the host socket. The socket can't rely on the session cookie: when the web
+    app and the backend live on different sites, the browser does not send it there."""
+    exp = datetime.now(UTC) + HOST_TICKET_TTL
+    claims = {"k": "host", "sub": user_id, "ver": version, "gid": game_id, "exp": exp}
+    return jwt.encode(claims, get_settings().jwt_secret, algorithm="HS256")
+
+
+def decode_host_ticket(ticket: str) -> HostTicket | None:
+    try:
+        data = jwt.decode(ticket, get_settings().jwt_secret, algorithms=["HS256"])
+    except jwt.PyJWTError:
+        return None
+    sub, ver, gid = data.get("sub"), data.get("ver"), data.get("gid")
+    if data.get("k") != "host" or not isinstance(sub, str) or not isinstance(gid, str):
+        return None
+    if not isinstance(ver, int) or isinstance(ver, bool):
+        return None
+    return HostTicket(sub, ver, gid)
 
 
 def create_player_token(game_id: str, player_id: str) -> str:
@@ -75,6 +104,8 @@ def decode_token(token: str) -> TokenClaims | None:
     except jwt.PyJWTError:
         return None
     sub, ver = data.get("sub"), data.get("ver", 0)
+    if "k" in data:  # a player token or a host ticket, not a staff session
+        return None
     if not isinstance(sub, str) or not isinstance(ver, int) or isinstance(ver, bool):
         return None
     return TokenClaims(sub, ver)

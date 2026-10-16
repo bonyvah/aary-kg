@@ -208,6 +208,8 @@
       "answers": {
         "right": "Туура",
         "wrong": "Туура эмес",
+        "questionTitle": "{number}-суроо",
+        "close": "Жабуу",
         "none": "Жооп берген жок",
         "seconds": "{seconds} сек",
         "points": "{points} упай"

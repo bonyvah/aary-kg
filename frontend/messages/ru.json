@@ -196,6 +196,8 @@
       "answers": {
         "right": "Верно",
         "wrong": "Неверно",
+        "questionTitle": "Вопрос {number}",
+        "close": "Закрыть",
         "none": "Не ответил",
         "seconds": "{seconds} сек.",
         "points": "{points} очк."

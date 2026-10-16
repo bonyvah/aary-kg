@@ -1,14 +1,14 @@
 import { useHomePath } from "./SessionProvider";
-import { useId, useState, type CSSProperties } from "react";
-import { CaretDown } from "@phosphor-icons/react/ssr";
+import { useState, type CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { Avatar } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
+import { Modal } from "@/components/ui/Modal";
 import { Table, Td, Th } from "@/components/ui/Table";
 import type { GameReport } from "@/types/report";
 import { PlayerAnswers, QuestionAnswers } from "./ReportAnswers";
@@ -26,17 +26,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 const focusRing = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring";
 
-/** A set of open rows: toggling one id adds or removes it. */
-function useOpenSet() {
-  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
-  function toggle(id: string) {
-    const next = new Set(open);
-    if (!next.delete(id)) next.add(id);
-    setOpen(next);
-  }
-  return [open, toggle] as const;
-}
-
 /** What happened in one finished game: the numbers, every player with the signals the server logged, and every question. */
 export function ReportScreen({ report }: { report: GameReport }) {
   const t = useTranslations("staff.report");
@@ -44,9 +33,11 @@ export function ReportScreen({ report }: { report: GameReport }) {
   const format = useFormatter();
   const dateTime = useDateTime();
   const average = report.questions.reduce((sum, q) => sum + q.correctShare, 0) / Math.max(1, report.questions.length);
-  const baseId = useId();
-  const [openPlayers, togglePlayer] = useOpenSet();
-  const [openQuestions, toggleQuestion] = useOpenSet();
+  const ta = useTranslations("staff.report.answers");
+  const [selected, setSelected] = useState<{ kind: "player" | "question"; id: string } | null>(null);
+  const player = selected?.kind === "player" ? report.players.find((p) => p.id === selected.id) : undefined;
+  const question = selected?.kind === "question" ? report.questions.find((q) => q.id === selected.id) : undefined;
+  const questionNumber = question ? report.questions.indexOf(question) + 1 : 0;
   const minutes = Math.max(1, Math.round(report.durationSeconds / 60));
 
   return (
@@ -89,52 +80,39 @@ export function ReportScreen({ report }: { report: GameReport }) {
             </tr>
           </thead>
           <tbody>
-            {report.players.map((player) => {
-              const isOpen = openPlayers.has(player.id);
-              const panelId = `${baseId}-p-${player.id}`;
-              return [
-                <tr key={player.id}>
-                  <Td className="font-black tabular-nums">{format.number(player.rank)}</Td>
-                  <Td>
-                    <button
-                      type="button"
-                      aria-expanded={isOpen}
-                      aria-controls={panelId}
-                      onClick={() => togglePlayer(player.id)}
-                      className={cx("flex w-full cursor-pointer items-center gap-3 rounded-md text-left", focusRing)}
-                    >
-                      <Avatar character={player.character} />
-                      <span className="min-w-0 flex-1 wrap-break-word">{player.nickname}</span>
-                      <Icon icon={CaretDown} className={cx("shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
-                    </button>
-                  </Td>
-                  <Td className="text-right font-bold tabular-nums">{format.number(player.score)}</Td>
-                  <Td className="whitespace-nowrap tabular-nums">
-                    {t("correctOf", { correct: player.correct, total: report.questionCount })}
-                  </Td>
-                  <Td>
-                    {player.flags.length === 0 ? (
-                      <span aria-label={t("noSignals")}>—</span>
-                    ) : (
-                      <span className="flex flex-wrap gap-1">
-                        {player.flags.map((flag) => (
-                          <Badge key={flag.kind} variant="danger" className="whitespace-normal">
-                            {t(`flags.${flag.kind}`, { count: flag.count })}
-                          </Badge>
-                        ))}
-                      </span>
-                    )}
-                  </Td>
-                </tr>,
-                isOpen ? (
-                  <tr key={`${player.id}-answers`}>
-                    <Td colSpan={5} id={panelId}>
-                      <PlayerAnswers player={player} questions={report.questions} />
-                    </Td>
-                  </tr>
-                ) : null,
-              ];
-            })}
+            {report.players.map((row) => (
+              <tr key={row.id}>
+                <Td className="font-black tabular-nums">{format.number(row.rank)}</Td>
+                <Td>
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={() => setSelected({ kind: "player", id: row.id })}
+                    className={cx("flex w-full cursor-pointer items-center gap-3 rounded-md text-left", focusRing)}
+                  >
+                    <Avatar character={row.character} />
+                    <span className="min-w-0 wrap-break-word underline decoration-2 underline-offset-4">{row.nickname}</span>
+                  </button>
+                </Td>
+                <Td className="text-right font-bold tabular-nums">{format.number(row.score)}</Td>
+                <Td className="whitespace-nowrap tabular-nums">
+                  {t("correctOf", { correct: row.correct, total: report.questionCount })}
+                </Td>
+                <Td>
+                  {row.flags.length === 0 ? (
+                    <span aria-label={t("noSignals")}>—</span>
+                  ) : (
+                    <span className="flex flex-wrap gap-1">
+                      {row.flags.map((flag) => (
+                        <Badge key={flag.kind} variant="danger" className="whitespace-normal">
+                          {t(`flags.${flag.kind}`, { count: flag.count })}
+                        </Badge>
+                      ))}
+                    </span>
+                  )}
+                </Td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       </section>
@@ -142,41 +120,44 @@ export function ReportScreen({ report }: { report: GameReport }) {
       <section className="flex flex-col gap-3 pb-4">
         <h2 className="text-h2 font-bold">{t("questionsTitle")}</h2>
         <ol className="flex flex-col gap-3">
-          {report.questions.map((question, index) => {
-            const barVars = { "--pct": `${question.correctShare * 100}%` } as CSSProperties;
-            const isOpen = openQuestions.has(question.id);
-            const panelId = `${baseId}-q-${question.id}`;
+          {report.questions.map((row, index) => {
+            const barVars = { "--pct": `${row.correctShare * 100}%` } as CSSProperties;
             return (
-              <li key={question.id} className="rounded-md bg-surface-raised">
+              <li key={row.id} className="rounded-md bg-surface-raised">
                 <button
                   type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={panelId}
-                  onClick={() => toggleQuestion(question.id)}
+                  aria-haspopup="dialog"
+                  onClick={() => setSelected({ kind: "question", id: row.id })}
                   className={cx("flex w-full cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 rounded-md px-4 py-3 text-left", focusRing)}
                 >
                   <span className="min-w-6 text-h3 font-black tabular-nums">{index + 1}</span>
-                  <span className="min-w-[200px] flex-1 wrap-anywhere">{question.text}</span>
+                  <span className="min-w-[200px] flex-1 wrap-anywhere">{row.text}</span>
                   <span className="flex w-full items-center gap-3 sm:w-[260px]">
                     <span className="h-4 flex-1 overflow-hidden rounded-full bg-surface">
                       <span style={barVars} className="block h-full w-(--pct) rounded-full bg-success" />
                     </span>
                     <span className="min-w-[48px] text-right text-body font-bold tabular-nums">
-                      {format.number(question.correctShare, { style: "percent", maximumFractionDigits: 0 })}
+                      {format.number(row.correctShare, { style: "percent", maximumFractionDigits: 0 })}
                     </span>
                   </span>
-                  <Icon icon={CaretDown} className={cx("shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
                 </button>
-                {isOpen ? (
-                  <div id={panelId} className="px-4 pb-4">
-                    <QuestionAnswers question={question} players={report.players} />
-                  </div>
-                ) : null}
               </li>
             );
           })}
         </ol>
       </section>
+
+      <Modal
+        open={selected !== null}
+        onClose={() => setSelected(null)}
+        wide
+        title={player ? player.nickname : ta("questionTitle", { number: questionNumber })}
+        actions={<Button onClick={() => setSelected(null)}>{ta("close")}</Button>}
+        className="max-h-[calc(100dvh-var(--space-8))] overflow-y-auto"
+      >
+        {player ? <PlayerAnswers player={player} questions={report.questions} /> : null}
+        {question ? <QuestionAnswers question={question} players={report.players} /> : null}
+      </Modal>
     </StaffShell>
   );
 }

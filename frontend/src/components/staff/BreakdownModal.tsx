@@ -37,7 +37,7 @@ export function BreakdownModal({ contest, ranked, rows, onClose }: BreakdownModa
             {contest.criteria.map((criterion) => (
               <Th key={criterion.id} className="text-right">
                 {criterion.name}
-                <span className="block text-caption font-medium">{t("weightValue", { weight: criterion.weight })}</span>
+                <span className="block text-caption font-medium">{t("coefficientValue", { coefficient: format.number(criterion.coefficient) })}</span>
               </Th>
             ))}
             <Th className="text-right">{t("total")}</Th>

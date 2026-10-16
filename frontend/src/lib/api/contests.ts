@@ -5,7 +5,7 @@ import { apiFetch } from "./client";
 export type ContestInput = {
   title: string;
   description: string;
-  criteria: { id: string; name: string; weight: number }[];
+  criteria: { id: string; name: string; coefficient: number }[];
   entries: { id: string; name: string; description: string }[];
   juryIds: string[];
 };

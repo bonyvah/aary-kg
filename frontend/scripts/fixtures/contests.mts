@@ -1,7 +1,7 @@
 import type { Contest, Criterion, Entry, JuryMember, Score, ScoreSheet } from "../../src/types/contest.ts";
 
 const criteria = (names: readonly [string, number][], prefix: string): Criterion[] =>
-  names.map(([name, weight], index) => ({ id: `${prefix}-c${index + 1}`, name, weight }));
+  names.map(([name, coefficient], index) => ({ id: `${prefix}-c${index + 1}`, name, coefficient }));
 
 const entries = (items: readonly [string, string][], prefix: string): Entry[] =>
   items.map(([name, description], index) => ({ id: `${prefix}-e${index + 1}`, name, description }));
@@ -9,13 +9,13 @@ const entries = (items: readonly [string, string][], prefix: string): Entry[] =>
 const jury = (members: readonly [string, string, boolean][]): JuryMember[] =>
   members.map(([userId, name, finished]) => ({ userId, name, finished }));
 
-// The closed contest: three criteria (40, 30, 30), five entries, three finished jury members.
+// The closed contest: three criteria (coefficients 4, 3, 3), five entries, three finished jury members.
 // Entries 2 and 3 have identical scores from everyone, so they share the second place.
 const closedCriteria = criteria(
   [
-    ["Үн жана аткаруу", 40],
-    ["Сахнадагы чыгармачылык", 30],
-    ["Тандалган чыгарма", 30],
+    ["Үн жана аткаруу", 4],
+    ["Сахнадагы чыгармачылык", 3],
+    ["Тандалган чыгарма", 3],
   ],
   "closed",
 );
@@ -66,8 +66,8 @@ function sheetFrom(
 
 const openCriteria = criteria(
   [
-    ["Идея", 50],
-    ["Аткарылышы", 50],
+    ["Идея", 1],
+    ["Аткарылышы", 1],
   ],
   "open",
 );
@@ -90,8 +90,8 @@ export const mockContests: readonly Contest[] = [
     ownerName: "Айжан Мамбетова",
     criteria: criteria(
       [
-        ["Аткаруу", 60],
-        ["Артисттик", 40],
+        ["Аткаруу", 1.5],
+        ["Артисттик", 1],
       ],
       "draft",
     ),
@@ -124,9 +124,9 @@ export const mockContests: readonly Contest[] = [
     ownerName: "Улан Эсенов",
     criteria: criteria(
       [
-        ["Грамматика", 50],
-        ["Сүйлөө", 30],
-        ["Жазуу", 20],
+        ["Грамматика", 5],
+        ["Сүйлөө", 3],
+        ["Жазуу", 2],
       ],
       "english",
     ),

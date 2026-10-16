@@ -139,10 +139,10 @@ export function JuryScreen({ contest }: { contest: Contest }) {
             <li key={criterion.id} className="flex flex-col gap-2">
               <p className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="text-h3 font-bold [overflow-wrap:anywhere]">{criterion.name}</span>
-                <span className="text-body font-bold text-ink-muted">{t("weight", { weight: criterion.weight })}</span>
+                <span className="text-body font-bold text-ink-muted">{t("coefficient", { coefficient: format.number(criterion.coefficient) })}</span>
               </p>
               <ScoreButtons
-                label={t("criterionLabel", { name: criterion.name, weight: criterion.weight })}
+                label={t("criterionLabel", { name: criterion.name, coefficient: format.number(criterion.coefficient) })}
                 value={state.scores[entry.id]?.[criterion.id]}
                 onChange={(next) => giveScore(entry.id, criterion.id, next)}
               />

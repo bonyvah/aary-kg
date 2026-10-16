@@ -2,14 +2,15 @@
 
 import { useCallback, useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
+import { parseCoefficient } from "@/lib/contestScoring";
 import { createContest } from "@/lib/api/contests";
 import { ApiRequestError } from "@/lib/api/client";
 import type { ContestErrorCode } from "@/types/contest";
-import { checkForm, contestFormReducer, initialContestForm, weightValue, type ContestFormEvent } from "./reducer";
+import { checkForm, contestFormReducer, initialContestForm, type ContestFormEvent } from "./reducer";
 
 const ISSUE_CODES: readonly string[] = [
   "FIELD_REQUIRED",
-  "WEIGHTS_NOT_100",
+  "COEFFICIENT_INVALID",
   "CRITERIA_REQUIRED",
   "ENTRIES_REQUIRED",
   "JURY_REQUIRED",
@@ -30,7 +31,7 @@ export function useContestForm() {
       const contest = await createContest({
         title: state.title,
         description: state.description,
-        criteria: state.criteria.map((c) => ({ id: c.id, name: c.name, weight: weightValue(c.weight) })),
+        criteria: state.criteria.map((c) => ({ id: c.id, name: c.name, coefficient: parseCoefficient(c.coefficient) })),
         entries: state.entries.map((e) => ({ id: e.id, name: e.name, description: e.description })),
         juryIds: state.juryIds,
       });

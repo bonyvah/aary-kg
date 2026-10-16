@@ -54,7 +54,7 @@ export function ResultsScreen({ contest, results }: { contest: Contest; results:
             {contest.criteria.map((criterion) => (
               <Th key={criterion.id} className="text-right">
                 {criterion.name}
-                <span className="block text-caption font-medium">{t("weightValue", { weight: criterion.weight })}</span>
+                <span className="block text-caption font-medium">{t("coefficientValue", { coefficient: format.number(criterion.coefficient) })}</span>
               </Th>
             ))}
             {mayExplain ? <Th>{t("details")}</Th> : null}

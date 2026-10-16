@@ -9,7 +9,7 @@ const check = (name: string, ok: boolean, detail = "") => {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}${detail ? " -> " + detail : ""}`);
 };
 
-const contest = getMockContest("english-olympiad")!; // 3 criteria (50, 30, 20), 4 entries, nobody scored yet
+const contest = getMockContest("english-olympiad")!; // 3 criteria (coefficients 5, 3, 2), 4 entries, nobody scored yet
 const [c1, c2, c3] = contest.criteria.map((c) => c.id) as [string, string, string];
 const entry = (n: number) => contest.entries[n - 1]!.id;
 const run = (events: JuryEvent[], from = initialJuryState(undefined, false)) => events.reduce((state, e) => juryReducer(contest, state, e), from);
@@ -21,7 +21,7 @@ const first = run([
   { type: "SCORE_SET", entryId: entry(1), criterionId: c2, score: 4 },
   { type: "SCORE_SET", entryId: entry(1), criterionId: c3, score: 3 },
 ]);
-check("5, 4, 3 with weights 50/30/20 gives 4.3", runningScore(contest, first, entry(1)) === 4.3, String(runningScore(contest, first, entry(1))));
+check("5, 4, 3 with coefficients 5/3/2 gives 4.3", runningScore(contest, first, entry(1)) === 4.3, String(runningScore(contest, first, entry(1))));
 check("changing a score updates the running score (4 instead of 5 -> 3.8)", runningScore(contest, run([{ type: "SCORE_SET", entryId: entry(1), criterionId: c1, score: 4 }], first), entry(1)) === 3.8);
 check("one complete entry is counted", completeCount(contest, first) === 1);
 

@@ -2,9 +2,8 @@
 
 import { useHomePath } from "./SessionProvider";
 import { useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Trash } from "@phosphor-icons/react/ssr";
-import { Check, Cross } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -14,8 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/useToast";
 import { listDirectory } from "@/lib/api/users";
 import { knownCode } from "@/lib/api/client";
-import { weightsTotal } from "@/lib/contestScoring";
-import { weightValue } from "@/lib/contestForm/reducer";
+import { coefficientShare, parseCoefficient } from "@/lib/contestScoring";
 import { useContestForm } from "@/lib/contestForm/useContestForm";
 import { ResourceView, useResource } from "./Resource";
 
@@ -24,6 +22,7 @@ export function ContestForm() {
   const home = useHomePath();
   const te = useTranslations("contest.errors");
   const tc = useTranslations("common");
+  const format = useFormatter();
   const { state, send, save, saving } = useContestForm();
   const directory = useResource(listDirectory);
   const { toast, show } = useToast();
@@ -42,8 +41,7 @@ export function ContestForm() {
     return issue ? te(issue.code) : undefined;
   };
 
-  const total = weightsTotal(state.criteria.map((c) => ({ weight: weightValue(c.weight) || 0 })));
-  const totalOk = total === 100;
+  const coefficients = state.criteria.map((c) => parseCoefficient(c.coefficient));
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -83,8 +81,8 @@ export function ContestForm() {
           </h2>
           <p className="text-body text-ink-muted">{t("criteria.hint")}</p>
           <ul className="flex flex-col gap-4">
-            {state.criteria.map((criterion) => (
-              <li key={criterion.id} className="grid items-end gap-3 sm:grid-cols-[1fr_140px_auto]">
+            {state.criteria.map((criterion, index) => (
+              <li key={criterion.id} className="grid items-start gap-3 sm:grid-cols-[1fr_160px_auto]">
                 <Input
                   label={t("criteria.name")}
                   value={criterion.name}
@@ -93,12 +91,29 @@ export function ContestForm() {
                   error={errorFor(`criterion:${criterion.id}:name`)}
                 />
                 <Input
-                  label={t("criteria.weight")}
-                  inputMode="numeric"
-                  value={criterion.weight}
+                  label={t("criteria.coefficient")}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={criterion.coefficient}
                   onChange={(event) =>
-                    send({ type: "CRITERION_CHANGED", id: criterion.id, field: "weight", value: event.target.value.replace(/\D/g, "").slice(0, 3) })
+                    send({
+                      type: "CRITERION_CHANGED",
+                      id: criterion.id,
+                      field: "coefficient",
+                      value: event.target.value.replace(/[^\d.,]/g, "").slice(0, 5),
+                    })
                   }
+                  helper={
+                    errorFor(`criterion:${criterion.id}:coefficient`)
+                      ? undefined
+                      : t("criteria.share", {
+                          share: format.number(coefficientShare(coefficients[index], coefficients), {
+                            style: "percent",
+                            maximumFractionDigits: 0,
+                          }),
+                        })
+                  }
+                  error={errorFor(`criterion:${criterion.id}:coefficient`)}
                 />
                 <IconButton label={t("criteria.remove")} onClick={() => send({ type: "CRITERION_REMOVED", id: criterion.id })}>
                   <Icon icon={Trash} weight="bold" />
@@ -106,13 +121,6 @@ export function ContestForm() {
               </li>
             ))}
           </ul>
-          <p
-            aria-live="polite"
-            className={`flex items-center gap-2 text-body font-bold ${totalOk ? "text-success-text" : "text-danger-text"}`}
-          >
-            {totalOk ? <Check width={20} height={20} /> : <Cross width={20} height={20} />}
-            {t("criteria.total", { total })} {totalOk ? t("criteria.totalOk") : t("criteria.totalBad")}
-          </p>
           {errorFor("criteria") ? <p className="text-caption font-bold text-danger-text">{errorFor("criteria")}</p> : null}
           <div>
             <Button variant="neutral" onClick={() => send({ type: "CRITERION_ADDED" })}>

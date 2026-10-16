@@ -5,8 +5,8 @@ import type {
   Score,
 } from "@/types/contest";
 
-// The model is written in docs/contest-scoring.md. Weights add up to 100, scores go from 1 to 5,
-// the final score is the jury average, and equal scores share the rank.
+// The model is written in docs/contest-scoring.md. Each criterion has a coefficient (0.01 to 10),
+// scores go from 1 to 5, the final score is the jury average, and equal scores share the rank.
 
 export const MIN_SCORE = 1;
 export const MAX_SCORE = 5;
@@ -17,8 +17,31 @@ export function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
-export function weightsTotal(criteria: readonly Pick<Criterion, "weight">[]): number {
-  return criteria.reduce((sum, criterion) => sum + criterion.weight, 0);
+export const MIN_COEFFICIENT = 0.01;
+export const MAX_COEFFICIENT = 10;
+
+/** What the coefficient field holds, as a number. The comma counts as the decimal separator. NaN when empty. */
+export function parseCoefficient(text: string): number {
+  const clean = text.trim().replace(",", ".");
+  return clean === "" ? Number.NaN : Number(clean);
+}
+
+/** A number from 0.01 to 10 with at most 2 decimals. */
+export function isValidCoefficient(value: number): boolean {
+  const hundredths = Math.round(value * 100);
+  return (
+    Number.isFinite(value) &&
+    Math.abs(value * 100 - hundredths) < 1e-9 &&
+    hundredths >= MIN_COEFFICIENT * 100 &&
+    hundredths <= MAX_COEFFICIENT * 100
+  );
+}
+
+/** One criterion's share of the contest, 0 to 1. Zero while it or the others have no usable number. */
+export function coefficientShare(coefficient: number, all: readonly number[]): number {
+  const usable = all.filter(isValidCoefficient);
+  const total = usable.reduce((sum, value) => sum + value, 0);
+  return isValidCoefficient(coefficient) && total > 0 ? coefficient / total : 0;
 }
 
 /** One jury member's score for one entry. Null until every criterion has a score. */
@@ -28,12 +51,14 @@ export function jurorEntryScore(
 ): number | null {
   if (criteria.length === 0 || !scores) return null;
   let total = 0;
+  let weights = 0;
   for (const criterion of criteria) {
     const score = scores[criterion.id];
     if (score === undefined) return null;
-    total += (score * criterion.weight) / 100;
+    total += score * criterion.coefficient;
+    weights += criterion.coefficient;
   }
-  return total;
+  return weights > 0 ? total / weights : null;
 }
 
 type ContestDraft = Pick<Contest, "title" | "criteria" | "entries" | "jury">;
@@ -48,10 +73,10 @@ export function validateContest(draft: ContestDraft): ContestIssue[] {
   } else {
     for (const criterion of draft.criteria) {
       if (criterion.name.trim() === "") issues.push({ code: "FIELD_REQUIRED", field: `criterion:${criterion.id}:name` });
+      if (!isValidCoefficient(criterion.coefficient)) {
+        issues.push({ code: "COEFFICIENT_INVALID", field: `criterion:${criterion.id}:coefficient` });
+      }
     }
-    const total = weightsTotal(draft.criteria);
-    const eachValid = draft.criteria.every((c) => Number.isInteger(c.weight) && c.weight >= 1 && c.weight <= 100);
-    if (total !== 100 || !eachValid) issues.push({ code: "WEIGHTS_NOT_100", field: "criteria" });
   }
 
   if (draft.entries.length === 0) {

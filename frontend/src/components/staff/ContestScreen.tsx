@@ -4,7 +4,7 @@ import { useHomePath } from "./SessionProvider";
 import { useState } from "react";
 import { closeContest, openContest } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -23,6 +23,7 @@ type Pending = "open" | "close" | null;
 /** One contest: its state, what the viewer can do with it, its jury, entries and criteria. */
 export function ContestScreen({ contest: initial }: { contest: Contest }) {
   const t = useTranslations("contest.page");
+  const format = useFormatter();
   const home = useHomePath();
   const tc = useTranslations("contest");
   const tcommon = useTranslations("common");
@@ -158,14 +159,14 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
           <thead>
             <tr>
               <Th>{t("criterion")}</Th>
-              <Th className="text-right">{t("weight")}</Th>
+              <Th className="text-right">{t("coefficient")}</Th>
             </tr>
           </thead>
           <tbody>
             {contest.criteria.map((criterion) => (
               <tr key={criterion.id}>
                 <Td className="font-bold">{criterion.name}</Td>
-                <Td className="text-right tabular-nums">{t("weightValue", { weight: criterion.weight })}</Td>
+                <Td className="text-right tabular-nums">{t("coefficientValue", { coefficient: format.number(criterion.coefficient) })}</Td>
               </tr>
             ))}
           </tbody>

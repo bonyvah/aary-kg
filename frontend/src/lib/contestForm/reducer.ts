@@ -1,7 +1,7 @@
-import { validateContest } from "@/lib/contestScoring";
+import { parseCoefficient, validateContest } from "@/lib/contestScoring";
 import type { ContestIssue } from "@/types/contest";
 
-export type FormCriterion = { id: string; name: string; /** What the field holds: parsed on save. */ weight: string };
+export type FormCriterion = { id: string; name: string; /** What the field holds: parsed on save. */ coefficient: string };
 export type FormEntry = { id: string; name: string; description: string };
 
 export type ContestFormState = {
@@ -24,7 +24,7 @@ export type ContestFormEvent =
   | { type: "DESCRIPTION_CHANGED"; value: string }
   | { type: "CRITERION_ADDED" }
   | { type: "CRITERION_REMOVED"; id: string }
-  | { type: "CRITERION_CHANGED"; id: string; field: "name" | "weight"; value: string }
+  | { type: "CRITERION_CHANGED"; id: string; field: "name" | "coefficient"; value: string }
   | { type: "ENTRY_ADDED" }
   | { type: "ENTRY_REMOVED"; id: string }
   | { type: "ENTRY_CHANGED"; id: string; field: "name" | "description"; value: string }
@@ -39,7 +39,7 @@ export type ContestFormEvent =
 export const initialContestForm: ContestFormState = {
   title: "",
   description: "",
-  criteria: [{ id: "criterion-1", name: "", weight: "100" }],
+  criteria: [{ id: "criterion-1", name: "", coefficient: "1" }],
   entries: [{ id: "entry-1", name: "", description: "" }],
   juryIds: [],
   nextNumber: 2,
@@ -48,15 +48,11 @@ export const initialContestForm: ContestFormState = {
   failedCode: null,
 };
 
-export function weightValue(weight: string): number {
-  return weight.trim() === "" ? Number.NaN : Number(weight);
-}
-
 /** Runs the same check the server will: the form fields become a contest draft. */
 export function checkForm(state: ContestFormState): ContestIssue[] {
   return validateContest({
     title: state.title,
-    criteria: state.criteria.map((c) => ({ id: c.id, name: c.name, weight: weightValue(c.weight) })),
+    criteria: state.criteria.map((c) => ({ id: c.id, name: c.name, coefficient: parseCoefficient(c.coefficient) })),
     entries: state.entries.map((e) => ({ id: e.id, name: e.name, description: e.description })),
     jury: state.juryIds.map((userId) => ({ userId, name: "", finished: false })),
   });
@@ -74,7 +70,7 @@ export function contestFormReducer(state: ContestFormState, event: ContestFormEv
     case "CRITERION_ADDED":
       return {
         ...state,
-        criteria: [...state.criteria, { id: `criterion-${state.nextNumber}`, name: "", weight: "" }],
+        criteria: [...state.criteria, { id: `criterion-${state.nextNumber}`, name: "", coefficient: "1" }],
         nextNumber: state.nextNumber + 1,
         issues: withoutIssue(state.issues, "criteria"),
       };
@@ -82,13 +78,13 @@ export function contestFormReducer(state: ContestFormState, event: ContestFormEv
       return {
         ...state,
         criteria: state.criteria.filter((c) => c.id !== event.id),
-        issues: withoutIssue(state.issues, "criteria", `criterion:${event.id}:name`),
+        issues: withoutIssue(state.issues, "criteria", `criterion:${event.id}:name`, `criterion:${event.id}:coefficient`),
       };
     case "CRITERION_CHANGED":
       return {
         ...state,
         criteria: state.criteria.map((c) => (c.id === event.id ? { ...c, [event.field]: event.value } : c)),
-        issues: withoutIssue(state.issues, event.field === "name" ? `criterion:${event.id}:name` : "criteria"),
+        issues: withoutIssue(state.issues, `criterion:${event.id}:${event.field}`),
       };
     case "ENTRY_ADDED":
       return {

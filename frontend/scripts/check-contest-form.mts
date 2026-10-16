@@ -20,19 +20,18 @@ const filled: ContestFormEvent[] = [
   { type: "ENTRY_CHANGED", id: "entry-1", field: "name", value: "Бир" },
   { type: "JURY_TOGGLED", userId: "u-ulan" },
 ];
-check("a filled form with one criterion of 100 passes the check", run([...filled, { type: "VALIDATED" }]).saveResult === null);
+check("a filled form with one criterion of 1 passes the check", run([...filled, { type: "VALIDATED" }]).saveResult === null);
 
 const two: ContestFormEvent[] = [
   ...filled,
   { type: "CRITERION_ADDED" },
   { type: "CRITERION_CHANGED", id: "criterion-2", field: "name", value: "Аткаруу" },
-  { type: "CRITERION_CHANGED", id: "criterion-2", field: "weight", value: "30" },
 ];
-check("weights 100 + 30 fail with WEIGHTS_NOT_100", fields([...two, { type: "VALIDATED" }]) === "WEIGHTS_NOT_100@criteria", fields([...two, { type: "VALIDATED" }]));
-const fixed: ContestFormEvent[] = [...two, { type: "CRITERION_CHANGED", id: "criterion-1", field: "weight", value: "70" }];
-check("70 + 30 passes the check", run([...fixed, { type: "VALIDATED" }]).saveResult === null);
-check("a decimal weight fails", fields([...two, { type: "CRITERION_CHANGED", id: "criterion-1", field: "weight", value: "70.5" }, { type: "VALIDATED" }]) === "WEIGHTS_NOT_100@criteria");
-check("an empty weight fails", fields([...two, { type: "CRITERION_CHANGED", id: "criterion-2", field: "weight", value: "" }, { type: "VALIDATED" }]) === "WEIGHTS_NOT_100@criteria");
+const setSecond = (value: string): ContestFormEvent[] => [...two, { type: "CRITERION_CHANGED", id: "criterion-2", field: "coefficient", value }, { type: "VALIDATED" }];
+check("a new criterion starts at 1, so two criteria pass the check", run(setSecond("1")).saveResult === null && run(two).criteria[1]?.coefficient === "1");
+check("1,25 (comma) and 10 pass the check", run(setSecond("1,25")).saveResult === null && run(setSecond("10")).saveResult === null);
+check("0, 10.5, three decimals and empty fail on that criterion", ["0", "10.5", "1.005", ""].every((v) => fields(setSecond(v)) === "COEFFICIENT_INVALID@criterion:criterion-2:coefficient"));
+check("fixing the coefficient clears its error", !contestFormReducer(run(setSecond("0")), { type: "CRITERION_CHANGED", id: "criterion-2", field: "coefficient", value: "1" }).issues.some((i) => i.code === "COEFFICIENT_INVALID"));
 
 const failedOnce = run([{ type: "VALIDATED" }]);
 const afterTitle = contestFormReducer(failedOnce, { type: "TITLE_CHANGED", value: "X" });

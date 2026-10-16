@@ -6,8 +6,8 @@ export type Score = 1 | 2 | 3 | 4 | 5;
 export type Criterion = {
   id: string;
   name: string;
-  /** Percent, a whole number from 1 to 100. The weights of a contest add up to 100. */
-  weight: number;
+  /** How much the criterion counts: 0.01 to 10 with at most 2 decimals, 1 by default. Only the ratios matter. */
+  coefficient: number;
 };
 
 /** Something being judged. Name and description only: no photos or uploads, ever. */
@@ -43,7 +43,7 @@ export type Contest = {
 /** Stable codes of a failed save. The frontend turns them into translated text. */
 export type ContestErrorCode =
   | "FIELD_REQUIRED"
-  | "WEIGHTS_NOT_100"
+  | "COEFFICIENT_INVALID"
   | "CRITERIA_REQUIRED"
   | "ENTRIES_REQUIRED"
   | "JURY_REQUIRED";

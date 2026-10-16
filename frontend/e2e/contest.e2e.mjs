@@ -35,22 +35,21 @@ export default async function run(browser, t) {
   await admin.waitForTimeout(500);
   t.ok("the saved quiz opens again for editing", (await admin.getByLabel("Название викторины").inputValue()) === `География ${tag}`);
 
-  // --- contest form: weights must add up to 100 ---
+  // --- contest form: coefficients (comma accepted), no jury refused ---
   await admin.goto(`${BASE}/contests/new`);
   const title = `Конкурс чтецов ${tag}`;
   await admin.getByLabel("Название конкурса").fill(title);
   await admin.getByLabel("Название критерия").first().fill("Выразительность");
-  await admin.getByLabel("Вес, %").first().fill("60");
+  await admin.getByLabel("Коэффициент").first().fill("2");
   await admin.getByRole("button", { name: "Добавить критерий" }).click();
   await admin.getByLabel("Название критерия").nth(1).fill("Дикция");
-  await admin.getByLabel("Вес, %").nth(1).fill("30");
+  await admin.getByLabel("Коэффициент").nth(1).fill("1,5");
   await admin.getByLabel("Имя", { exact: true }).first().fill("Айдана");
   await admin.getByRole("button", { name: "Добавить участника" }).click();
   await admin.getByLabel("Имя", { exact: true }).nth(1).fill("Бекболот");
   await admin.getByRole("button", { name: "Сохранить" }).click();
   await waitText(admin, "Конкурс не сохранён");
-  t.ok("weights of 90 and no jury are refused", true);
-  await admin.getByLabel("Вес, %").nth(1).fill("40");
+  t.ok("a contest with no jury is refused", true);
   await admin.getByText(omur.name).click();
   await admin.getByText(gulzat.name).click();
   await admin.getByRole("button", { name: "Сохранить" }).click();

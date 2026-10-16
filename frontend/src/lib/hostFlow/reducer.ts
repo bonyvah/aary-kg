@@ -96,7 +96,10 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         answered: 0,
         counts: null,
         correct: null,
+        cheaters: [],
       };
+    case "cheaters":
+      return { ...state, cheaters: event.cheaters };
     case "answer.count":
       return state.phase === "question" ? { ...state, answered: event.answered } : state;
     case "question.closed":

@@ -30,6 +30,10 @@ check("answer counts arrive while the question is open", run([server({ type: "an
 check("a late answer count after the question closed is ignored", run([server({ type: "question.closed", counts: [1, 0, 1, 0], correct: 1 }), server({ type: "answer.count", answered: 9, total: 9 })], playing).answered === 0);
 check("the clock only draws: ticks stop at zero and don't close the question", run(Array(25).fill({ type: "TICK" }), playing).secondsLeft === 0 && run(Array(25).fill({ type: "TICK" }), playing).phase === "question");
 
+const suspect = { playerId: "a", nickname: "a", flags: [{ kind: "TAB_BLUR", count: 1 }] };
+const flagged = run([server({ type: "question.closed", counts: [1, 0, 1, 0], correct: 1 }), server({ type: "cheaters", cheaters: [suspect] })], playing);
+check("the suspects after a question are kept until the host rules", flagged.cheaters.length === 1 && run([server({ type: "cheaters", cheaters: [] })], flagged).cheaters.length === 0);
+check("a new question starts without suspects", run([server({ type: "question.started", question })], flagged).cheaters.length === 0);
 const counted = run([server({ type: "question.closed", counts: [1, 0, 1, 0], correct: 1 })], playing);
 check("closing shows counts per answer and the right one", counted.phase === "counts" && counted.counts?.join() === "1,0,1,0" && counted.correct === 1);
 check("short counts are padded to four", run([server({ type: "question.closed", counts: [3], correct: 2 })], playing).counts?.join() === "3,0,0,0");

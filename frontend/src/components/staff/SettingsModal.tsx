@@ -39,8 +39,8 @@ export function SettingsModal({ open, onClose, onChangeLogin, onChangePassword }
       }
     >
       <div className="flex flex-col gap-2">
-        <p className="text-body font-bold [overflow-wrap:anywhere]">{name}</p>
-        <p className="text-body text-ink-muted [overflow-wrap:anywhere]">{ta("loginIs", { login })}</p>
+        <p className="text-body font-bold wrap-anywhere">{name}</p>
+        <p className="text-body text-ink-muted wrap-anywhere">{ta("loginIs", { login })}</p>
         {onChangeLogin && onChangePassword ? (
           <div className="mb-2 flex flex-wrap gap-3">
             <Button variant="secondary" onClick={onChangeLogin}>

@@ -31,7 +31,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
     <StaffShell topRight={<StaffMenu />}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{report.quizTitle}</h1>
+          <h1 className="text-h1 font-black wrap-anywhere">{report.quizTitle}</h1>
           <p className="text-body text-ink-muted">
             {format.dateTime(new Date(report.finishedAt), { dateStyle: "long", timeStyle: "short" })}
           </p>
@@ -73,7 +73,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
                 <Td>
                   <span className="flex items-center gap-3">
                     <Avatar character={player.character} />
-                    <span className="min-w-0 break-words">{player.nickname}</span>
+                    <span className="min-w-0 wrap-break-word">{player.nickname}</span>
                   </span>
                 </Td>
                 <Td className="text-right font-bold tabular-nums">{format.number(player.score)}</Td>
@@ -107,7 +107,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
             return (
               <li key={question.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md bg-surface-raised px-4 py-3">
                 <span className="min-w-6 text-h3 font-black tabular-nums">{index + 1}</span>
-                <span className="min-w-[200px] flex-1 [overflow-wrap:anywhere]">{question.text}</span>
+                <span className="min-w-[200px] flex-1 wrap-anywhere">{question.text}</span>
                 <span className="flex w-full items-center gap-3 sm:w-[260px]">
                   <span className="h-4 flex-1 overflow-hidden rounded-full bg-surface">
                     <span style={barVars} className="block h-full w-(--pct) rounded-full bg-success" />

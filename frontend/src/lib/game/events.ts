@@ -63,6 +63,7 @@ export type HostEvent =
   | { type: "answer.count"; answered: number; total: number }
   | { type: "question.closed"; counts: number[]; correct: AnswerPosition }
   | { type: "leaderboard"; standings: ServerStanding[] }
+  | { type: "cheaters"; cheaters: Cheater[] }
   | { type: "game.ended"; gameId: string; standings: ServerStanding[]; cheaters: Cheater[] }
   | { type: "replaced" }
   | { type: "error"; code: string };

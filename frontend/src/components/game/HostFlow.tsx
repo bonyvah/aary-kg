@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/useToast";
 import { knownCode } from "@/lib/api/client";
 import { useHostFlow } from "@/lib/hostFlow/useHostFlow";
 import type { Quiz } from "@/types/quiz";
+import { CheatersPanel } from "./CheatersPanel";
 import { HostCountsScreen } from "./HostCountsScreen";
 import { HostLeaderboardScreen } from "./HostLeaderboardScreen";
 import { HostLobbyScreen } from "./HostLobbyScreen";
@@ -23,6 +24,7 @@ import { HostTopBar } from "./HostTopBar";
 export function HostFlow({ quiz }: { quiz: Quiz }) {
   const t = useTranslations("host.live");
   const tc = useTranslations("common");
+  const tcheat = useTranslations("host.cheaters");
   const flow = useHostFlow(quiz);
   const { state, refused, clearRefused } = flow;
   const [soundOn, setSoundOn] = useState(true);
@@ -104,11 +106,13 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
       case "leaderboard":
         return <HostLeaderboardScreen round={state.round} totalQuestions={state.totalQuestions} standings={state.standings} />;
       case "podium":
-        return <HostPodiumScreen gameId={state.gameId} standings={state.standings} cheaters={state.cheaters} onRule={flow.rule} />;
+        return <HostPodiumScreen gameId={state.gameId} standings={state.standings} />;
     }
   }
 
   const showContinue = state.phase === "question" || state.phase === "counts" || state.phase === "leaderboard";
+  // After a question the game waits for the host to decide about everyone who left their screen.
+  const waitingForRulings = state.phase !== "question" && state.cheaters.length > 0;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -121,9 +125,11 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
       />
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 p-6">
         {screen()}
+        <CheatersPanel cheaters={state.cheaters} onRule={flow.rule} />
         {showContinue ? (
-          <div className="flex justify-center pb-4">
-            <Button variant="accent" size="lg" onClick={flow.advance}>
+          <div className="flex flex-col items-center gap-3 pb-4">
+            {waitingForRulings ? <p className="text-body-lg text-ink-muted">{tcheat("resolveFirst")}</p> : null}
+            <Button variant="accent" size="lg" disabled={waitingForRulings} onClick={flow.advance}>
               {t("continue")}
             </Button>
           </div>

@@ -10,6 +10,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
+import { writeHostGame } from "@/lib/hostFlow/hostGame";
 import type { Quiz } from "@/types/quiz";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -40,7 +41,7 @@ export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
           <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
             {t("edit")}
           </ButtonLink>
-          <ButtonLink href={`/host/${quiz.id}`} variant="accent">
+          <ButtonLink href={`/host/${quiz.id}`} variant="accent" onClick={() => writeHostGame(quiz.id, null)}>
             {t("start")}
           </ButtonLink>
         </div>

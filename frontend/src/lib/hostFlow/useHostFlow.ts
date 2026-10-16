@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { createGame } from "@/lib/api/games";
+import { createGame, getHostTicket } from "@/lib/api/games";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
 import type { HostEvent, HostMessage, Ruling } from "@/lib/game/events";
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
@@ -39,6 +39,7 @@ export function useHostFlow(quiz: Quiz) {
       let heard = false;
       socket.current = openGameSocket<HostEvent>({
         path: `/ws/host/${gameId}`,
+        token: () => getHostTicket(gameId),
         onEvent: (event) => {
           if (cancelled) return;
           heard = true;

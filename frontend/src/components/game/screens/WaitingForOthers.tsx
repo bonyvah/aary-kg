@@ -40,7 +40,7 @@ export function WaitingForOthers({ secondsLeft, total }: WaitingForOthersProps) 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
       <Spinner label={t("waiting")} size={64} />
-      <p className="text-h3 font-bold [overflow-wrap:anywhere]">{t(`quotes.${quote}`)}</p>
+      <p className="text-h3 font-bold wrap-anywhere">{t(`quotes.${quote}`)}</p>
     </div>
   );
 }

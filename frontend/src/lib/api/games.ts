@@ -14,6 +14,10 @@ export const joinGame = (pin: string, nickname: string) =>
 export const createGame = (quizId: string) =>
   apiFetch<{ gameId: string; pin: string }>("/games", { method: "POST", body: { quizId } });
 
+/** One minute, one game: the first message on the host socket. */
+export const getHostTicket = (gameId: string) =>
+  apiFetch<{ ticket: string }>(`/games/${gameId}/host-ticket`, { method: "POST" }).then((r) => r.ticket);
+
 export type GameSummary = {
   id: string;
   quizTitle: string;

@@ -19,7 +19,8 @@
       "title": "Заходи в игру!",
       "pinLabel": "PIN-код игры",
       "pinPlaceholder": "123 456",
-      "submit": "Войти"
+      "submit": "Войти",
+      "staffLogin": "Вход для сотрудников"
     },
     "nickname": {
       "title": "Введи имя",

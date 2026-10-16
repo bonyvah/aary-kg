@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
@@ -43,6 +44,12 @@ export function JoinScreen({ error, initialPin = "", onSubmit }: JoinScreenProps
         <Button type="submit" size="lg" block>
           {t("join.submit")}
         </Button>
+        <Link
+          href="/login"
+          className="inline-flex min-h-11 items-center justify-center text-center font-bold underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {t("join.staffLogin")}
+        </Link>
       </form>
     </PlayerScreen>
   );

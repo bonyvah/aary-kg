@@ -31,7 +31,8 @@
       "title": "Оюнга кошул!",
       "pinLabel": "Оюн PIN коду",
       "pinPlaceholder": "123 456",
-      "submit": "Кирүү"
+      "submit": "Кирүү",
+      "staffLogin": "Кызматкерлер үчүн кирүү"
     },
     "nickname": {
       "title": "Атыңды жаз",

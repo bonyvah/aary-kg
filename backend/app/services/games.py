@@ -119,6 +119,8 @@ async def report(session: AsyncSession, user: User, game_id: uuid.UUID) -> GameR
         {
             "id": q["id"],
             "text": q["text"],
+            "answers": q["answers"],
+            "correct": q["correct"],
             "correctShare": (
                 sum(1 for r in rows for a in r.answers if a["question"] == q["id"] and a["correct"]) / total
                 if total
@@ -145,6 +147,10 @@ async def report(session: AsyncSession, user: User, game_id: uuid.UUID) -> GameR
                     "score": r.score,
                     "correct": r.correct,
                     "flags": r.flags,
+                    "answers": [
+                        {k: a[k] for k in ("question", "position", "ms", "points", "correct")}
+                        for a in r.answers
+                    ],
                 }
                 for r in rows
             ],

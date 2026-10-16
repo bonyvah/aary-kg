@@ -85,6 +85,17 @@ async def test_only_admins_edit_and_the_host_may_only_read(finished, client):
     assert (await f.fetch())["players"][0]["score"] == report["players"][0]["score"]  # nothing changed
 
 
+async def test_the_report_has_the_chosen_answers_and_the_questions_answers(finished):
+    report = (await finished.host.get(f"/games/{finished.gid}/report")).json()
+    detail = await finished.fetch()
+    assert [(q["id"], q["answers"], q["correct"]) for q in report["questions"]] == [
+        (q["id"], q["answers"], q["correct"]) for q in detail["questions"]
+    ]
+    by_name = {p["nickname"]: p["answers"] for p in detail["players"]}
+    for p in report["players"]:
+        assert p["answers"] == by_name[p["nickname"]]
+
+
 async def test_the_detail_shows_every_answer_and_the_questions(finished):
     d = await finished.fetch()
     assert [q["id"] for q in d["questions"]] == ["q1", "q2"] and d["questions"][0]["correct"] == 1

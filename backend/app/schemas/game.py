@@ -37,6 +37,14 @@ class Flag(CamelModel):
     count: int
 
 
+class ReportAnswer(CamelModel):
+    question: str  # id of the question
+    position: int  # 1 to 4: the answer the player chose
+    ms: int
+    points: int
+    correct: bool
+
+
 class ReportPlayer(CamelModel):
     id: str
     nickname: str
@@ -45,11 +53,14 @@ class ReportPlayer(CamelModel):
     score: int
     correct: int
     flags: list[Flag]
+    answers: list[ReportAnswer]  # only the questions the player answered
 
 
 class ReportQuestion(CamelModel):
     id: str
     text: str
+    answers: list[str]
+    correct: int  # 1 to 4: the position of the right answer
     correct_share: float = Field(ge=0, le=1)  # how many of the players got it right
 
 

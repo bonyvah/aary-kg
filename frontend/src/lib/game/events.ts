@@ -70,7 +70,7 @@ export type HostEvent =
 /** What a client may send. `v` is added by the socket. */
 export type PlayerMessage =
   | { type: "answer"; position: AnswerPosition }
-  | { type: "signal"; kind: "TAB_BLUR" | "PASTE" }
+  | { type: "signal"; kind: "TAB_BLUR" | "WINDOW_BLUR" | "FULLSCREEN_EXIT" | "PASTE" }
   | { type: "character.set"; character: Character };
 
 export type HostMessage =

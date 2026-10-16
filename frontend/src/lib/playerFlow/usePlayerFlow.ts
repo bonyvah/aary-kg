@@ -9,6 +9,7 @@ import type { PlayerEvent, PlayerMessage } from "@/lib/game/events";
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
 import { flowReducer, initialState } from "./reducer";
 import { toPlayerError } from "./errors";
+import { useScreenGuard } from "./useScreenGuard";
 
 const PIN_LENGTH = 6;
 // The token lives in this tab only. A refresh or a dropped phone resumes the game with it.
@@ -91,15 +92,10 @@ export function usePlayerFlow() {
     return () => clearInterval(timer);
   }, [phase]);
 
-  // Leaving the tab during a game is a signal for the host's report. Only a hint, never proof.
-  useEffect(() => {
-    if (phase === "join" || phase === "nickname" || phase === "lobby" || phase === "character") return;
-    const onVisibility = () => {
-      if (document.hidden) send({ type: "signal", kind: "TAB_BLUR" });
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [phase, send]);
+  // The player's screen is watched while the game runs, and full screen is expected from the lobby on.
+  const joined = phase !== "join" && phase !== "nickname";
+  const running = joined && phase !== "lobby" && phase !== "character" && phase !== "podium";
+  const guard = useScreenGuard(joined && phase !== "podium", running, send);
 
   const submitPin = useCallback(async (pin: string) => {
     const clean = pin.replace(/\s/g, "");
@@ -159,5 +155,5 @@ export function usePlayerFlow() {
     dispatch({ type: "RESET" });
   }, []);
 
-  return { state, resuming, submitPin, submitNickname, answer, openCharacter, changeCharacter, closeCharacter, reset };
+  return { state, resuming, guard, submitPin, submitNickname, answer, openCharacter, changeCharacter, closeCharacter, reset };
 }

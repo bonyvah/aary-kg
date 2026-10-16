@@ -3,6 +3,11 @@
     "name": "aary kg"
   },
   "player": {
+    "fullscreen": {
+      "title": "Вернись в полный экран",
+      "body": "Игра идёт только в полноэкранном режиме. Выход из него и переход в другую вкладку или окно видит ведущий.",
+      "enter": "Во весь экран"
+    },
     "settings": {
       "title": "Настройки",
       "close": "Закрыть",
@@ -181,6 +186,8 @@
       "noSignals": "Сигналов нет",
       "flags": {
         "TAB_BLUR": "Переключил вкладку: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+        "WINDOW_BLUR": "Переключился на другое окно: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
+        "FULLSCREEN_EXIT": "Вышел из полного экрана: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
         "PASTE": "Вставил текст: {count, plural, one {# раз} few {# раза} many {# раз} other {# раза}}",
         "FAST_ANSWERS": "Слишком быстрые ответы: {count}",
         "SAME_TIMING": "Одинаковое время с другими: {count}",
@@ -636,6 +643,8 @@
       },
       "flagNames": {
         "TAB_BLUR": "Переключил вкладку",
+        "WINDOW_BLUR": "Переключился на другое окно",
+        "FULLSCREEN_EXIT": "Вышел из полного экрана",
         "PASTE": "Вставил текст",
         "FAST_ANSWERS": "Слишком быстрые ответы",
         "SAME_TIMING": "Одинаковое время с другими",

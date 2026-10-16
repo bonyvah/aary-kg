@@ -15,6 +15,11 @@
     "name": "aary kg"
   },
   "player": {
+    "fullscreen": {
+      "title": "Толук экранга кайт",
+      "body": "Оюн толук экранда гана жүрөт. Андан чыгууну, башка өтмөккө же терезеге өтүүнү алып баруучу көрөт.",
+      "enter": "Толук экран"
+    },
     "settings": {
       "title": "Жөндөөлөр",
       "close": "Жабуу",
@@ -193,6 +198,8 @@
       "noSignals": "Сигнал жок",
       "flags": {
         "TAB_BLUR": "Өтмөктү алмаштырды: {count, plural, one {# жолу} other {# жолу}}",
+        "WINDOW_BLUR": "Башка терезеге өттү: {count, plural, one {# жолу} other {# жолу}}",
+        "FULLSCREEN_EXIT": "Толук экрандан чыкты: {count, plural, one {# жолу} other {# жолу}}",
         "PASTE": "Текст койду: {count, plural, one {# жолу} other {# жолу}}",
         "FAST_ANSWERS": "Өтө тез жооптор: {count}",
         "SAME_TIMING": "Башкалар менен бирдей убакыт: {count}",
@@ -648,6 +655,8 @@
       },
       "flagNames": {
         "TAB_BLUR": "Өтмөктү алмаштырды",
+        "WINDOW_BLUR": "Башка терезеге өттү",
+        "FULLSCREEN_EXIT": "Толук экрандан чыкты",
         "PASTE": "Текст чаптады",
         "FAST_ANSWERS": "Өтө тез жооптор",
         "SAME_TIMING": "Башкалар менен бирдей убакыт",

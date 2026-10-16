@@ -124,9 +124,10 @@ The server is the source of truth. The client is never trusted.
 - Server validates every answer: right game, right question, still open, not already answered.
 - Rate limit connections and messages per IP and per player.
 - Nickname rules: unique per game, profanity and impersonation filter, host can kick.
-- Client signals (tab blur / visibility change, focus loss, paste, devtools heuristics) are only SIGNALS. Log them with timestamps and show them to the host as flags. Never treat them as proof or auto-ban on them alone.
-- Suspicious-pattern flags for the host: implausibly fast answers, perfect accuracy with unusually low variance in response time, identical answer timing across several players.
-- Randomize question order and answer order per player when the host enables it.
+- The player's screen is watched, not their speed: full screen is expected from the lobby on (a cover asks the player to return), and leaving the tab, another window taking focus and leaving full screen are reported as signals. Log them with timestamps and show them to the host. Browsers cannot prove them (and iPhone Safari has no full screen, so only tab and window changes are watched there), so they are signals, never proof, and nothing happens automatically.
+- Players who left their screen are listed as suspects on the host's podium with the reasons. The host decides, with a confirmation: remove from the game, zero the points, don't count the last question, or show mercy. Pasting text is listed but is not a reason on its own.
+- Answer speed and timing are NOT flagged: a fast or very even answerer is not a cheater.
+- Questions are always played in the quiz order, the same for everybody. No shuffling of questions or answers. A game in progress can still be joined; only a finished one cannot.
 - Store an audit trail of events per game for post-game review.
 
 ## Code conventions

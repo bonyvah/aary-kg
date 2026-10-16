@@ -8,9 +8,9 @@ from app.services.contest_scoring import (
 )
 
 CRITERIA = [
-    {"id": "c1", "name": "Voice", "weight": 40},
-    {"id": "c2", "name": "Stage", "weight": 30},
-    {"id": "c3", "name": "Piece", "weight": 30},
+    {"id": "c1", "name": "Voice", "coefficient": 4},
+    {"id": "c2", "name": "Stage", "coefficient": 3},
+    {"id": "c3", "name": "Piece", "coefficient": 3},
 ]
 ENTRIES = [{"id": f"e{i}", "name": f"Entry {i}", "description": ""} for i in range(1, 6)]
 RAW = {  # per jury member, per entry, the scores of the three criteria
@@ -69,7 +69,7 @@ def test_rounding_is_half_up_and_exact():
 
 def test_equal_averages_share_the_place():
     # Scores are compared at 2 decimals. Here both entries average 3.67, so they share the place.
-    criteria = [{"id": "c", "name": "C", "weight": 100}]
+    criteria = [{"id": "c", "name": "C", "coefficient": 1}]
     entries = [
         {"id": "a", "name": "A", "description": ""},
         {"id": "b", "name": "B", "description": ""},
@@ -89,3 +89,18 @@ def test_breakdown_rows_in_jury_order_with_totals():
     assert [r["name"] for r in rows] == ["Aizhan", "Omur", "Gulzat"]
     assert rows[0]["total"] == 4.7 and rows[0]["scores"]["c1"] == 5 and rows[2]["total"] == 4.6
     assert entry_breakdown(CRITERIA, "e1", [], SHEETS) == []
+
+
+def test_coefficients_only_matter_as_a_ratio():
+    sheet = {"c1": 5, "c2": 4, "c3": 5}
+    scaled = [{**c, "coefficient": c["coefficient"] / 10} for c in CRITERIA]  # 0.4 / 0.3 / 0.3
+    assert juror_entry_score(scaled, sheet) == juror_entry_score(CRITERIA, sheet)
+    equal = [{"id": i, "name": i, "coefficient": 1} for i in ("c1", "c2", "c3")]
+    assert hundredths(juror_entry_score(equal, sheet)) == 467  # (5 + 4 + 5) / 3
+
+
+def test_coefficient_range_and_decimals():
+    from app.services.contest_scoring import valid_coefficient
+
+    assert all(valid_coefficient(v) for v in (0.01, 0.1, 1, 1.25, 1.125 * 8, 10))
+    assert not any(valid_coefficient(v) for v in (0, -1, 0.001, 1.005, 10.01, "1", None, True, float("inf")))

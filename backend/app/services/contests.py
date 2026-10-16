@@ -1,4 +1,3 @@
-import math
 import uuid
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
@@ -33,10 +32,8 @@ def find_issues(
         for c in criteria:
             if not str(c["name"]).strip():
                 issues.append({"code": "FIELD_REQUIRED", "field": f"criterion:{c['id']}:name"})
-        weights = [float(c["weight"]) for c in criteria]
-        each_valid = all(math.isfinite(w) and w.is_integer() and 1 <= w <= 100 for w in weights)
-        if sum(weights) != 100 or not each_valid:
-            issues.append({"code": "WEIGHTS_NOT_100", "field": "criteria"})
+            if not scoring.valid_coefficient(c["coefficient"]):
+                issues.append({"code": "COEFFICIENT_INVALID", "field": f"criterion:{c['id']}:coefficient"})
 
     if not entries:
         issues.append({"code": "ENTRIES_REQUIRED", "field": "entries"})
@@ -141,7 +138,7 @@ async def create(session: AsyncSession, owner: User, payload: ContestIn) -> Cont
         status="draft",
         # The form's ids were only for reporting issues. Stored ids are the server's.
         criteria=[
-            {"id": uuid.uuid4().hex, "name": c.name.strip(), "weight": int(c.weight)}
+            {"id": uuid.uuid4().hex, "name": c.name.strip(), "coefficient": c.coefficient}
             for c in payload.criteria
         ],
         entries=[

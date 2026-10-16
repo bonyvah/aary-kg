@@ -15,7 +15,7 @@ Score = Literal[1, 2, 3, 4, 5]
 class CriterionIn(CamelModel):
     id: ClientId  # the form's own id: failed fields are reported against it
     name: Name
-    weight: float  # a float so 33.5 is a WEIGHTS_NOT_100 issue, like on the client
+    coefficient: float  # checked by the service (0.01 to 10, 2 decimals): COEFFICIENT_INVALID
 
 
 class EntryIn(CamelModel):
@@ -35,7 +35,7 @@ class ContestIn(CamelModel):
 class CriterionOut(CamelModel):
     id: str
     name: str
-    weight: int
+    coefficient: float
 
 
 class EntryOut(CamelModel):

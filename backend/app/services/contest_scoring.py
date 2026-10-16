@@ -1,10 +1,12 @@
 """Contest scoring, exactly as written in docs/contest-scoring.md. Pure functions, no database.
 
-Weights add up to 100 and scores go 1-5, so a jury member's score for an entry is
-sum(score * weight) / 100. Everything is kept in exact fractions and rounded half up to 2
-decimals only at the end, so there is no floating point drift when two entries are compared.
+Scores go 1-5 and each criterion has a coefficient (0.01 to 10), so a jury member's score for an
+entry is sum(score * coefficient) / sum(coefficient). Everything is kept in exact fractions and
+rounded half up to 2 decimals only at the end, so there is no floating point drift when two entries
+are compared.
 """
 
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from fractions import Fraction
@@ -12,6 +14,24 @@ from typing import Any
 
 # scores[(user_id, entry_id)] = {criterion_id: score}
 Sheets = Mapping[tuple[str, str], Mapping[str, int]]
+
+
+MIN_COEFFICIENT, MAX_COEFFICIENT = 1, 1000  # in hundredths: 0.01 to 10
+
+
+def coefficient_hundredths(value: Any) -> int | None:
+    """The coefficient as a whole number of hundredths, or None when it is not a number with at
+    most 2 decimals between 0.01 and 10."""
+    if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
+        return None
+    hundredths_ = round(value * 100)
+    if abs(value * 100 - hundredths_) > 1e-9 or not MIN_COEFFICIENT <= hundredths_ <= MAX_COEFFICIENT:
+        return None
+    return hundredths_
+
+
+def valid_coefficient(value: Any) -> bool:
+    return coefficient_hundredths(value) is not None
 
 
 def hundredths(value: Fraction) -> int:
@@ -25,13 +45,15 @@ def juror_entry_score(
     """One jury member's score for one entry. None until every criterion has a score."""
     if not criteria or not sheet:
         return None
-    total = Fraction(0)
+    total, weights = 0, 0
     for criterion in criteria:
         score = sheet.get(criterion["id"])
         if score is None:
             return None
-        total += Fraction(score * int(criterion["weight"]), 100)
-    return total
+        k = coefficient_hundredths(criterion["coefficient"]) or 0
+        total += score * k
+        weights += k
+    return Fraction(total, weights) if weights else None
 
 
 def _mean(values: Sequence[Fraction]) -> Fraction | None:

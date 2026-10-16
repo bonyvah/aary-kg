@@ -1,6 +1,6 @@
 CRITERIA = [
-    {"id": "c1", "name": "Voice", "weight": 60},
-    {"id": "c2", "name": "Stage", "weight": 40},
+    {"id": "c1", "name": "Voice", "coefficient": 6},
+    {"id": "c2", "name": "Stage", "coefficient": 4},
 ]
 ENTRIES = [
     {"id": "e1", "name": "Aidana", "description": "Song"},
@@ -47,7 +47,7 @@ async def test_create_returns_draft_with_server_ids_and_jury(as_user):
     assert c["status"] == "draft" and c["ownerId"] == str(o.id) and c["ownerName"] == "Ulan"
     assert [m["name"] for m in c["jury"]] == ["Gulzat", "Omur"]  # the picked order
     assert all(m["finished"] is False for m in c["jury"])
-    assert [x["name"] for x in c["criteria"]] == ["Voice", "Stage"] and c["criteria"][0]["weight"] == 60
+    assert [x["name"] for x in c["criteria"]] == ["Voice", "Stage"] and c["criteria"][0]["coefficient"] == 6
     assert c["criteria"][0]["id"] != "c1" and c["entries"][0]["id"] != "e1"
     assert c["scores"] == {}
 
@@ -58,8 +58,8 @@ async def test_invalid_contest_lists_every_issue_with_client_ids(as_user):
         "title": " ",
         "description": "",
         "criteria": [
-            {"id": "k1", "name": "", "weight": 50},
-            {"id": "k2", "name": "B", "weight": 40},
+            {"id": "k1", "name": "", "coefficient": 0},
+            {"id": "k2", "name": "B", "coefficient": 4},
         ],
         "entries": [{"id": "n1", "name": " ", "description": ""}],
         "juryIds": [],
@@ -70,21 +70,26 @@ async def test_invalid_contest_lists_every_issue_with_client_ids(as_user):
     assert got == [
         ("FIELD_REQUIRED", "title"),
         ("FIELD_REQUIRED", "criterion:k1:name"),
-        ("WEIGHTS_NOT_100", "criteria"),
+        ("COEFFICIENT_INVALID", "criterion:k1:coefficient"),
         ("FIELD_REQUIRED", "entry:n1:name"),
         ("JURY_REQUIRED", "jury"),
     ]
 
 
-async def test_empty_lists_and_bad_weights(as_user):
+async def test_empty_lists_and_bad_coefficients(as_user):
     owner, _ = await as_user("ulan")
     _, j = await as_user("omur")
     r = await owner.post("/contests", json=payload([j], criteria=[], entries=[]))
     assert [i["code"] for i in r.json()["issues"]] == ["CRITERIA_REQUIRED", "ENTRIES_REQUIRED"]
-    for weights in ([100, 0], [60.5, 39.5], [99, 1.5], [101]):
-        crit = [{"id": f"k{i}", "name": "X", "weight": w} for i, w in enumerate(weights)]
+    for bad in (0, -1, 0.001, 1.005, 10.01, 11):
+        crit = [{"id": "k0", "name": "X", "coefficient": 1}, {"id": "k1", "name": "X", "coefficient": bad}]
         r = await owner.post("/contests", json=payload([j], criteria=crit))
-        assert [i["code"] for i in r.json()["issues"]] == ["WEIGHTS_NOT_100"], weights
+        assert [(i["code"], i["field"]) for i in r.json()["issues"]] == [
+            ("COEFFICIENT_INVALID", "criterion:k1:coefficient")
+        ], bad
+    for good in (0.01, 0.5, 1.25, 2, 10):
+        crit = [{"id": "k0", "name": "X", "coefficient": 1}, {"id": "k1", "name": "X", "coefficient": good}]
+        assert (await owner.post("/contests", json=payload([j], criteria=crit))).status_code == 201, good
 
 
 async def test_jury_must_be_real_active_users(as_user):
@@ -262,7 +267,7 @@ async def finished_contest(as_user, tie=True):
     b, jb = await as_user("omur")
     lazy, jc = await as_user("lazy")  # never finishes: must not count
     c = await open_contest(owner, [ja, jb, jc])
-    # weights 60/40. Entries 1 and 2: aizhan 5,4 / 4,5 and omur 4,5 / 5,4 -> both 4.5 and 4.5
+    # coefficients 6/4. Entries 1 and 2: aizhan 5,4 / 4,5 and omur 4,5 / 5,4 -> both 4.5 and 4.5
     await score_all(a, c, [(5, 4), (4, 5)] if tie else [(5, 5), (4, 4)])
     await score_all(b, c, [(4, 5), (5, 4)] if tie else [(5, 5), (4, 4)])
     await score_all(lazy, c, [(1, 1), (1, 1)])

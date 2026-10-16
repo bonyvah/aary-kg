@@ -24,7 +24,13 @@ export function useDateTime() {
   return (date: Date, { long = false, time = true }: Options = {}): string => {
     const supported = Intl.DateTimeFormat.supportedLocalesOf(locale).length > 0;
     if (supported || locale !== "ky") {
-      return format.dateTime(date, { dateStyle: long ? "long" : "medium", ...(time ? { timeStyle: "short" } : {}) });
+      // The reader's own time zone: without it the server's (UTC) is used, and the time is hours off.
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return format.dateTime(date, {
+        dateStyle: long ? "long" : "medium",
+        ...(time ? { timeStyle: "short" } : {}),
+        timeZone,
+      });
     }
     const full = months(String(date.getMonth() + 1));
     const month = long || full.length <= 3 ? full : `${full.slice(0, 3).toLowerCase()}.`;

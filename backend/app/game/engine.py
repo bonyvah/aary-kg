@@ -75,7 +75,18 @@ class GameEngine:
 
     def _player_question(self, quiz: dict[str, Any], state: GameState, rnd: int) -> p.PlayerQuestion:
         q = self._question(quiz, state, rnd)
-        return p.PlayerQuestion(index=rnd + 1, total=len(state.order), text=q["text"], seconds=q["seconds"])
+        return p.PlayerQuestion(
+            index=rnd + 1,
+            total=len(state.order),
+            text=q["text"],
+            seconds=q["seconds"],
+            positions=self._positions(q),
+        )
+
+    @staticmethod
+    def _positions(question: dict[str, Any]) -> list[int]:
+        """The shapes that have an answer text, 1 to 4."""
+        return [n for n, text in enumerate(question["answers"], start=1) if str(text).strip()]
 
     def _host_question(self, quiz: dict[str, Any], state: GameState, rnd: int) -> p.HostQuestion:
         q = self._question(quiz, state, rnd)
@@ -84,6 +95,7 @@ class GameEngine:
             total=len(state.order),
             text=q["text"],
             seconds=q["seconds"],
+            positions=self._positions(q),
             answers=list(q["answers"]),
         )
 
@@ -491,6 +503,9 @@ class GameEngine:
             raise GameError("ANSWER_CLOSED")
         if await self.repo.get_player(game_id, player_id) is None:
             raise GameError("UNKNOWN_PLAYER")
+        quiz = await self.repo.get_quiz(game_id)
+        if position not in self._positions(self._question(quiz, state, state.round)):
+            raise GameError("ANSWER_INVALID")  # a shape the question does not have
         now = await self.repo.now_ms()
         latency = min(max(latency_ms, 0), MAX_LATENCY_MS)
         if now - latency > state.deadline_ms:

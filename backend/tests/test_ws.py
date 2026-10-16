@@ -151,7 +151,13 @@ async def test_a_whole_game_over_sockets(room):
 
     await host.send(type="start")
     q = await pa.wait("question.started")
-    assert q["question"] == {"index": 1, "total": 2, "text": "Question 1?", "seconds": 20}
+    assert q["question"] == {
+        "index": 1,
+        "total": 2,
+        "text": "Question 1?",
+        "seconds": 20,
+        "positions": [1, 2, 3, 4],
+    }
     hq = await host.wait("question.started")
     assert hq["question"]["answers"] == ["a", "b", "c", "d"]
 

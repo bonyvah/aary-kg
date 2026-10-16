@@ -223,7 +223,13 @@ async def test_the_correct_answer_is_not_sent_before_the_reveal(env):
     await settle()
     player_q = of(feeds[0], "question.started")[0]["question"]
     host_q = of(host, "question.started")[0]["question"]
-    assert player_q == {"index": 1, "total": 3, "text": "Question 1?", "seconds": 20}
+    assert player_q == {
+        "index": 1,
+        "total": 3,
+        "text": "Question 1?",
+        "seconds": 20,
+        "positions": [1, 2, 3, 4],
+    }
     assert "answers" not in player_q and host_q["answers"] == ["a", "b", "c", "d"]
     for events in (host, *feeds):
         assert "correct" not in str(events).replace("correctShare", "")
@@ -488,6 +494,23 @@ async def test_rulings_only_once_a_question_has_closed(env):
     with pytest.raises(GameError) as e:
         await env.engine.rule(state.id, aida.id, "zero")
     assert e.value.code == "INVALID_STATE"
+
+
+async def test_a_question_with_two_answers_offers_two_shapes_and_refuses_the_others(env):
+    quiz = make_quiz(1)
+    quiz["questions"][0]["answers"] = ["a", "b", "", "  "]
+    state = await env.engine.create_game("owner-1", quiz)
+    host = await connect(env, state.id, "host")
+    _, aida = await env.engine.join(state.pin, "Aida")
+    feed = await connect(env, state.id, "player", aida.id)
+    await env.engine.start(state.id)
+    await settle()
+    assert of(feed, "question.started")[0]["question"]["positions"] == [1, 2]
+    assert of(host, "question.started")[0]["question"]["positions"] == [1, 2]
+    with pytest.raises(GameError) as e:
+        await env.engine.answer(state.id, aida.id, 3)
+    assert e.value.code == "ANSWER_INVALID"
+    await env.engine.answer(state.id, aida.id, 1)
 
 
 async def test_next_walks_question_results_leaderboard_in_order(env):

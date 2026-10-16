@@ -132,6 +132,8 @@ class PlayerQuestion(CamelModel):
     total: int
     text: str
     seconds: int
+    # Which of the four shapes have an answer. A question can have two or three: the rest are not shown.
+    positions: list[int] = [1, 2, 3, 4]
 
 
 class HostQuestion(PlayerQuestion):

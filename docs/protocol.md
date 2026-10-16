@@ -52,7 +52,7 @@ To a player: `state`, `lobby.updated {players}`, `question.started {question}`, 
 
 To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `cheaters {cheaters}` (who is suspected right now: sent after every question, when a player leaves their screen while results or the leaderboard are shown, and after every ruling), `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players with `TAB_BLUR`, `WINDOW_BLUR` or `FULLSCREEN_EXIT` signals whom the host has not ruled on; `PASTE` is listed with them but is not a reason on its own), `replaced`, `error {code}`.
 
-A `question` for players is `{index (from 1), total, text, seconds}`. For the host it also has `answers`.
+A `question` for players is `{index (from 1), total, text, seconds, positions}`; `positions` lists the shapes that have an answer (a question can have two or three), and an `answer` for any other shape is refused with `ANSWER_INVALID`. For the host it also has `answers`.
 
 ## Scoring
 A correct answer scores `500 + 500 x (time left / time allowed)`, so 500 to 1000. A wrong or missing answer scores 0. Time left is measured by the server. The leaderboard orders by score, then by the total time of the correct answers (faster first), then by nickname: there are no tied ranks, so the podium always has a first, second and third.

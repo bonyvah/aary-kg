@@ -5,6 +5,7 @@ import uuid
 
 import pytest
 
+from app.game.runtime import get_engine
 from tests.test_games_api import join, make_game, play_to_the_end
 
 
@@ -15,7 +16,11 @@ async def finished(client, as_user):
     ids = {}
     for name in ("Aida", "Bek", "Cholpon"):
         ids[name] = (await join(client, game["pin"], name)).json()["player"]["id"]
-    await play_to_the_end(game, [(ids["Aida"], [1, 2]), (ids["Bek"], [1, 4]), (ids["Cholpon"], [3])])
+    await get_engine().start(game["gameId"])
+    await get_engine().signal(game["gameId"], ids["Aida"], "FULLSCREEN_EXIT")
+    await play_to_the_end(
+        game, [(ids["Aida"], [1, 2]), (ids["Bek"], [1, 4]), (ids["Cholpon"], [3])], started=True
+    )
     await asyncio.sleep(0.15)
     admin, _ = await as_user("root", role="admin")
     gid = game["gameId"]
@@ -57,7 +62,7 @@ async def test_only_admins_edit_and_the_host_may_only_read(finished, client):
         ("patch", at(f, "Aida", "answers", "q1"), {"correct": False}),
         ("patch", at(f, "Aida"), {"nickname": "Aidana"}),
         ("delete", at(f, "Aida"), None),
-        ("delete", at(f, "Aida", "flags", "FAST_ANSWERS"), None),
+        ("delete", at(f, "Aida", "flags", "FULLSCREEN_EXIT"), None),
         ("delete", f.url, None),
     ]
     for method, url, body in calls:
@@ -230,13 +235,32 @@ async def test_removing_a_player_closes_the_ranks_up(finished):
     assert games[0]["playerCount"] == 2
 
 
+async def test_a_game_that_is_still_being_played_cannot_be_edited(finished):
+    f = finished
+    live = await get_engine().repo.get_game(f.gid)
+    live.phase = "leaderboard"
+    await get_engine().repo.save_game(live)
+    for call in (
+        f.admin.put(at(f, "Aida", "score"), json={"score": 5}),
+        f.admin.delete(at(f, "Aida")),
+        f.admin.delete(f.url),
+    ):
+        r = await call
+        assert (r.status_code, r.json()["code"]) == (409, "GAME_NOT_FINISHED")
+    live.phase = "ended"
+    await get_engine().repo.save_game(live)
+    assert (await f.admin.put(at(f, "Aida", "score"), json={"score": 5})).status_code == 200
+
+
 async def test_clearing_a_flag(finished):
     f = finished
     aida = f.player(await f.fetch(), "Aida")
-    assert [x["kind"] for x in aida["flags"]] == ["FAST_ANSWERS"]  # she answered instantly in the test
-    d = (await f.admin.delete(at(f, "Aida", "flags", "FAST_ANSWERS"))).json()
+    assert [x["kind"] for x in aida["flags"]] == ["FULLSCREEN_EXIT"]
+    d = (await f.admin.delete(at(f, "Aida", "flags", "FULLSCREEN_EXIT"))).json()
     assert f.player(d, "Aida")["flags"] == []
-    assert (await f.admin.delete(at(f, "Aida", "flags", "FAST_ANSWERS"))).json()["code"] == "FLAG_NOT_FOUND"
+    assert (await f.admin.delete(at(f, "Aida", "flags", "FULLSCREEN_EXIT"))).json()[
+        "code"
+    ] == "FLAG_NOT_FOUND"
     assert (await f.admin.delete(at(f, "Aida", "flags", "BOGUS"))).status_code == 400
     report = (await f.host.get(f"/games/{f.gid}/report")).json()
     assert next(p for p in report["players"] if p["nickname"] == "Aida")["flags"] == []
@@ -250,7 +274,7 @@ async def test_every_change_is_logged_with_who_and_what(finished):
     await f.admin.post(at(f, "Bek", "adjust"), json={"delta": 25})
     await f.admin.patch(at(f, "Aida", "answers", "q2"), json={"correct": False})
     await f.admin.patch(at(f, "Cholpon"), json={"nickname": "Cholpon K"})
-    await f.admin.delete(at(f, "Aida", "flags", "FAST_ANSWERS"))
+    await f.admin.delete(at(f, "Aida", "flags", "FULLSCREEN_EXIT"))
     await f.admin.put(at(f, "Bek", "score"), json={"score": 1234})
     await f.admin.delete(at(f, "Cholpon"))
     d = await f.fetch()

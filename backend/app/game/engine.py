@@ -418,14 +418,13 @@ class GameEngine:
         )
 
     async def _cheaters(self, state: GameState, players: list[PlayerState]) -> list[p.Cheater]:
-        """Players the pattern rules flagged and the host has not ruled on yet, with every reason."""
-        flags = anticheat.flags_from_results(
-            await self._results(state), await self.repo.signal_counts(state.id)
-        )
+        """Players whose screen was left (tab, another window, full screen) and whom the host has not ruled on
+        yet, with every reason."""
+        flags = anticheat.flags_from_signals(await self.repo.signal_counts(state.id))
         suspects = []
         for player in players:
             reasons = flags.get(player.id, [])
-            if player.ruling is None and any(f["kind"] in anticheat.PATTERN_KINDS for f in reasons):
+            if player.ruling is None and any(f["kind"] in anticheat.SUSPECT_KINDS for f in reasons):
                 suspects.append(
                     p.Cheater(
                         player_id=player.id,

@@ -1,7 +1,6 @@
 import pytest
 
 from app.game import anticheat, characters, nicknames, scoring
-from app.game.anticheat import Answer
 
 # --- scoring ---------------------------------------------------------------------------------
 
@@ -92,63 +91,19 @@ def test_skeleton_treats_lookalikes_case_and_spaces_as_the_same_name():
 # --- anti-cheat ------------------------------------------------------------------------------
 
 
-def ans(*items):
-    return [Answer(q, ms, ok) for q, (ms, ok) in enumerate(items)]
-
-
-def kinds(flags, player):
-    return {f["kind"]: f["count"] for f in flags.get(player, [])}
-
-
-def test_fast_correct_answers_need_two_to_flag():
-    flags = anticheat.compute_flags(
-        {
-            "once": ans((300, True), (5000, True)),
-            "twice": ans((300, True), (350, True), (5000, True)),
-            "wrong_fast": ans((100, False), (120, False)),
-        },
-        {},
+def test_leaving_the_screen_is_what_flags_a_player():
+    flags = anticheat.flags_from_signals(
+        {"a": {"PASTE": 2, "TAB_BLUR": 4, "FULLSCREEN_EXIT": 1}, "b": {"WINDOW_BLUR": 3}, "ghost": {}}
     )
-    assert "once" not in flags and "wrong_fast" not in flags
-    assert kinds(flags, "twice") == {"FAST_ANSWERS": 2}
+    assert flags["a"] == [
+        {"kind": "TAB_BLUR", "count": 4},
+        {"kind": "FULLSCREEN_EXIT", "count": 1},
+        {"kind": "PASTE", "count": 2},
+    ]
+    assert flags["b"] == [{"kind": "WINDOW_BLUR", "count": 3}]
+    assert "ghost" not in flags
 
 
-def test_same_timing_needs_three_players_close_together_on_two_questions():
-    close = {  # q0 and q1: a, b, c within 150 ms
-        "a": ans((5000, True), (7000, True)),
-        "b": ans((5100, True), (7050, True)),
-        "c": ans((5140, True), (7140, True)),
-        "slow": ans((9000, True), (9000, True)),
-    }
-    flags = anticheat.compute_flags(close, {})
-    for p in "abc":
-        assert kinds(flags, p) == {"SAME_TIMING": 2}
-    assert "slow" not in flags
-
-    once = {**close, "c": ans((5140, True), (9999, True))}  # only q0 clusters
-    assert anticheat.compute_flags(once, {}) == {}
-
-    two_only = {"a": close["a"], "b": close["b"]}  # a pair is not a group
-    assert anticheat.compute_flags(two_only, {}) == {}
-
-
-def test_steady_timing_needs_all_correct_enough_answers_and_tiny_variance():
-    steady = ans((4000, True), (4030, True), (3990, True), (4020, True), (4010, True))
-    flags = anticheat.compute_flags({"bot": steady, "short": steady[:4]}, {})
-    assert kinds(flags, "bot") == {"STEADY_TIMING": 5} and "short" not in flags
-    mixed = ans((4000, True), (4030, True), (3990, True), (4020, True), (4010, False))
-    assert anticheat.compute_flags({"p": mixed}, {}) == {}
-    varied = ans((2000, True), (6000, True), (3000, True), (9000, True), (4000, True))
-    assert anticheat.compute_flags({"p": varied}, {}) == {}
-
-
-def test_browser_signals_are_counted_and_kept_in_order():
-    flags = anticheat.compute_flags(
-        {"a": ans((5000, True))}, {"a": {"PASTE": 2, "TAB_BLUR": 4}, "ghost": {"TAB_BLUR": 1}}
-    )
-    assert flags["a"] == [{"kind": "TAB_BLUR", "count": 4}, {"kind": "PASTE", "count": 2}]
-    assert flags["ghost"] == [{"kind": "TAB_BLUR", "count": 1}]  # signals alone are shown too
-
-
-def test_nothing_flagged_for_a_normal_game():
-    assert anticheat.compute_flags({"a": ans((5000, True), (8000, False), (3000, True))}, {}) == {}
+def test_answer_speed_is_not_judged():
+    assert anticheat.flags_from_signals({}) == {}
+    assert not hasattr(anticheat, "compute_flags")

@@ -40,7 +40,7 @@ Player (after `hello`):
 |---|---|---|
 | `hello` | `token` | first message only |
 | `answer` | `position` 1-4 | 1 triangle, 2 diamond, 3 circle, 4 square. One answer per question; the first one stands. |
-| `signal` | `kind` `TAB_BLUR` or `PASTE` | a browser hint for the host's report. Only counted while the game is running, capped per player. |
+| `signal` | `kind` `TAB_BLUR`, `WINDOW_BLUR`, `FULLSCREEN_EXIT` or `PASTE` | a browser hint for the host's report. Only counted while the game is running, capped per player. |
 | `pong` | `n` | answer to the server's `ping`. The server halves the round trip to estimate the delay (max 300 ms) and takes it off the answer time. |
 | `character.set` | `character {shape, color, face}` | lobby only; the three ids must come from the fixed lists |
 
@@ -50,7 +50,7 @@ Host: `start`, `next {fromPhase}`, `kick {playerId}`, `end`, and on the podium `
 
 To a player: `state`, `lobby.updated {players}`, `question.started {question}`, `answer.accepted {position}`, `question.closed {reveal {correct, points}, score, rank}`, `leaderboard {top (best 5), you}`, `game.ended {top (best 3), you}`, `ping {n}`, `kicked`, `replaced`, `game.closed`, `error {code}`.
 
-To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players the server-measured rules `FAST_ANSWERS`, `SAME_TIMING` or `STEADY_TIMING` flagged and the host has not ruled on; `TAB_BLUR` and `PASTE` are listed with them but never make a player a suspect alone), `replaced`, `error {code}`.
+To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players with `TAB_BLUR`, `WINDOW_BLUR` or `FULLSCREEN_EXIT` signals whom the host has not ruled on; `PASTE` is listed with them but is not a reason on its own), `replaced`, `error {code}`.
 
 A `question` for players is `{index (from 1), total, text, seconds}`. For the host it also has `answers`.
 
@@ -60,14 +60,16 @@ A correct answer scores `500 + 500 x (time left / time allowed)`, so 500 to 1000
 ## Anti-cheat
 - **Nicknames** are trimmed, 1 to 20 characters, no invisible characters. They are compared by a "skeleton" (case, spaces, punctuation and Cyrillic look-alikes of Latin letters ignored), so "Alex" and "Аlех" are the same name. Names containing "admin", "host", "ведущий" ... (look-alikes and digit swaps included) or words from `nickname_blocklist.txt` are refused. Extend that file for the community.
 - **Rate limits** (Redis counters, per client address, see `AARY_TRUSTED_PROXY_HOPS` for how the address is found). A whole classroom often shares one public address, so joining is limited by what an attacker does, not by how many people join: **failed PIN lookups** (a wrong or malformed PIN) 20 per minute, after which that address is refused for the rest of the minute; successful PIN checks 600 per minute, joins 300 per minute, WebSocket connections 600 per minute. A refused nickname or a game that already ended does not count as a guess. Player messages are limited to 100 per 10 seconds per player. Staff login: 20 attempts per 10 minutes per address and 8 failed attempts per login (locks it for 15 minutes).
-- **Flags for the host's report** (hints, never proof, nobody is removed because of them):
+- **Flags for the host's report and podium** (hints, never proof, nobody is removed unless the host decides on the podium). What is watched is the player's screen, not how fast or evenly they answer:
 
 | kind | meaning |
 |---|---|
-| `TAB_BLUR`, `PASTE` | what the browser reported, with counts |
-| `FAST_ANSWERS` | two or more correct answers in under 0.4 s |
-| `SAME_TIMING` | on two or more questions, three or more players answered within 0.15 s of each other |
-| `STEADY_TIMING` | at least 5 answers, all right, with response times that barely vary (stdev under 0.12 s) |
+| `TAB_BLUR` | the player left the tab |
+| `WINDOW_BLUR` | the browser window lost focus while the tab stayed visible (another window, split screen) |
+| `FULLSCREEN_EXIT` | the player left full screen |
+| `PASTE` | text was pasted; counted and listed, never a reason on its own |
+
+The first three make a player a suspect on the host's podium. Older games may also carry `FAST_ANSWERS`, `SAME_TIMING` and `STEADY_TIMING`, which are no longer recorded.
 
 - **Audit trail:** every join, connect, answer (with the measured time), kick, signal and phase change is stored with a timestamp (the first 5000 events) and saved with the game.
 

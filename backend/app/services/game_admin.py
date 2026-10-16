@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import ApiError
 from app.game import nicknames
+from app.game.runtime import get_engine
 from app.models.game import Game, GamePlayer
 from app.models.user import User
 from app.schemas.game_admin import (
@@ -26,7 +27,16 @@ from app.schemas.game_admin import (
     GameDetail,
 )
 
-FLAG_KINDS = ("TAB_BLUR", "PASTE", "FAST_ANSWERS", "SAME_TIMING", "STEADY_TIMING")
+# The first three are what is recorded now; the others are on games played before they were dropped.
+FLAG_KINDS = (
+    "TAB_BLUR",
+    "WINDOW_BLUR",
+    "FULLSCREEN_EXIT",
+    "PASTE",
+    "FAST_ANSWERS",
+    "SAME_TIMING",
+    "STEADY_TIMING",
+)
 BASE_POINTS = 500  # what a right answer is worth when only «right» is said
 
 
@@ -40,6 +50,10 @@ async def _load(session: AsyncSession, game_id: uuid.UUID) -> tuple[Game, list[G
     ).scalar_one_or_none()
     if game is None:
         raise ApiError(404, "GAME_NOT_FOUND")
+    # A game that is still being played (or was never finished) is the host's: nothing in it is corrected yet.
+    live = await get_engine().repo.get_game(game_id.hex)
+    if live is not None and live.phase != "ended":
+        raise ApiError(409, "GAME_NOT_FINISHED")
     players = list((await session.execute(select(GamePlayer).where(GamePlayer.game_id == game_id))).scalars())
     return game, players
 

@@ -147,6 +147,7 @@ async def test_finished_game_is_saved_and_reported(client, as_user):
     for name in ("Aida", "Bek", "Cholpon"):
         pids[name] = (await join(client, game2["pin"], name)).json()["player"]["id"]
     await get_engine().start(game2["gameId"])
+    await get_engine().signal(game2["gameId"], pids["Aida"], "FULLSCREEN_EXIT")
     await get_engine().signal(game2["gameId"], pids["Bek"], "TAB_BLUR")
     await get_engine().signal(game2["gameId"], pids["Bek"], "PASTE")
     await play_to_the_end(
@@ -165,8 +166,8 @@ async def test_finished_game_is_saved_and_reported(client, as_user):
     assert (aida["correct"], bek["correct"], chol["correct"]) == (2, 1, 0)
     assert aida["score"] > bek["score"] > chol["score"] == 0
     assert bek["flags"] == [{"kind": "TAB_BLUR", "count": 1}, {"kind": "PASTE", "count": 1}]
-    # the test answers within milliseconds: two correct instant answers is what FAST_ANSWERS is for
-    assert aida["flags"] == [{"kind": "FAST_ANSWERS", "count": 2}]
+    assert aida["flags"] == [{"kind": "FULLSCREEN_EXIT", "count": 1}]  # fast answers alone flag nobody
+    assert chol["flags"] == []
     shares = {q["id"]: q["correctShare"] for q in report["questions"]}
     assert shares == {"q1": 2 / 3, "q2": 1 / 3}
 

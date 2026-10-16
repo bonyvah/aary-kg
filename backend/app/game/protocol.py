@@ -39,7 +39,7 @@ class Signal(_In):
     """A browser signal. Only a hint for the host's report, never proof."""
 
     type: Literal["signal"]
-    kind: Literal["TAB_BLUR", "PASTE"]
+    kind: Literal["TAB_BLUR", "WINDOW_BLUR", "FULLSCREEN_EXIT", "PASTE"]
 
 
 class Pong(_In):

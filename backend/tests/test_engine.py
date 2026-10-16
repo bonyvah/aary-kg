@@ -382,9 +382,11 @@ async def test_full_game_to_the_podium_and_into_the_finished_record(env):
 
 
 async def instant_game(env):
-    """Four players who answer every question right, at once: the server flags all of them as too fast."""
+    """Four players who all left full screen during the game."""
     state, host, players, feeds = await new_game(env, players=("Aida", "Bek", "Cholpon", "Dana"))
     await env.engine.start(state.id)
+    for player in players:
+        await env.engine.signal(state.id, player.id, "FULLSCREEN_EXIT")
     for right in (1, 2, 3):
         await play_round(env, state, [(player, right) for player in players])
         await env.engine.next(state.id)
@@ -392,11 +394,11 @@ async def instant_game(env):
     return state, host, players, feeds
 
 
-async def test_the_podium_lists_the_players_the_pattern_rules_flagged(env):
+async def test_the_podium_lists_the_players_who_left_their_screen(env):
     state, host, players, _ = await instant_game(env)
     ended = of(host, "game.ended")[0]
     assert {c["playerId"] for c in ended["cheaters"]} == {x.id for x in players}
-    assert {f["kind"] for f in ended["cheaters"][0]["flags"]} >= {"FAST_ANSWERS"}
+    assert {f["kind"] for f in ended["cheaters"][0]["flags"]} == {"FULLSCREEN_EXIT"}
     snapshot = await env.engine.host_snapshot(state.id)
     assert len(snapshot.cheaters) == 4
 
@@ -427,6 +429,17 @@ async def test_host_rulings_change_the_score_the_podium_and_the_saved_game(env):
         "kick",
         "mercy",
     }
+
+
+async def test_fast_answers_alone_are_not_cheating(env):
+    state, host, *_ = await new_game(env, players=("Aida", "Bek"))
+    await env.engine.start(state.id)
+    players = await env.repo.get_players(state.id)
+    for right in (1, 2, 3):
+        await play_round(env, state, [(player, right) for player in players])
+        await env.engine.next(state.id)
+    await settle()
+    assert of(host, "game.ended")[0]["cheaters"] == []
 
 
 async def test_rulings_only_after_the_game_ended(env):

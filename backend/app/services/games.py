@@ -21,7 +21,7 @@ async def persist_finished(finished: FinishedGame) -> None:
     """Writes a finished game to Postgres: the game, its players with their answers and flags."""
     state, quiz = finished.game, finished.quiz
     played = [quiz["questions"][i] for i in state.order[: state.round + 1]]
-    flags = anticheat.flags_from_results(finished.results, finished.signals)
+    flags = anticheat.flags_from_signals(finished.signals)
     rank = {s["id"]: s["rank"] for s in finished.standings}
 
     game = Game(

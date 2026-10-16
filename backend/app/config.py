@@ -1,7 +1,8 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +24,22 @@ class Settings(BaseSettings):
     # Extra browser origins allowed to open the game WebSockets, comma separated
     # (the site's own host is always allowed).
     allowed_origins: str = ""
+
+    @field_validator("database_url")
+    @classmethod
+    def _asyncpg_url(cls, url: str) -> str:
+        """Accept the URL as a host hands it out (Neon: `postgresql://...?sslmode=require&channel_binding=require`).
+        asyncpg wants its own driver name, `ssl=` instead of `sslmode=`, and has no channel_binding."""
+        parts = urlsplit(url)
+        scheme = parts.scheme
+        if scheme in ("postgres", "postgresql"):
+            scheme = "postgresql+asyncpg"
+        query = [
+            ("ssl" if key == "sslmode" else key, value)
+            for key, value in parse_qsl(parts.query)
+            if key != "channel_binding"
+        ]
+        return urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
     def check_production(self) -> None:
         """Refuse to start in production with settings that would quietly weaken security."""

@@ -19,6 +19,7 @@ import json
 import secrets
 import time
 import uuid
+from collections import OrderedDict
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Protocol
@@ -30,6 +31,7 @@ from app.game.models import GameError, GameState, PlayerState
 TTL_S = 12 * 3600  # a game that is never finished disappears after this
 AUDIT_MAX = 5000
 SIGNALS_MAX_PER_PLAYER = 200
+QUIZ_CACHE_MAX = 64  # games whose quiz this instance keeps in memory
 
 _RELEASE = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end"
 
@@ -66,6 +68,8 @@ class RedisGameStateRepo:
 
     def __init__(self, redis: Redis) -> None:
         self.r = redis
+        # A game's quiz never changes once it is stored, so every instance may keep its own copy.
+        self._quizzes: OrderedDict[str, dict[str, Any]] = OrderedDict()
 
     # --- clock: Redis' own, so every app instance agrees on "now" ---
     async def now_ms(self) -> int:
@@ -97,10 +101,18 @@ class RedisGameStateRepo:
         await self.r.set(f"game:{state.id}", json.dumps(state.dump()), ex=TTL_S)
 
     async def get_quiz(self, game_id: str) -> dict[str, Any]:
+        """Read once per game and instance, then from memory. Shared: callers must not change it."""
+        if (quiz := self._quizzes.get(game_id)) is not None:
+            self._quizzes.move_to_end(game_id)
+            return quiz
         raw = await self.r.get(f"game:{game_id}:quiz")
         if raw is None:
             raise GameError("GAME_NOT_FOUND")
-        return json.loads(raw)
+        quiz = json.loads(raw)
+        self._quizzes[game_id] = quiz
+        if len(self._quizzes) > QUIZ_CACHE_MAX:
+            self._quizzes.popitem(last=False)
+        return quiz
 
     # --- players ---
     async def add_player(self, game_id: str, player: PlayerState, nick_key: str) -> bool:

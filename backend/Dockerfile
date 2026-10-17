@@ -31,4 +31,4 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
 # Migrations run on start (one backend container: with several, start one first). Always
 # --no-proxy-headers: uvicorn's own X-Forwarded-For handling would let clients invent their address
 # (see backend/app/netutil.py). The app reads the header itself, as AARY_TRUSTED_PROXY_HOPS says.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers"]
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --no-proxy-headers"]

@@ -1,0 +1,5 @@
+# The backend on Heroku (container stack): `heroku stack:set container`, then `git push heroku main`.
+# The web app is not here: it runs on Vercel (docs/deploy-vercel-heroku.md).
+build:
+  docker:
+    web: backend/Dockerfile

@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     # How many reverse proxies stand in front of the app. 0: nobody is trusted to say who the client
     # is, X-Forwarded-For is ignored. 1: one proxy, whose last X-Forwarded-For entry is the client.
     trusted_proxy_hops: int = Field(default=0, ge=0, le=5)
+    # Shared with the web app when it runs on another host than the backend (Vercel): the web app's
+    # /api proxy sends it with the visitor's address (X-Aary-Proxy, X-Aary-Client-Ip), and requests
+    # that carry it are counted by that address. Empty: those headers are ignored.
+    proxy_secret: str = ""
     # Extra browser origins allowed to open the game WebSockets, comma separated
     # (the site's own host is always allowed).
     allowed_origins: str = ""
@@ -59,6 +63,8 @@ class Settings(BaseSettings):
             problems.append(
                 "AARY_ALLOWED_ORIGINS must list the public site origin, e.g. https://quiz.example"
             )
+        if self.proxy_secret and len(self.proxy_secret) < 32:
+            problems.append("AARY_PROXY_SECRET is too short: generate a random one of 32+ characters")
         if problems:
             raise RuntimeError("Unsafe production settings:\n- " + "\n- ".join(problems))
 

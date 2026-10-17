@@ -6,15 +6,18 @@ from starlette.requests import Request
 from app import netutil
 
 
-def request(forwarded=None, peer="9.9.9.9"):
+def request(forwarded=None, peer="9.9.9.9", extra=()):
     headers = [(b"x-forwarded-for", forwarded.encode())] if forwarded is not None else []
+    headers += [(k.encode(), v.encode()) for k, v in extra]
     return Request({"type": "http", "headers": headers, "client": (peer, 1234)})
 
 
 @pytest.fixture
 def hops(monkeypatch):
     def set_hops(n):
-        monkeypatch.setattr(netutil, "get_settings", lambda: SimpleNamespace(trusted_proxy_hops=n))
+        monkeypatch.setattr(
+            netutil, "get_settings", lambda: SimpleNamespace(trusted_proxy_hops=n, proxy_secret="")
+        )
 
     return set_hops
 
@@ -72,3 +75,24 @@ async def test_rate_limits_follow_the_forwarded_client_only_when_trusted(client,
     await get_redis().flushdb()
     hops(1)  # behind a trusted proxy every real client has their own bucket
     assert 429 not in await run()
+
+
+SECRET = "s" * 40
+
+
+def test_the_web_apps_proxy_names_the_visitor_with_the_secret(monkeypatch):
+    settings = SimpleNamespace(trusted_proxy_hops=1, proxy_secret=SECRET)
+    monkeypatch.setattr(netutil, "get_settings", lambda: settings)
+    proxied = [("x-aary-proxy", SECRET), ("x-aary-client-ip", "4.4.4.4")]
+    assert netutil.client_ip(request("3.3.3.3", extra=proxied)) == "4.4.4.4"
+    # a wrong or missing secret: the header is ignored, X-Forwarded-For decides as before
+    wrong = [("x-aary-proxy", "guess"), ("x-aary-client-ip", "4.4.4.4")]
+    assert netutil.client_ip(request("3.3.3.3", extra=wrong)) == "3.3.3.3"
+    assert netutil.client_ip(request("3.3.3.3", extra=[("x-aary-client-ip", "4.4.4.4")])) == "3.3.3.3"
+    garbage = [("x-aary-proxy", SECRET), ("x-aary-client-ip", "nope")]
+    assert netutil.client_ip(request("3.3.3.3", extra=garbage)) == "3.3.3.3"
+    settings.proxy_secret = ""  # not configured: nobody can use the headers
+    assert (
+        netutil.client_ip(request("3.3.3.3", extra=[("x-aary-proxy", ""), ("x-aary-client-ip", "4.4.4.4")]))
+        == "3.3.3.3"
+    )

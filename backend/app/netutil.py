@@ -1,3 +1,4 @@
+import hmac
 import ipaddress
 from urllib.parse import urlparse
 
@@ -19,17 +20,30 @@ def client_ip(conn: HTTPConnection) -> str:
     never rate limited).
     """
     peer = conn.client.host if conn.client else "unknown"
-    hops = get_settings().trusted_proxy_hops
+    settings = get_settings()
+    # The web app's own /api proxy on another host (Vercel) says who the visitor is, and proves it
+    # is the web app with the shared secret. The browser's sockets come straight here instead and
+    # are counted by X-Forwarded-For below.
+    secret = settings.proxy_secret
+    if secret and hmac.compare_digest(conn.headers.get("x-aary-proxy", "").encode(), secret.encode()):
+        forwarded = _address(conn.headers.get("x-aary-client-ip", ""))
+        if forwarded is not None:
+            return forwarded
+    hops = settings.trusted_proxy_hops
     if hops <= 0:
         return peer
     entries = [e.strip() for e in conn.headers.get("x-forwarded-for", "").split(",") if e.strip()]
     if len(entries) < hops:
         return peer  # the proxy did not add the header: fall back to who connected
-    candidate = entries[-hops]
+    # not an address (garbage or a hostname): never use it as a rate limit key
+    return _address(entries[-hops]) or peer
+
+
+def _address(text: str) -> str | None:
     try:
-        return str(ipaddress.ip_address(candidate))
+        return str(ipaddress.ip_address(text.strip()))
     except ValueError:
-        return peer  # not an address (garbage or a hostname): never use it as a rate limit key
+        return None
 
 
 def origin_allowed(conn: HTTPConnection) -> bool:

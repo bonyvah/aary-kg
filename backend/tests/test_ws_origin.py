@@ -22,7 +22,9 @@ def conn(origin=None, host="aary.kg"):
 def allowed(monkeypatch):
     def set_allowed(value):
         monkeypatch.setattr(
-            netutil, "get_settings", lambda: SimpleNamespace(allowed_origin_list=value, trusted_proxy_hops=0)
+            netutil,
+            "get_settings",
+            lambda: SimpleNamespace(allowed_origin_list=value, trusted_proxy_hops=0, proxy_secret=""),
         )
 
     return set_allowed
@@ -53,7 +55,9 @@ async def test_a_foreign_page_cannot_open_either_socket(room, monkeypatch):  # n
     monkeypatch.setattr(
         netutil,
         "get_settings",
-        lambda: SimpleNamespace(allowed_origin_list=["https://aary.kg"], trusted_proxy_hops=0),
+        lambda: SimpleNamespace(
+            allowed_origin_list=["https://aary.kg"], trusted_proxy_hops=0, proxy_secret=""
+        ),
     )
     a = await room.join("Aida")
 

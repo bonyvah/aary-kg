@@ -61,6 +61,9 @@ class GameStateRepo(Protocol):
 
 
 class RedisGameStateRepo:
+    """Pipelines here are not transactions: none of them needs all-or-nothing, and MULTI and EXEC are
+    two more billed commands each time on hosted Redis."""
+
     def __init__(self, redis: Redis) -> None:
         self.r = redis
 
@@ -81,7 +84,7 @@ class RedisGameStateRepo:
         return await self.r.get(f"pin:{pin}")
 
     async def create_game(self, state: GameState, quiz: dict[str, Any]) -> None:
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.set(f"game:{state.id}", json.dumps(state.dump()), ex=TTL_S)
         pipe.set(f"game:{state.id}:quiz", json.dumps(quiz), ex=TTL_S)
         await pipe.execute()
@@ -105,7 +108,7 @@ class RedisGameStateRepo:
         nicks = f"game:{game_id}:nicks"
         if not await self.r.hsetnx(nicks, nick_key, player.id):
             return False
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.hset(f"game:{game_id}:players", player.id, json.dumps(player.dump()))
         pipe.expire(nicks, TTL_S)
         pipe.expire(f"game:{game_id}:players", TTL_S)
@@ -127,7 +130,7 @@ class RedisGameStateRepo:
             )
 
     async def remove_player(self, game_id: str, player_id: str, nick_key: str) -> None:
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.hdel(f"game:{game_id}:players", player_id)
         pipe.hdel(f"game:{game_id}:nicks", nick_key)
         await pipe.execute()
@@ -154,7 +157,7 @@ class RedisGameStateRepo:
         if not results:
             return
         key = f"game:{game_id}:res:{rnd}"
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.hset(key, mapping={pid: json.dumps(v) for pid, v in results.items()})
         pipe.expire(key, TTL_S)
         await pipe.execute()
@@ -170,7 +173,7 @@ class RedisGameStateRepo:
         total = int(await self.r.hincrby(key, f"{player_id}:total", 1))
         if total > SIGNALS_MAX_PER_PLAYER:
             return False
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.hincrby(key, f"{player_id}:{kind}", 1)
         pipe.expire(key, TTL_S)
         await pipe.execute()
@@ -187,7 +190,7 @@ class RedisGameStateRepo:
 
     async def add_audit(self, game_id: str, event: dict[str, Any]) -> None:
         key = f"game:{game_id}:audit"
-        pipe = self.r.pipeline()
+        pipe = self.r.pipeline(transaction=False)
         pipe.rpush(key, json.dumps(event))
         pipe.ltrim(key, -AUDIT_MAX, -1)
         pipe.expire(key, TTL_S)

@@ -178,10 +178,10 @@ async def main() -> int:
             asyncio.create_task(p.run(f"{ws_base}/ws/play", hdr(p), args.correct_share, (0.2, 3.0)))
             for p in players
         ]
-        cookie = host.cookies["aary_token"]
-        hostws = await connect(
-            f"{ws_base}/ws/host/{game['gameId']}", additional_headers={"Cookie": f"aary_token={cookie}"}
-        )
+        # The host socket's first message is a one-minute ticket, as the host screen sends it.
+        ticket = (await host.post(f"/games/{game['gameId']}/host-ticket")).json()["ticket"]
+        hostws = await connect(f"{ws_base}/ws/host/{game['gameId']}")
+        await hostws.send(json.dumps({"v": 1, "type": "hello", "token": ticket}))
         host_events: list[tuple[float, dict]] = []
 
         async def host_reader() -> None:

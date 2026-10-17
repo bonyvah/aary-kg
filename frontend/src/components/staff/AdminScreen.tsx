@@ -188,7 +188,7 @@ export function AdminScreen() {
                     {isAdminUser ? null : (
                       <div className="flex flex-wrap items-center gap-2">
                         {user.active ? (
-                          <Button variant="neutral" onClick={() => setPending({ kind: "disable", user })}>
+                          <Button variant="danger" onClick={() => setPending({ kind: "disable", user })}>
                             {t("actions.disable")}
                           </Button>
                         ) : (
@@ -196,7 +196,7 @@ export function AdminScreen() {
                             {t("actions.enable")}
                           </Button>
                         )}
-                        <Button variant="neutral" onClick={() => setPending({ kind: "reset", user })}>
+                        <Button variant="secondary" onClick={() => setPending({ kind: "reset", user })}>
                           {t("actions.resetPassword")}
                         </Button>
                       </div>

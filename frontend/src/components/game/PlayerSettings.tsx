@@ -30,27 +30,30 @@ export function PlayerSettings({ onLeave }: { onLeave?: () => void }) {
         onClose={close}
         title={t("title")}
         actions={
-          confirming ? (
-            <>
-              <Button variant="secondary" onClick={() => setConfirming(false)}>
-                {t("cancel")}
-              </Button>
-              <Button variant="danger" onClick={onLeave}>
-                {t("leave")}
-              </Button>
-            </>
-          ) : (
-            <>
-              {onLeave ? (
-                <Button variant="danger" onClick={() => setConfirming(true)}>
+          // One row that never wraps: on a phone the longer Russian labels would push the second button below.
+          <div className="flex w-full gap-4">
+            {confirming ? (
+              <>
+                <Button variant="secondary" className="flex-auto" onClick={() => setConfirming(false)}>
+                  {t("cancel")}
+                </Button>
+                <Button variant="danger" className="flex-auto" onClick={onLeave}>
                   {t("leave")}
                 </Button>
-              ) : null}
-              <Button variant="secondary" onClick={close}>
-                {t("close")}
-              </Button>
-            </>
-          )
+              </>
+            ) : (
+              <>
+                {onLeave ? (
+                  <Button variant="danger" className="flex-auto" onClick={() => setConfirming(true)}>
+                    {t("leave")}
+                  </Button>
+                ) : null}
+                <Button variant="secondary" className="flex-auto" onClick={close}>
+                  {t("close")}
+                </Button>
+              </>
+            )}
+          </div>
         }
       >
         {confirming ? <p>{t("leaveConfirm")}</p> : <LocaleSwitcher />}

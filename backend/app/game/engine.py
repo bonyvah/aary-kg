@@ -52,8 +52,10 @@ class GameEngine:
     async def _emit(self, game_id: str, audience: str, event: p._Out, exclude: str | None = None) -> None:
         await self.hub.publish(game_id, audience, p.dump(event), exclude)
 
-    async def audit(self, game_id: str, type_: str, **data: Any) -> None:
-        await self.repo.add_audit(game_id, {"at": await self.repo.now_ms(), "type": type_, **data})
+    async def audit(self, game_id: str, type_: str, at: int | None = None, **data: Any) -> None:
+        """`at`: the server time the caller already read, which saves asking Redis again."""
+        when = at if at is not None else await self.repo.now_ms()
+        await self.repo.add_audit(game_id, {"at": when, "type": type_, **data})
 
     @staticmethod
     def _standings(players: list[PlayerState]) -> list[p.Standing]:
@@ -113,7 +115,7 @@ class GameEngine:
             created_ms=await self.repo.now_ms(),
         )
         await self.repo.create_game(state, quiz)
-        await self.audit(game_id, "game.created", owner=owner_id, quiz=str(quiz["id"]))
+        await self.audit(game_id, "game.created", at=state.created_ms, owner=owner_id, quiz=str(quiz["id"]))
         return state
 
     async def lookup_pin(self, pin: str) -> GameState:
@@ -254,7 +256,7 @@ class GameEngine:
             order = list(range(len(quiz["questions"])))
             state.order = order
             state.started_ms = await self.repo.now_ms()
-            await self.audit(game_id, "game.started", order=order)
+            await self.audit(game_id, "game.started", at=state.started_ms, order=order)
             await self._begin_question(state, quiz, 0)
 
     async def next(self, game_id: str, from_phase: str | None = None) -> None:
@@ -307,7 +309,7 @@ class GameEngine:
         state.question_started_ms = now
         state.deadline_ms = now + question["seconds"] * 1000
         await self.repo.save_game(state)
-        await self.audit(state.id, "question.started", round=rnd, question=question["id"])
+        await self.audit(state.id, "question.started", at=now, round=rnd, question=question["id"])
         await self._emit(
             state.id, "players", p.QuestionStarted(question=self._player_question(quiz, state, rnd))
         )
@@ -396,7 +398,7 @@ class GameEngine:
         state.phase = "ended"
         state.finished_ms = await self.repo.now_ms()
         await self.repo.save_game(state)
-        await self.audit(game_id, "game.ended", players=len(players))
+        await self.audit(game_id, "game.ended", at=state.finished_ms, players=len(players))
         await self._save_finished(state)
         await self._publish_ended(state)
 
@@ -521,7 +523,9 @@ class GameEngine:
         fresh = await self._game(game_id)
         if fresh.phase != "question" or fresh.round != rnd:
             raise GameError("ANSWER_CLOSED")  # the question closed while this answer was arriving
-        await self.audit(game_id, "answer", player=player_id, round=rnd, position=position, ms=elapsed)
+        await self.audit(
+            game_id, "answer", at=now, player=player_id, round=rnd, position=position, ms=elapsed
+        )
         answered, total = await self.repo.answer_count(game_id, rnd), await self.repo.player_count(game_id)
         await self._emit(game_id, "host", p.AnswerCount(answered=answered, total=total))
         if answered >= total:

@@ -189,12 +189,14 @@ class RedisGameStateRepo:
         return out
 
     async def add_audit(self, game_id: str, event: dict[str, Any]) -> None:
+        """One RPUSH per event: the expiry is set when the list is created, the trim only when it is full.
+        The list is copied to Postgres when the game ends, so 12 hours from the first event is enough."""
         key = f"game:{game_id}:audit"
-        pipe = self.r.pipeline(transaction=False)
-        pipe.rpush(key, json.dumps(event))
-        pipe.ltrim(key, -AUDIT_MAX, -1)
-        pipe.expire(key, TTL_S)
-        await pipe.execute()
+        length = int(await self.r.rpush(key, json.dumps(event)))
+        if length == 1:
+            await self.r.expire(key, TTL_S)
+        elif length > AUDIT_MAX:
+            await self.r.ltrim(key, -AUDIT_MAX, -1)
 
     async def get_audit(self, game_id: str) -> list[dict[str, Any]]:
         return [json.loads(x) for x in await self.r.lrange(f"game:{game_id}:audit", 0, -1)]

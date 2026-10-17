@@ -38,3 +38,29 @@ async def test_a_game_sends_no_multi_exec(env, commands):  # noqa: F811
         await env.engine.answer(state.id, player.id, 1)
     await env.engine.signal(state.id, players[0].id, "TAB_BLUR")
     assert commands["MULTI"] == commands["EXEC"] == 0
+
+
+async def test_an_audit_event_is_one_command_and_the_list_still_expires_and_stays_capped(
+    env,  # noqa: F811
+    commands,
+    monkeypatch,
+):
+    from app.game import state_repo
+
+    monkeypatch.setattr(state_repo, "AUDIT_MAX", 3)
+    await env.repo.add_audit("cost-1", {"type": "first"})
+    assert 0 < await env.repo.r.ttl("game:cost-1:audit") <= state_repo.TTL_S
+    commands.clear()
+    await env.repo.add_audit("cost-1", {"type": "second"})
+    assert sum(commands.values()) == 1
+    for n in range(5):
+        await env.repo.add_audit("cost-1", {"type": f"more {n}"})
+    assert [e["type"] for e in await env.repo.get_audit("cost-1")] == ["more 2", "more 3", "more 4"]
+    await env.repo.r.delete("game:cost-1:audit")
+
+
+async def test_audit_reuses_the_time_the_caller_already_read(env, commands):  # noqa: F811
+    await env.engine.audit("cost-2", "x", at=123)
+    assert commands["TIME"] == 0
+    assert (await env.repo.get_audit("cost-2"))[0]["at"] == 123
+    await env.repo.r.delete("game:cost-2:audit")

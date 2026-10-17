@@ -1,3 +1,5 @@
+import time
+
 from redis.asyncio import Redis
 
 
@@ -11,3 +13,23 @@ async def allow(redis: Redis, key: str, limit: int, window_s: int) -> bool:
     pipe.incr(key)
     _, count = await pipe.execute()
     return int(count) <= limit
+
+
+class LocalWindow:
+    """The same fixed window, kept in memory for one connection: no Redis command per message.
+
+    Enough for a player's messages because each player has exactly one socket, on one instance (a newer
+    one replaces it), and reconnecting is limited per address in Redis. Pongs every few seconds would
+    otherwise cost two Redis commands each for every connected player.
+    """
+
+    def __init__(self, limit: int, window_s: float) -> None:
+        self.limit, self.window_s = limit, window_s
+        self.started, self.count = time.monotonic(), 0
+
+    def allow(self) -> bool:
+        now = time.monotonic()
+        if now - self.started >= self.window_s:
+            self.started, self.count = now, 0
+        self.count += 1
+        return self.count <= self.limit

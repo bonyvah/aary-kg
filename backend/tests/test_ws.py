@@ -9,6 +9,7 @@ from websockets.asyncio.client import connect
 from websockets.exceptions import ConnectionClosed
 
 from app.main import app
+from app.redis import get_redis
 from app.routers import ws as ws_module
 
 
@@ -380,6 +381,18 @@ async def test_message_flood_is_rate_limited(room, monkeypatch):
         await pa.send(type="signal", kind="TAB_BLUR")
     await pa.wait("error")
     assert {e["code"] for e in pa.events if e["type"] == "error"} == {"RATE_LIMITED"}
+
+
+async def test_player_messages_are_counted_without_redis(room):
+    # Pongs every 5 seconds from every player: counting them in Redis cost 2 commands each.
+    a = await room.join("Aida")
+    pa = await room.play(a["token"])
+    await pa.wait("state")
+    await pa.send(type="signal", kind="TAB_BLUR")
+    await pa.send(type="pong", n=1)
+    await pa.send(type="bogus")
+    await pa.wait("error")
+    assert await get_redis().keys("rl:msg:*") == []
 
 
 async def test_too_many_connections_from_one_address(room, monkeypatch):

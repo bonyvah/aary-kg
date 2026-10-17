@@ -25,7 +25,7 @@ router = APIRouter()
 MAX_MESSAGE_BYTES = 2048
 HELLO_TIMEOUT_S = 5
 PING_EVERY_S = 5
-# Per connection attempts per IP, and per player messages (across all their connections).
+# Per connection attempts per IP (in Redis), and per player messages (in memory, per socket).
 # Generous: a classroom behind one address may reconnect all at once.
 CONNECT_LIMIT, CONNECT_WINDOW_S = 600, 60
 MESSAGE_LIMIT, MESSAGE_WINDOW_S = 100, 10
@@ -161,6 +161,7 @@ async def player_socket(ws: WebSocket) -> None:
     conn = _make_conn(ws, "player", player_id)
     await hub.attach(game_id, conn)
     pings: dict[int, float] = {}
+    messages = ratelimit.LocalWindow(MESSAGE_LIMIT, MESSAGE_WINDOW_S)
 
     async def pinger() -> None:
         n = 0
@@ -178,7 +179,7 @@ async def player_socket(ws: WebSocket) -> None:
         await engine.audit(game_id, "player.connected", player=player_id)
         while True:
             data = await _read(ws)
-            if not await ratelimit.allow(get_redis(), f"rl:msg:{player_id}", MESSAGE_LIMIT, MESSAGE_WINDOW_S):
+            if not messages.allow():
                 await conn.send(p.dump(p.ErrorEvent(code="RATE_LIMITED")))
                 continue
             message = p.parse_player(data)

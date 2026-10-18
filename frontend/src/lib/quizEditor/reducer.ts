@@ -30,6 +30,8 @@ export type EditorEvent =
   | { type: "SECONDS_CHANGED"; seconds: number }
   | { type: "QUESTION_ADDED" }
   | { type: "QUESTION_REMOVED"; id: string }
+  /** Questions from pasted JSON, added at the end. The title is used only while the quiz has none. */
+  | { type: "QUESTIONS_IMPORTED"; title: string | null; questions: Omit<QuizQuestion, "id">[] }
   /** Save pressed: the client-side check. Anything missing is marked and nothing is sent. */
   | { type: "VALIDATED" }
   | { type: "SAVE_SUCCEEDED"; quiz: Quiz }
@@ -173,6 +175,27 @@ export function editorReducer(state: EditorState, event: EditorEvent): EditorSta
       const selectedId =
         state.selectedId === event.id ? (questions[Math.min(index, questions.length - 1)]?.id ?? "") : state.selectedId;
       return { ...state, quiz: { ...state.quiz, questions }, selectedId };
+    }
+    case "QUESTIONS_IMPORTED": {
+      if (event.questions.length === 0) return state;
+      // The blank question a new quiz starts with is replaced, not left in front.
+      const kept = state.quiz.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
+      const taken = new Set(kept.map((q) => q.id));
+      let nextNumber = state.nextNumber;
+      const added = event.questions.map((question) => {
+        while (taken.has(`question-${nextNumber}`)) nextNumber += 1;
+        const id = `question-${nextNumber}`;
+        nextNumber += 1;
+        return { ...question, id };
+      });
+      const title = state.quiz.title.trim() === "" && event.title ? event.title : state.quiz.title;
+      return {
+        ...state,
+        quiz: { ...state.quiz, title, questions: [...kept, ...added] },
+        selectedId: added[0]?.id ?? state.selectedId,
+        nextNumber,
+        errors: title === state.quiz.title ? state.errors : without(state.errors, "title"),
+      };
     }
     case "VALIDATED": {
       const missing = validateQuiz(state.quiz);

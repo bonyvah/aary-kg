@@ -1,6 +1,7 @@
 // Checks reading quiz JSON pasted from a chat into the editor.
 // Run: pnpm check:quiz-import
 import { parseQuizJson } from "../src/lib/quizEditor/importJson.ts";
+import { blankQuiz, editorReducer, initialEditorState } from "../src/lib/quizEditor/reducer.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -34,6 +35,19 @@ check("seconds outside 5 to 300", codes(JSON.stringify([{ ...question, seconds: 
 check("too long texts", codes(JSON.stringify([{ ...question, text: "x".repeat(501) }, { ...question, answers: ["a", "x".repeat(201)], correct: 1 }])) === "TEXT_TOO_LONG@1,ANSWER_TOO_LONG@2");
 check("title must be a string", codes(JSON.stringify({ title: 5, questions: [question] })) === "TITLE_INVALID");
 check("all or nothing: one bad question fails the import", !parseQuizJson(JSON.stringify([question, null]), 100).ok);
+
+// Adding the read questions to the editor.
+const imported = { type: "QUESTIONS_IMPORTED", title: "Math", questions: [{ ...question, correct: 2 as const, answers: ["3", "4", "5", "6"] as [string, string, string, string] }] } as const;
+const fresh = editorReducer(initialEditorState(blankQuiz()), imported);
+check("a new quiz: the blank starter question is replaced, the title filled", fresh.quiz.questions.length === 1 && fresh.quiz.questions[0]?.text === "2 + 2?" && fresh.quiz.title === "Math");
+check("the first imported question is selected", fresh.selectedId === fresh.quiz.questions[0]?.id);
+const twice = editorReducer(fresh, { ...imported, title: "Other" });
+check("importing again appends and keeps the title", twice.quiz.questions.length === 2 && twice.quiz.title === "Math" && twice.selectedId === twice.quiz.questions[1]?.id);
+check("ids stay unique", new Set(twice.quiz.questions.map((q) => q.id)).size === 2);
+const loaded = initialEditorState({ id: "q1", title: "", status: "draft", questions: [{ id: "question-2", text: "A", answers: ["a", "b", "", ""], correct: 1, seconds: 20 }] });
+const afterLoaded = editorReducer(loaded, imported);
+check("a saved question is kept in front, its id not reused", afterLoaded.quiz.questions[0]?.id === "question-2" && afterLoaded.quiz.questions[1]?.id !== "question-2");
+check("nothing to import changes nothing", editorReducer(fresh, { ...imported, questions: [] }) === fresh);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

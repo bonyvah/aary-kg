@@ -5,7 +5,7 @@ import { useCallback, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { createQuiz, updateQuiz } from "@/lib/api/quizzes";
 import { ApiRequestError } from "@/lib/api/client";
-import type { Quiz } from "@/types/quiz";
+import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { editorReducer, initialEditorState, NEW_QUIZ_ID, validateQuiz } from "./reducer";
 
 /** State of the quiz editor. «Save» checks the fields here first, then sends the quiz to the API. */
@@ -49,6 +49,10 @@ export function useQuizEditor(quiz: Quiz) {
     setSeconds: useCallback((seconds: number) => dispatch({ type: "SECONDS_CHANGED", seconds }), []),
     addQuestion: useCallback(() => dispatch({ type: "QUESTION_ADDED" }), []),
     removeQuestion: useCallback((id: string) => dispatch({ type: "QUESTION_REMOVED", id }), []),
+    importQuestions: useCallback(
+      (title: string | null, questions: Omit<QuizQuestion, "id">[]) => dispatch({ type: "QUESTIONS_IMPORTED", title, questions }),
+      [],
+    ),
     save,
     clearSaveResult: useCallback(() => dispatch({ type: "SAVE_RESULT_SEEN" }), []),
   };

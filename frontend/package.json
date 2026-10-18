@@ -9,7 +9,7 @@
     "prebuild": "npm run tokens",
     "build": "next build",
     "start": "next start",
-    "check": "npm run check:scoring && npm run check:admin && npm run check:contest-form && npm run check:jury && npm run check:player && npm run check:host",
+    "check": "npm run check:scoring && npm run check:admin && npm run check:contest-form && npm run check:jury && npm run check:player && npm run check:host && npm run check:quiz-import",
     "check:jury": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-jury.mts",
     "check:contest-form": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-contest-form.mts",
     "check:admin": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-admin.mts",
@@ -18,6 +18,7 @@
     "lint": "node scripts/generate-tokens.mjs --check && eslint",
     "check:player": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-player-flow.mts",
     "check:host": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-host-flow.mts",
+    "check:quiz-import": "node --experimental-strip-types --no-warnings --import ./scripts/alias-register.mjs scripts/check-quiz-import.mts",
     "check:bundle": "node scripts/check-player-bundle.mjs",
     "e2e": "node e2e/run.mjs"
   },

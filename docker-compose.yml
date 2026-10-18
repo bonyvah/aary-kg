@@ -36,7 +36,8 @@ services:
       AARY_REDIS_URL: redis://redis:6379/0
       AARY_JWT_SECRET: change-me-change-me-change-me-change-me
       AARY_COOKIE_SECURE: "false"
-      AARY_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      # Add a tunnel origin (ngrok) in .env: AARY_ALLOWED_ORIGINS=http://localhost:3000,https://<x>.ngrok-free.dev
+      AARY_ALLOWED_ORIGINS: ${AARY_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
       AARY_TRUSTED_PROXY_HOPS: "0"
     volumes:
       - ./backend/app:/app/app

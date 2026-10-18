@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { Button } from "@/components/ui/Button";
@@ -8,12 +8,15 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
+import { useToast } from "@/components/ui/useToast";
 import { knownCode } from "@/lib/api/client";
 import { answerKey, MAX_SECONDS, MIN_SECONDS, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Quiz } from "@/types/quiz";
 import { AnswerEditor } from "./AnswerEditor";
+import { ImportQuizModal } from "./ImportQuizModal";
 import { QuestionList } from "./QuestionList";
 import { StaffMenu } from "./StaffMenu";
 import { StaffTopBar } from "./StaffShell";
@@ -27,6 +30,8 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const tc = useTranslations("common");
   const editor = useQuizEditor(quiz);
   const customSeconds = useCustomSeconds();
+  const [importing, setImporting] = useState(false);
+  const importToast = useToast();
   const { state } = editor;
   const index = Math.max(0, state.quiz.questions.findIndex((q) => q.id === state.selectedId));
   const question = state.quiz.questions[index];
@@ -59,6 +64,8 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   )
     .sort((a, b) => a - b)
     .map((seconds) => ({ value: seconds, label: String(seconds) }));
+  // The blank question a new quiz starts with is replaced by an import, so it takes no room.
+  const filled = state.quiz.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
   const invalidIds = new Set(
     state.quiz.questions.filter((q) => [...state.errors].some((key) => key.startsWith(`${q.id}:`))).map((q) => q.id),
   );
@@ -80,6 +87,9 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
             error={state.errors.has("title") ? required : undefined}
           />
         </div>
+        <Button variant="neutral" onClick={() => setImporting(true)}>
+          {t("import.open")}
+        </Button>
         <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
           {t("save")}
         </Button>
@@ -149,6 +159,17 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
         </main>
       </div>
 
+      <ImportQuizModal
+        open={importing}
+        room={MAX_QUESTIONS - filled.length}
+        onClose={() => setImporting(false)}
+        onImport={(title, questions) => {
+          editor.importQuestions(title, questions);
+          setImporting(false);
+          importToast.show("success", t("import.imported", { count: questions.length }));
+        }}
+      />
+
       {state.saveResult ? (
         <ToastRegion>
           <Toast variant={state.saveResult === "saved" ? "success" : "danger"}>
@@ -159,7 +180,9 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
                 : tc(`apiError.${knownCode(state.failedCode ?? "UNKNOWN")}`)}
           </Toast>
         </ToastRegion>
-      ) : null}
+      ) : (
+        importToast.toast
+      )}
     </div>
   );
 }

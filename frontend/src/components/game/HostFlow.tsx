@@ -113,7 +113,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
           />
         );
       case "podium":
-        return <HostPodiumScreen gameId={state.gameId} standings={state.standings} />;
+        return <HostPodiumScreen gameId={state.gameId} standings={state.standings} onNextGame={flow.nextGame} />;
     }
   }
 

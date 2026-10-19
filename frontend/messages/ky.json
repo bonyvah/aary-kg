@@ -1,5 +1,7 @@
 {
   "_todo_review": [
+    "host.live.nextGame",
+    "host.live.cancel",
     "app.name",
     "staff.login.title",
     "design",
@@ -569,6 +571,8 @@
       "crown": "Жеңүүчү",
       "viewReport": "Отчётту көрүү",
       "toDashboard": "Башкы бетке",
+      "nextGame": "Жаңы оюн",
+      "cancel": "Жокко чыгаруу",
       "replaced": {
         "title": "Оюн башка терезеде ачык",
         "description": "Оюнду бир эле терезеден башкарууга болот. Муну жабыңыз же башкы бетке өтүңүз."

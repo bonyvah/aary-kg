@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { createGame, getHostTicket } from "@/lib/api/games";
+import { useRouter } from "next/navigation";
+import { createGame, createNextGame, getHostTicket } from "@/lib/api/games";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
 import type { HostEvent, HostMessage, Ruling } from "@/lib/game/events";
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
@@ -24,6 +25,7 @@ export function useHostFlow(quiz: Quiz) {
   // so the request is kept here and shared instead of being sent again.
   const creation = useRef<ReturnType<typeof createGame> | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
@@ -113,5 +115,22 @@ export function useHostFlow(quiz: Quiz) {
     }, [send, phase]),
     kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
     rule: useCallback((playerId: string, action: Ruling) => send({ type: "rule", playerId, action }), [send]),
+    /** From the podium: the players still connected go on to a lobby for `quizId`, on the same PIN. */
+    nextGame: useCallback(
+      async (quizId: string) => {
+        try {
+          const next = await createNextGame(state.gameId, quizId);
+          writeHostGame(quiz.id, null);
+          writeHostGame(quizId, next);
+          creation.current = null;
+          // The same quiz stays on this page: connect again, to the remembered new game.
+          if (quizId === quiz.id) setAttempt((n) => n + 1);
+          else router.push(`/host/${quizId}`);
+        } catch (error) {
+          setRefused(toKnownCode(error));
+        }
+      },
+      [state.gameId, quiz.id, router],
+    ),
   };
 }

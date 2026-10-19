@@ -61,7 +61,14 @@ export function PlayerFlow() {
       case "result":
         return question && reveal ? <ResultScreen question={question} selected={selected} reveal={reveal} onLeave={flow.reset} /> : null;
       case "leaderboard":
-        return question ? <LeaderboardScreen question={question} standings={state.standings} onLeave={flow.reset} /> : null;
+        return question ? (
+          <LeaderboardScreen
+            question={question}
+            standings={state.standings}
+            previous={state.previousStandings}
+            onLeave={flow.reset}
+          />
+        ) : null;
       case "podium":
         return <PodiumScreen standings={state.standings} onExit={flow.reset} />;
     }

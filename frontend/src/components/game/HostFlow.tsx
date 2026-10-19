@@ -104,7 +104,14 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
           />
         ) : null;
       case "leaderboard":
-        return <HostLeaderboardScreen round={state.round} totalQuestions={state.totalQuestions} standings={state.standings} />;
+        return (
+          <HostLeaderboardScreen
+            round={state.round}
+            totalQuestions={state.totalQuestions}
+            standings={state.standings}
+            previous={state.previousStandings}
+          />
+        );
       case "podium":
         return <HostPodiumScreen gameId={state.gameId} standings={state.standings} />;
     }

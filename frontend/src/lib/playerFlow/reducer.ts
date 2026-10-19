@@ -17,6 +17,8 @@ export type FlowState = {
   score: number;
   /** The leaderboard or podium rows the server sent, with this player's own row marked. */
   standings: Standing[];
+  /** The leaderboard before the latest one, so its rows can move from their old places. */
+  previousStandings: Standing[];
   error: ErrorCode | null;
 };
 
@@ -50,6 +52,7 @@ export const initialState: FlowState = {
   reveal: null,
   score: 0,
   standings: [],
+  previousStandings: [],
   error: null,
 };
 
@@ -89,6 +92,7 @@ function applyServerEvent(state: FlowState, event: PlayerEvent): FlowState {
         selected: event.answered,
         reveal: event.reveal,
         standings: event.top ? toStandings(event.top, event.you) : [],
+        previousStandings: [],
         error: null,
       };
     }
@@ -106,7 +110,13 @@ function applyServerEvent(state: FlowState, event: PlayerEvent): FlowState {
         ? { ...state, phase: "result", reveal: event.reveal, score: event.score }
         : state;
     case "leaderboard":
-      return { ...state, phase: "leaderboard", score: event.you.score, standings: toStandings(event.top, event.you) };
+      return {
+        ...state,
+        phase: "leaderboard",
+        score: event.you.score,
+        standings: toStandings(event.top, event.you),
+        previousStandings: state.standings,
+      };
     case "game.ended":
       return { ...state, phase: "podium", score: event.you.score, standings: toStandings(event.top, event.you) };
     // The lobby list of other players is not shown on the player screens; the character edits

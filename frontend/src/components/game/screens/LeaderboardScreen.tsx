@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import type { PlayerQuestion, Standing } from "@/types/game";
-import { LeaderboardRow } from "../LeaderboardRow";
+import { AnimatedStandings, standingsKey } from "../AnimatedStandings";
 import { PlayerScreen } from "../PlayerScreen";
 
 const TOP_COUNT = 5;
@@ -18,10 +18,12 @@ export function visibleStandings(standings: readonly Standing[]): Standing[] {
 type LeaderboardScreenProps = {
   question: PlayerQuestion;
   standings: readonly Standing[];
+  /** The leaderboard before this one: the rows move from those places. */
+  previous: readonly Standing[];
   onLeave: () => void;
 };
 
-export function LeaderboardScreen({ question, standings, onLeave }: LeaderboardScreenProps) {
+export function LeaderboardScreen({ question, standings, previous, onLeave }: LeaderboardScreenProps) {
   const t = useTranslations("player");
 
   return (
@@ -31,19 +33,13 @@ export function LeaderboardScreen({ question, standings, onLeave }: LeaderboardS
       footer={<p className="text-center text-body text-ink-muted">{t("next")}</p>}
     >
       <h1 className="sr-only">{t("leaderboard.title")}</h1>
-      <ol className="flex flex-col gap-2 pb-1">
-        {visibleStandings(standings).map((row) => (
-          <li key={row.id}>
-            <LeaderboardRow
-              rank={row.rank}
-              nickname={row.nickname}
-              score={row.score}
-              character={row.character}
-              badge={row.isYou ? <Badge>{t("leaderboard.you")}</Badge> : undefined}
-            />
-          </li>
-        ))}
-      </ol>
+      <AnimatedStandings
+        key={standingsKey(standings)}
+        className="gap-2 pb-1"
+        rows={visibleStandings(standings)}
+        previous={previous}
+        badge={(row) => (row.isYou ? <Badge>{t("leaderboard.you")}</Badge> : undefined)}
+      />
     </PlayerScreen>
   );
 }

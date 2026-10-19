@@ -23,6 +23,8 @@ export type HostState = {
   counts: Counts | null;
   correct: AnswerPosition | null;
   standings: Standing[];
+  /** The leaderboard before the latest one, so its rows can move from their old places. */
+  previousStandings: Standing[];
   /** Suspected cheaters on the podium that the host has not ruled on. */
   cheaters: Cheater[];
   /** Another host screen took over this game: this one is finished. */
@@ -47,6 +49,7 @@ export const initialHostState: HostState = {
   counts: null,
   correct: null,
   standings: [],
+  previousStandings: [],
   cheaters: [],
   replaced: false,
 };
@@ -82,6 +85,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         counts: event.counts ? toCounts(event.counts) : null,
         correct: event.correct,
         standings: event.standings ? toStandings(event.standings) : [],
+        previousStandings: [],
         cheaters: event.cheaters ?? [],
       };
     case "lobby.updated":
@@ -105,7 +109,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
     case "question.closed":
       return { ...state, phase: "counts", counts: toCounts(event.counts), correct: event.correct };
     case "leaderboard":
-      return { ...state, phase: "leaderboard", standings: toStandings(event.standings) };
+      return { ...state, phase: "leaderboard", standings: toStandings(event.standings), previousStandings: state.standings };
     case "game.ended":
       return { ...state, phase: "podium", gameId: event.gameId, standings: toStandings(event.standings), cheaters: event.cheaters };
     case "replaced":

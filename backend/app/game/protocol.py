@@ -275,6 +275,13 @@ class Replaced(_Out):
     type: Literal["replaced"] = "replaced"
 
 
+class NextGame(_Out):
+    """The host plays another quiz with the same room: the token of this player in the new game."""
+
+    type: Literal["game.next"] = "game.next"
+    token: str
+
+
 class Closed(_Out):
     """The host ended the game before it started."""
 

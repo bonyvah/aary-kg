@@ -28,6 +28,7 @@ class GameState:
     question_started_ms: int = 0
     deadline_ms: int = 0
     finished_ms: int = 0
+    next_id: str = ""  # the game the host went on to with the same players, after the podium
 
     def dump(self) -> dict[str, Any]:
         return asdict(self)

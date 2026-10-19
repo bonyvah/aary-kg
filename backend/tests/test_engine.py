@@ -668,3 +668,55 @@ async def test_double_click_at_the_same_instant_moves_one_step_only(env):
     await env.engine.next(state.id)  # results screen
     await asyncio.gather(*(env.engine.next(state.id, from_phase="counts") for _ in range(5)))
     assert (await env.repo.get_game(state.id)).phase == "leaderboard"
+
+
+# --- the next game, with the same room ------------------------------------------------------
+
+
+def token_for(game_id, player_id):
+    return f"{game_id}/{player_id}"
+
+
+async def test_the_next_game_takes_the_players_still_connected_on_the_same_pin(env):
+    state, _, (aida, bek, chol), feeds = await new_game(env, n=1)
+    await env.engine.start(state.id)
+    await env.engine.answer(state.id, aida.id, 1)
+    await env.engine.end(state.id)
+    for player in (aida, bek, chol):
+        await env.repo.player_connected(state.id, player.id, 1)
+    await env.repo.player_connected(state.id, bek.id, -1)  # Bek closed the page
+    await env.engine.kick(state.id, chol.id)
+
+    nxt = await env.engine.next_game(state.id, "owner-1", make_quiz(2), token_for)
+    await settle()
+    assert nxt.id != state.id and nxt.pin == state.pin and nxt.phase == "lobby"
+    assert (await env.engine.lookup_pin(state.pin)).id == nxt.id
+    players = await env.repo.get_players(nxt.id)
+    carried = [(x.id, x.nickname, x.character, x.score) for x in players]
+    assert carried == [(aida.id, "Aida", aida.character, 0)]
+    assert of(feeds[0], "game.next") == [{"v": 1, "type": "game.next", "token": token_for(nxt.id, aida.id)}]
+    assert of(feeds[1], "game.next") == []
+    assert len(env.finished) == 1  # the game before keeps its own record
+    # A double click: the same game again, not a third one.
+    assert (await env.engine.next_game(state.id, "owner-1", make_quiz(2), token_for)).id == nxt.id
+
+
+async def test_the_next_game_needs_the_podium_and_the_owner(env):
+    state, *_ = await new_game(env)
+    await env.engine.start(state.id)
+    with pytest.raises(GameError) as e:
+        await env.engine.next_game(state.id, "owner-1", make_quiz(), token_for)
+    assert e.value.code == "INVALID_STATE"
+    await env.engine.end(state.id)
+    with pytest.raises(GameError) as e:
+        await env.engine.next_game(state.id, "someone-else", make_quiz(), token_for)
+    assert e.value.code == "GAME_NOT_FOUND"
+
+
+async def test_the_next_game_gets_a_new_pin_when_the_old_one_was_given_away(env):
+    state, *_ = await new_game(env)
+    await env.engine.end(state.id)
+    await env.repo.r.set(f"pin:{state.pin}", "another-game")
+    nxt = await env.engine.next_game(state.id, "owner-1", make_quiz(), token_for)
+    assert nxt.pin != state.pin and (await env.engine.lookup_pin(nxt.pin)).id == nxt.id
+    assert await env.repo.game_id_for_pin(state.pin) == "another-game"

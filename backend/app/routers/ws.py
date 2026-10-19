@@ -160,6 +160,7 @@ async def player_socket(ws: WebSocket) -> None:
 
     conn = _make_conn(ws, "player", player_id)
     await hub.attach(game_id, conn)
+    await engine.repo.player_connected(game_id, player_id, 1)
     pings: dict[int, float] = {}
     messages = ratelimit.LocalWindow(MESSAGE_LIMIT, MESSAGE_WINDOW_S)
 
@@ -210,6 +211,7 @@ async def player_socket(ws: WebSocket) -> None:
         ping_task.cancel()
         await hub.detach(game_id, conn)
         try:
+            await engine.repo.player_connected(game_id, player_id, -1)
             await engine.audit(game_id, "player.disconnected", player=player_id)
         except Exception:
             log.debug("audit after disconnect failed", exc_info=True)

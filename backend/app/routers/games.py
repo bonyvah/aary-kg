@@ -1,5 +1,6 @@
 import uuid
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import APIRouter, Request
 
@@ -60,13 +61,27 @@ async def _guard_pin_guessing[T](request: Request, attempt: Callable[[], Awaitab
 
 @router.post("", status_code=201, response_model=CreateGameOut, response_model_by_alias=True)
 async def create_game(body: CreateGameIn, user: CurrentUser, session: Session) -> CreateGameOut:
-    """The host starts a lobby for one of their quizzes. The quiz is copied: later edits don't touch it."""
+    """The host starts a lobby for one of their quizzes."""
     if user.role == "admin":
         raise ApiError(403, "FORBIDDEN")  # admins don't host games, they manage the data of finished ones
-    quiz = await quizzes_service.get_editable(session, user, body.quiz_id)
-    snapshot = {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
-    state = await get_engine().create_game(str(user.id), snapshot)
+    state = await get_engine().create_game(str(user.id), await _quiz_snapshot(session, user, body.quiz_id))
     return CreateGameOut(game_id=state.id, pin=state.pin)
+
+
+@router.post("/{game_id}/next", status_code=201, response_model=CreateGameOut, response_model_by_alias=True)
+async def next_game(game_id: str, body: CreateGameIn, user: CurrentUser, session: Session) -> CreateGameOut:
+    """From the podium: another quiz with the players who are still connected, on the same PIN."""
+    if user.role == "admin" or len(game_id) > 64:
+        raise ApiError(403, "FORBIDDEN")
+    snapshot = await _quiz_snapshot(session, user, body.quiz_id)
+    state = await get_engine().next_game(game_id, str(user.id), snapshot, create_player_token)
+    return CreateGameOut(game_id=state.id, pin=state.pin)
+
+
+async def _quiz_snapshot(session: Session, user: CurrentUser, quiz_id: uuid.UUID) -> dict[str, Any]:
+    """The quiz is copied into the game: later edits don't touch it."""
+    quiz = await quizzes_service.get_editable(session, user, quiz_id)
+    return {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
 
 
 @router.post("/{game_id}/host-ticket", response_model=HostTicketOut, response_model_by_alias=True)

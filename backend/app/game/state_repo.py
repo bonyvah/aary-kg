@@ -9,6 +9,7 @@ Keys (all expire, see TTL_S):
   game:{id}:nicks        HASH nickname skeleton -> player id
   game:{id}:ans:{r}      HASH player id -> JSON, the first answer wins
   game:{id}:res:{r}      HASH player id -> JSON scored answer
+  game:{id}:online       HASH player id -> open sockets (a refresh briefly has two)
   game:{id}:signals      HASH "player id:KIND" -> count
   game:{id}:audit        LIST of JSON events
   game:{id}:lock         transition lock
@@ -50,6 +51,9 @@ class GameStateRepo(Protocol):
     async def save_players(self, game_id: str, players: list[PlayerState]) -> None: ...
     async def remove_player(self, game_id: str, player_id: str, nick_key: str) -> None: ...
     async def player_count(self, game_id: str) -> int: ...
+    async def player_connected(self, game_id: str, player_id: str, delta: int) -> None: ...
+    async def online_players(self, game_id: str) -> set[str]: ...
+    async def move_pin(self, pin: str, from_id: str, to_id: str) -> bool: ...
     async def put_answer(self, game_id: str, rnd: int, player_id: str, answer: dict[str, Any]) -> bool: ...
     async def get_answers(self, game_id: str, rnd: int) -> dict[str, dict[str, Any]]: ...
     async def answer_count(self, game_id: str, rnd: int) -> int: ...
@@ -86,6 +90,14 @@ class RedisGameStateRepo:
 
     async def game_id_for_pin(self, pin: str) -> str | None:
         return await self.r.get(f"pin:{pin}")
+
+    async def move_pin(self, pin: str, from_id: str, to_id: str) -> bool:
+        """Points the PIN at another game, if it is still `from_id`'s (it may have expired and been
+        given to someone else). Not atomic: one host moves their own PIN, nobody races them."""
+        if await self.r.get(f"pin:{pin}") != from_id:
+            return False
+        await self.r.set(f"pin:{pin}", to_id, ex=TTL_S)
+        return True
 
     async def create_game(self, state: GameState, quiz: dict[str, Any]) -> None:
         pipe = self.r.pipeline(transaction=False)
@@ -149,6 +161,22 @@ class RedisGameStateRepo:
 
     async def player_count(self, game_id: str) -> int:
         return int(await self.r.hlen(f"game:{game_id}:players"))
+
+    async def player_connected(self, game_id: str, player_id: str, delta: int) -> None:
+        """+1 when a player's socket opens, -1 when it closes. Counted in Redis: the sockets of one
+        game can be on several app instances."""
+        key = f"game:{game_id}:online"
+        if delta > 0:
+            pipe = self.r.pipeline(transaction=False)
+            pipe.hincrby(key, player_id, delta)
+            pipe.expire(key, TTL_S)
+            await pipe.execute()
+        else:
+            await self.r.hincrby(key, player_id, delta)
+
+    async def online_players(self, game_id: str) -> set[str]:
+        raw = await self.r.hgetall(f"game:{game_id}:online")
+        return {pid for pid, n in raw.items() if int(n) > 0}
 
     # --- answers ---
     async def put_answer(self, game_id: str, rnd: int, player_id: str, answer: dict[str, Any]) -> bool:

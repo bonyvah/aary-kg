@@ -493,3 +493,31 @@ async def test_a_double_click_on_continue_moves_the_game_one_step(room):
     await host.wait("leaderboard")
     await asyncio.sleep(0.3)
     assert host.types().count("question.started") == 1  # and not on to question 2
+
+
+# --- the next game --------------------------------------------------------------------------
+
+
+async def test_the_players_still_connected_follow_the_host_into_the_next_game(room):
+    host = await room.host()
+    a, b = await room.join("Aida"), await room.join("Bek")
+    pa, pb = await room.play(a["token"]), await room.play(b["token"])
+    await pa.wait("state")
+    await pb.wait("state")
+    await host.send(type="start")
+    await pb.close()  # Bek leaves
+    await host.send(type="end")
+    await host.wait("game.ended")
+
+    r = await room.host_client.post(f"/games/{room.game['gameId']}/next", json={"quizId": room.quiz_id})
+    assert r.status_code == 201, r.text
+    nxt = r.json()
+    assert nxt["pin"] == room.game["pin"] and nxt["gameId"] != room.game["gameId"]
+
+    token = (await pa.wait("game.next"))["token"]
+    pa2 = await room.play(token)
+    state = await pa2.wait("state")
+    assert state["phase"] == "lobby" and [x["nickname"] for x in state["players"]] == ["Aida"]
+    ticket = (await room.ticket(game_id=nxt["gameId"])).json()["ticket"]
+    host2 = await room.host(ticket=ticket, game_id=nxt["gameId"])
+    assert (await host2.wait("host.state"))["phase"] == "lobby"

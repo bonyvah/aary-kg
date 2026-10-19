@@ -118,6 +118,43 @@ class GameEngine:
         await self.audit(game_id, "game.created", at=state.created_ms, owner=owner_id, quiz=str(quiz["id"]))
         return state
 
+    async def next_game(
+        self, game_id: str, owner_id: str, quiz: dict[str, Any], token_for: Callable[[str, str], str]
+    ) -> GameState:
+        """After the podium the host plays another quiz with the same room: a new game (its own
+        record and report) on the same PIN, with every player who is still connected. Each of them
+        gets their token for it on the socket they have, and connects to the new lobby with it."""
+        async with self.repo.lock(game_id):
+            old = await self.repo.get_game(game_id)
+            if old is None or old.owner_id != owner_id:
+                raise GameError("GAME_NOT_FOUND")
+            if old.phase != "ended":
+                raise GameError("INVALID_STATE")
+            if old.next_id and (already := await self.repo.get_game(old.next_id)):
+                return already  # a double click
+            online = await self.repo.online_players(game_id)
+            players = [x for x in await self.repo.get_players(game_id) if x.id in online]
+
+            new_id = uuid.uuid4().hex
+            pin = old.pin
+            if not await self.repo.move_pin(pin, game_id, new_id):
+                pin = await self.repo.reserve_pin(new_id)
+            now = await self.repo.now_ms()
+            state = GameState(id=new_id, owner_id=owner_id, quiz_id=str(quiz["id"]), pin=pin, created_ms=now)
+            await self.repo.create_game(state, quiz)
+            await self.audit(
+                new_id, "game.created", at=now, owner=owner_id, quiz=state.quiz_id, after=game_id
+            )
+            for x in players:
+                player = PlayerState(id=x.id, nickname=x.nickname, character=x.character)
+                await self.repo.add_player(new_id, player, nicknames.skeleton(x.nickname))
+                await self.audit(new_id, "player.joined", player=x.id, nickname=x.nickname)
+            old.next_id = new_id
+            await self.repo.save_game(old)
+            for x in players:
+                await self._emit(game_id, f"p:{x.id}", p.NextGame(token=token_for(new_id, x.id)))
+            return state
+
     async def lookup_pin(self, pin: str) -> GameState:
         if not (len(pin) == 6 and pin.isascii() and pin.isdigit()):
             raise GameError("PIN_INVALID")

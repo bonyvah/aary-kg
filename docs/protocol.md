@@ -22,6 +22,7 @@ JSON objects, camelCase keys, `"v": 1` and `"type"` on every message. A client m
 | Join | player | `POST /games/join {pin, nickname}` returns `{token, player}`. The token is a JWT good for this player in this game only (12 h); staff routes refuse it. |
 | Host ticket | host (staff session) | `POST /games/{gameId}/host-ticket` returns `{ticket}`, good for 60 s. Only the game's owner (admins do not host); otherwise `404 GAME_NOT_FOUND`. |
 | Host socket | host | `GET /ws/host/{gameId}`, first message `hello {token: <ticket>}`. Not the session cookie: when the web app and the backend are on different sites, the browser does not send it to the backend. A ticket for another game, an expired one, or one from a session that has since ended closes with `4401`. |
+| Next game | host (staff session) | `POST /games/{gameId}/next {quizId}` from the podium returns `{gameId, pin}`: a new game (its own report) on the same PIN, or a new PIN if the old one expired, with every player still connected. Each of them gets `game.next {token}` on their socket. Sent twice, it returns the same game. `409 INVALID_STATE` before the podium, `404 GAME_NOT_FOUND` for another host's game. |
 | Player socket | player | `GET /ws/play`, then the **first message** is `{type:"hello", token}` within 5 s (the token is not in the URL, URLs get logged). |
 
 Close codes: `4400` bad first message, `4401` not authenticated, `4403` not allowed (not your game, or you were kicked), `4429` too many connections, `1009` message too big.
@@ -49,7 +50,7 @@ Host: `start`, `next {fromPhase}` (refused with `CHEATERS_UNRESOLVED` while a su
 
 ## Server -> client
 
-To a player: `state`, `lobby.updated {players}`, `question.started {question}`, `answer.accepted {position}`, `question.closed {reveal {correct, points}, score, rank}`, `leaderboard {top (best 5), you}`, `game.ended {top (best 3), you}`, `ping {n}`, `kicked`, `replaced`, `game.closed`, `error {code}`.
+To a player: `state`, `lobby.updated {players}`, `question.started {question}`, `answer.accepted {position}`, `question.closed {reveal {correct, points}, score, rank}`, `leaderboard {top (best 5), you}`, `game.ended {top (best 3), you}`, `ping {n}`, `kicked`, `replaced`, `game.closed`, `game.next {token}` (after the podium the host plays another quiz with the players still connected: connect again with this token, to the new lobby), `error {code}`.
 
 To the host: `host.state`, `lobby.updated`, `question.started {question with answers[4]}`, `answer.count {answered, total}`, `question.closed {counts[4], correct}`, `leaderboard {standings}`, `cheaters {cheaters}` (who is suspected right now: sent after every question, when a player leaves their screen while results or the leaderboard are shown, and after every ruling), `game.ended {gameId, standings, cheaters [{playerId, nickname, flags [{kind, count}]}]}` (players with `TAB_BLUR`, `WINDOW_BLUR` or `FULLSCREEN_EXIT` signals whom the host has not ruled on; `PASTE` is listed with them but is not a reason on its own), `replaced`, `error {code}`.
 

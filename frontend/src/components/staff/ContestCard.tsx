@@ -20,7 +20,7 @@ export function ContestCard({ contest, userId }: ContestCardProps) {
   return (
     <Card
       className={
-        "relative flex min-h-[148px] flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
+        "relative flex h-full min-h-[148px] flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
         "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--border)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }
@@ -29,7 +29,7 @@ export function ContestCard({ contest, userId }: ContestCardProps) {
         <ContestStatusBadge status={contest.status} />
         {role ? <Badge>{t(`role.${role}`)}</Badge> : null}
       </div>
-      <h2 className="text-h3 font-bold [overflow-wrap:anywhere]">
+      <h2 title={contest.title} className="line-clamp-2 text-h3 font-bold [overflow-wrap:anywhere]">
         <Link href={`/contests/${contest.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
           {contest.title}
         </Link>

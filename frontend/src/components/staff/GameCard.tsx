@@ -12,13 +12,12 @@ export function GameCard({ game }: { game: GameSummary }) {
   return (
     <Card
       className={
-        "relative flex min-h-[116px] flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
+        "relative flex h-full min-h-[116px] flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
         "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--border)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }
     >
-      {/* Two lines kept for every title, so all cards are the same height. */}
-      <h2 title={game.quizTitle} className="line-clamp-2 min-h-[2lh] text-h3 font-bold [overflow-wrap:anywhere]">
+      <h2 title={game.quizTitle} className="line-clamp-2 text-h3 font-bold [overflow-wrap:anywhere]">
         <Link href={`/reports/${game.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
           {game.quizTitle}
         </Link>

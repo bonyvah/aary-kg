@@ -62,7 +62,7 @@ export function DashboardScreen() {
           <ResourceView resource={quizzes} inline>
             {(items) =>
               items.length > 0 ? (
-                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((quiz) => (
                     <li key={quiz.id} className="flex">
                       <div className="flex-1">
@@ -80,7 +80,7 @@ export function DashboardScreen() {
           <ResourceView resource={games} inline>
             {(items) =>
               items.length > 0 ? (
-                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((game) => (
                     <li key={game.id} className="flex">
                       <div className="flex-1">
@@ -98,7 +98,7 @@ export function DashboardScreen() {
           <ResourceView resource={contests} inline>
             {(items) =>
               items.length > 0 ? (
-                <ul className="grid gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((contest) => (
                     <li key={contest.id} className="flex">
                       <div className="flex-1">

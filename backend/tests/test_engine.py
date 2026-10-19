@@ -347,12 +347,13 @@ async def test_closing_twice_changes_nothing(env):
 
 
 async def play_round(env, state, answers):
-    """answers: [(player, position)]. Then the host steps through results and the leaderboard."""
+    """answers: [(player, position)]. Then the host steps on from the results: to the leaderboard, or
+    after the last question to the podium."""
     for player, position in answers:
         await env.engine.answer(state.id, player.id, position)
     if (await env.repo.get_game(state.id)).phase == "question":
         await env.engine.next(state.id)  # host closes early
-    await env.engine.next(state.id)  # results -> leaderboard
+    await env.engine.next(state.id)  # results -> leaderboard, or the end
 
 
 async def test_full_game_to_the_podium_and_into_the_finished_record(env):
@@ -362,11 +363,10 @@ async def test_full_game_to_the_podium_and_into_the_finished_record(env):
     await env.engine.next(state.id)
     await play_round(env, state, [(aida, 2), (bek, 4)])  # q2 right: aida; cholpon times out below
     await env.engine.next(state.id)
-    await play_round(env, state, [(aida, 3), (bek, 3), (chol, 3)])
     state_now = await env.repo.get_game(state.id)
-    assert state_now.phase == "leaderboard" and state_now.round == 2
+    assert state_now.phase == "question" and state_now.round == 2
     assert not env.finished
-    await env.engine.next(state.id)  # no more questions: the game ends
+    await play_round(env, state, [(aida, 3), (bek, 3), (chol, 3)])  # the last results: straight to the podium
     await settle()
 
     assert (await env.repo.get_game(state.id)).phase == "ended"
@@ -483,7 +483,8 @@ async def test_fast_answers_alone_are_not_cheating(env):
     players = await env.repo.get_players(state.id)
     for right in (1, 2, 3):
         await play_round(env, state, [(player, right) for player in players])
-        await env.engine.next(state.id)
+        if right < 3:
+            await env.engine.next(state.id)
     await settle()
     assert of(host, "game.ended")[0]["cheaters"] == []
 
@@ -522,6 +523,8 @@ async def test_next_walks_question_results_leaderboard_in_order(env):
         await env.engine.next(state.id)
     phases.append((await env.repo.get_game(state.id)).phase)
     assert phases == ["question", "counts", "leaderboard", "question", "counts"]
+    await env.engine.next(state.id)
+    assert (await env.repo.get_game(state.id)).phase == "ended"  # no leaderboard after the last question
 
 
 async def test_ending_mid_question_scores_the_open_question_and_saves_the_game(env):

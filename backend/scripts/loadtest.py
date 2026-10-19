@@ -220,9 +220,10 @@ async def main() -> int:
             for n in range(1, args.questions + 1):
                 await host_wait("question.started", n)
                 await host_wait("question.closed", n, timeout=25)
-                await send(type="next", fromPhase="counts")
-                await host_wait("leaderboard", n)
-                start_times[n + 1] = await send(type="next", fromPhase="leaderboard")
+                await send(type="next", fromPhase="counts")  # after the last question: the end
+                if n < args.questions:
+                    await host_wait("leaderboard", n)
+                    start_times[n + 1] = await send(type="next", fromPhase="leaderboard")
             await asyncio.wait_for(asyncio.gather(*tasks), timeout=20)
         except TimeoutError as e:
             problems.append(f"timed out: {e}")

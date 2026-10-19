@@ -193,8 +193,7 @@ async def test_a_whole_game_over_sockets(room):
     await pa.send(type="answer", position=2)
     await pb.send(type="answer", position=2)
     await pa.wait("question.closed", count=2)
-    await host.send(type="next")  # leaderboard
-    await host.send(type="next")  # the end
+    await host.send(type="next")  # the last question: the end, no leaderboard
     end = await pa.wait("game.ended")
     assert end["you"]["rank"] == 1 and [s["nickname"] for s in end["top"]] == ["Aida", "Bek"]
     final = await host.wait("game.ended")

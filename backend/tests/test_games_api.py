@@ -138,8 +138,9 @@ async def play_to_the_end(game, players, started=False):
             await engine.next(gid)
         for cheater in (await engine.host_snapshot(gid)).cheaters or []:
             await engine.rule(gid, cheater.player_id, "mercy")  # the game waits for the host's decision
-        await engine.next(gid)  # leaderboard
-        await engine.next(gid)  # next question, or the end
+        await engine.next(gid)  # leaderboard, or the end after the last question
+        if r + 1 < rounds:
+            await engine.next(gid)  # next question
 
 
 async def test_finished_game_is_saved_and_reported(client, as_user):

@@ -260,7 +260,8 @@ class GameEngine:
             await self._begin_question(state, quiz, 0)
 
     async def next(self, game_id: str, from_phase: str | None = None) -> None:
-        """Host's «continue»: question -> close early, results -> leaderboard, leaderboard -> next/end.
+        """Host's «continue»: question -> close early, results -> leaderboard (the podium after the last
+        question: no leaderboard there), leaderboard -> next question.
 
         `from_phase` is the screen the host pressed it on. When the game is no longer there, the
         press is stale (a double click, or the timer got there first) and does nothing.
@@ -276,7 +277,10 @@ class GameEngine:
             if state.phase == "question":
                 await self._close_locked(state)
             elif state.phase == "counts":
-                await self._leaderboard_locked(state)
+                if state.round + 1 < len(state.order):
+                    await self._leaderboard_locked(state)
+                else:
+                    await self._end_locked(state)
             elif state.phase == "leaderboard":
                 if state.round + 1 < len(state.order):
                     await self._begin_question(state, await self.repo.get_quiz(game_id), state.round + 1)

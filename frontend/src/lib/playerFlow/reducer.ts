@@ -127,6 +127,7 @@ function applyServerEvent(state: FlowState, event: PlayerEvent): FlowState {
     case "kicked":
     case "replaced":
     case "game.closed":
+    case "game.next": // the hook connects to the next game, whose `state` sets everything
       return state;
   }
 }

@@ -35,6 +35,8 @@ export type PlayerEvent =
   | { type: "kicked" }
   | { type: "replaced" }
   | { type: "game.closed" }
+  /** The host plays another quiz with the same room: connect again with this token, to its lobby. */
+  | { type: "game.next"; token: string }
   | { type: "error"; code: string };
 
 /** A player the server flagged, with the reasons. `kind` is one of the report's flag kinds. */

@@ -41,6 +41,8 @@ export function usePlayerFlow() {
   const [state, dispatch] = useReducer(flowReducer, initialState);
   const [resuming, setResuming] = useState(false);
   const socket = useRef<GameSocket | null>(null);
+  // `connect` itself, for the socket's own events: the host can move everyone to the next game.
+  const connectRef = useRef<((token: string) => void) | null>(null);
   // True from a refresh until the server has answered: a token that no longer works then means
   // «that game is over», which is not worth an error message on a fresh page.
   const resumingRef = useRef(false);
@@ -58,6 +60,10 @@ export function usePlayerFlow() {
         if (event.type === "kicked") dispatch({ type: "LEFT", reason: "KICKED" });
         else if (event.type === "game.closed") dispatch({ type: "LEFT", reason: "GAME_CLOSED" });
         else if (event.type === "replaced") dispatch({ type: "LEFT", reason: "REPLACED" });
+        else if (event.type === "game.next") {
+          writeToken(event.token);
+          connectRef.current?.(event.token);
+        }
       },
       onClosed: (code) => {
         socket.current = null;
@@ -71,6 +77,10 @@ export function usePlayerFlow() {
       },
     });
   }, []);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   // A refreshed tab resumes the game it was in.
   useEffect(() => {

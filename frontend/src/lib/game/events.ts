@@ -44,12 +44,16 @@ export type Cheater = { playerId: string; nickname: string; flags: { kind: strin
 
 export type Ruling = "kick" | "zero" | "void_last" | "mercy";
 
+/** How the host chose to play this game, in the lobby. */
+export type GameSettings = { showAnswers: boolean };
+
 export type HostEvent =
   | {
       type: "host.state";
       gameId: string;
       pin: string;
       phase: ServerPhase;
+      settings: GameSettings;
       total: number;
       players: PlayerPublic[];
       question: HostQuestion | null;
@@ -66,6 +70,7 @@ export type HostEvent =
   | { type: "question.closed"; counts: number[]; correct: AnswerPosition }
   | { type: "leaderboard"; standings: ServerStanding[] }
   | { type: "cheaters"; cheaters: Cheater[] }
+  | { type: "settings"; settings: GameSettings }
   | { type: "game.ended"; gameId: string; standings: ServerStanding[]; cheaters: Cheater[] }
   | { type: "replaced" }
   | { type: "error"; code: string };
@@ -77,6 +82,7 @@ export type PlayerMessage =
   | { type: "character.set"; character: Character };
 
 export type HostMessage =
+  | { type: "settings"; showAnswers?: boolean }
   | { type: "start" }
   /** `fromPhase`: the screen it was pressed on. The server ignores a press that is out of date. */
   | { type: "next"; fromPhase: "question" | "counts" | "leaderboard" }

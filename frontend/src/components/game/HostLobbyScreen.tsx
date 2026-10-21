@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import type { GameSettings } from "@/lib/game/events";
 import { formatPin, JOIN_HOST, joinUrl } from "@/lib/joinLink";
 import type { Player } from "@/types/game";
 import { JoinQrModal } from "./JoinQrModal";
@@ -12,6 +14,8 @@ import { LobbyChip } from "./LobbyChip";
 type HostLobbyScreenProps = {
   pin: string;
   players: readonly Player[];
+  settings: GameSettings;
+  onShowAnswers: (on: boolean) => void;
   /** Removes a player from the lobby. */
   onKick: (playerId: string) => void;
   onStart: () => void;
@@ -20,7 +24,7 @@ type HostLobbyScreenProps = {
 const plate = "rounded-lg bg-field text-on-field shadow-[0_4px_0_0_var(--border)]";
 
 /** What the projector shows before the game: how to join, who has joined, and the start button. */
-export function HostLobbyScreen({ pin, players, onKick, onStart }: HostLobbyScreenProps) {
+export function HostLobbyScreen({ pin, players, settings, onShowAnswers, onKick, onStart }: HostLobbyScreenProps) {
   const t = useTranslations("host.lobby");
   const tbar = useTranslations("host.bar");
   const [qrOpen, setQrOpen] = useState(false);
@@ -73,6 +77,11 @@ export function HostLobbyScreen({ pin, players, onKick, onStart }: HostLobbyScre
       {players.length === 0 ? <p className="text-body-lg text-ink-muted">{t("waiting")}</p> : null}
 
       <div className="mt-auto flex flex-col items-center gap-4 pb-4">
+        <Checkbox
+          label={t("showAnswers")}
+          checked={settings.showAnswers}
+          onChange={(event) => onShowAnswers(event.target.checked)}
+        />
         <Button variant="accent" size="lg" disabled={players.length === 0} onClick={onStart}>
           {t("start")}
         </Button>

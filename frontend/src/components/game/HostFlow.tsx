@@ -78,6 +78,8 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
           <HostLobbyScreen
             pin={state.pin}
             players={state.players}
+            settings={state.settings}
+            onShowAnswers={flow.setShowAnswers}
             onKick={flow.kick}
             onStart={flow.start}
           />

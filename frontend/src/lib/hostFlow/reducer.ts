@@ -1,5 +1,5 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import type { Cheater, HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
+import type { Cheater, GameSettings, HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
 import type { Player, Standing } from "@/types/game";
 
 export type HostPhase = "lobby" | "question" | "counts" | "leaderboard" | "podium";
@@ -12,6 +12,7 @@ export type HostState = {
   /** The question being played, from 1. 0 in the lobby. */
   round: number;
   totalQuestions: number;
+  settings: GameSettings;
   /** Everyone in the game. */
   players: Player[];
   /** The open question with its four answer texts. The right one is not known until it closes. */
@@ -42,6 +43,7 @@ export const initialHostState: HostState = {
   pin: "",
   round: 0,
   totalQuestions: 0,
+  settings: { showAnswers: false },
   players: [],
   question: null,
   secondsLeft: 0,
@@ -77,6 +79,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         pin: event.pin,
         round: event.question?.index ?? (event.phase === "ended" || event.phase === "leaderboard" ? event.total : 0),
         totalQuestions: event.total,
+        settings: event.settings,
         players: toPlayers(event.players),
         question: event.question,
         secondsLeft:
@@ -104,6 +107,8 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
       };
     case "cheaters":
       return { ...state, cheaters: event.cheaters };
+    case "settings":
+      return { ...state, settings: event.settings };
     case "answer.count":
       return state.phase === "question" ? { ...state, answered: event.answered } : state;
     case "question.closed":

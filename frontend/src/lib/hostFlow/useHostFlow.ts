@@ -108,6 +108,7 @@ export function useHostFlow(quiz: Quiz) {
       setAttempt((n) => n + 1);
     }, []),
     start: useCallback(() => send({ type: "start" }), [send]),
+    setShowAnswers: useCallback((showAnswers: boolean) => send({ type: "settings", showAnswers }), [send]),
     /** The host's «continue»: close the question, show the leaderboard, go to the next question or the end. */
     advance: useCallback(() => {
       // Says which screen the button was on, so a double click doesn't skip the next one.

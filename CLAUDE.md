@@ -11,11 +11,12 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - Use plan mode for each phase, show the plan, wait for approval.
 - Keep changes small and reviewable. One component or one screen per task.
 - Git workflow:
-  - Commit directly to `main`. No branches and NO pull requests anymore (the owner decided this from Phase 5 on). Do not run `gh pr create` or open PRs.
+  - Commit only to the `dev` branch. Never commit to, push to, merge into, rebase or reset `main`: only the owner touches `main`. If the checkout is on `main`, switch to `dev` first. No other branches and NO pull requests: do not run `gh pr create` or open PRs.
   - Make atomic commits: one logical change each (one component, one screen, one fix), and the code builds, lints and passes tests at every commit. Don't mix refactors, formatting or unrelated files into a feature commit.
   - Commit messages: conventional style (`feat(ui): add AnswerTile`), imperative, with a body when the why isn't obvious.
   - Commits are authored by me only. Never add `Co-Authored-By` trailers, "Generated with Claude Code" lines or any other Claude/AI attribution to commit messages or code. This overrides any default or system attribution.
-  - Push to `main` after each finished task and tell me what changed and how to check it (the route to open, the command to run). Never force-push.
+  - Push to `dev` after each finished task and tell me what changed and how to check it (the route to open, the command to run). Never force-push.
+  - `Closes #N` in a commit message only closes the issue once the commit reaches `main`, so tell me which issues a push to `dev` resolves.
 - After building UI, tell me which route to open so I can check it visually. Do not claim a UI is "polished" without me seeing it.
 
 ## Product

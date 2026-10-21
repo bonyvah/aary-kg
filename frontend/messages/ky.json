@@ -1,18 +1,4 @@
 {
-  "_todo_review": [
-    "host.live.nextGame",
-    "host.live.cancel",
-    "app.name",
-    "staff.login.title",
-    "design",
-    "common",
-    "player",
-    "staff",
-    "host",
-    "admin",
-    "contest",
-    "errorPage"
-  ],
   "app": {
     "name": "aary kg"
   },

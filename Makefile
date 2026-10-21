@@ -18,7 +18,17 @@ help: ## show this list
 
 # --- the whole stack -----------------------------------------------------------------------------
 
-up: ## start everything in Docker: Postgres, Redis, backend, web app (first run builds and installs, a few minutes)
+up: ## stop other containers, then start everything in Docker: Postgres, Redis, backend, web app (first run builds and installs, a few minutes)
+	@docker ps -q --filter label=com.docker.compose.project | xargs -r docker stop
+	@$(COMPOSE) up -d --wait
+	@$(COMPOSE) exec -T postgres psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='aary_test'" | grep -q 1 \
+		|| $(COMPOSE) exec -T postgres createdb -U postgres aary_test
+	@echo ""
+	@echo "  web app   http://localhost:$(FRONTEND_PORT)"
+	@echo "  API docs  http://localhost:$(BACKEND_PORT)/docs"
+
+build: ## stop other containers, then start everything in Docker: Postgres, Redis, backend, web app (first run builds and installs, a few minutes)
+	@docker ps -q --filter label=com.docker.compose.project | xargs -r docker stop
 	@$(COMPOSE) up -d --build --wait
 	@$(COMPOSE) exec -T postgres psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='aary_test'" | grep -q 1 \
 		|| $(COMPOSE) exec -T postgres createdb -U postgres aary_test

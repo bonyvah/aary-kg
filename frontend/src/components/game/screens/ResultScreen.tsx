@@ -30,6 +30,7 @@ export function ResultScreen({ question, selected, reveal, onLeave }: ResultScre
   const points = useCountUp(reveal.points);
   const isCorrect = selected === reveal.correct;
   const status = selected === null ? "timeUp" : isCorrect ? "correct" : "wrong";
+  const texts = question.answers;
 
   return (
     <PlayerScreen
@@ -49,21 +50,31 @@ export function ResultScreen({ question, selected, reveal, onLeave }: ResultScre
           {t(`result.${status}`)}
         </p>
       </div>
-      <div className="mt-auto grid grid-cols-2 gap-4 pb-2">
+      <div className={cx("mt-auto grid gap-4 pb-2", texts ? "grid-cols-1" : "grid-cols-2")}>
         {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) => {
-          const common = {
-            shapeOnly: true,
-            position,
-            className: lastTileSpan(index, shown.length),
-            "aria-label": tc(`answerShape.${shape}`),
-          } as const;
-          if (position === reveal.correct) {
-            return <AnswerTile key={position} {...common} result="ok" resultLabel={t("result.correct")} />;
+          const mark =
+            position === reveal.correct
+              ? ({ result: "ok", resultLabel: t("result.correct") } as const)
+              : position === selected
+                ? ({ result: "no", resultLabel: t("result.wrong") } as const)
+                : ({ dim: true } as const);
+          if (texts) {
+            return (
+              <AnswerTile key={position} position={position} {...mark}>
+                {texts[position - 1]}
+              </AnswerTile>
+            );
           }
-          if (position === selected) {
-            return <AnswerTile key={position} {...common} result="no" resultLabel={t("result.wrong")} />;
-          }
-          return <AnswerTile key={position} {...common} dim />;
+          return (
+            <AnswerTile
+              key={position}
+              shapeOnly
+              position={position}
+              className={lastTileSpan(index, shown.length)}
+              aria-label={tc(`answerShape.${shape}`)}
+              {...mark}
+            />
+          );
         })}
       </div>
     </PlayerScreen>

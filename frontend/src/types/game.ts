@@ -1,5 +1,6 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import type { Character } from "@/components/game/avatar/characters";
+import type { AnswerTexts } from "./quiz";
 
 /** Shape of a player in a live game. Mock data uses it now, the API will return the same. */
 export type Player = {
@@ -58,6 +59,8 @@ export type PlayerQuestion = {
   seconds: number;
   /** The shapes that have an answer: a question can have two or three, and the rest are not shown. */
   positions: AnswerPosition[];
+  /** The answer texts, only when the host shows them on the players' screens. */
+  answers?: AnswerTexts;
 };
 
 /** Sent only after the question closed. */

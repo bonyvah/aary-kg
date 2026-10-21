@@ -21,6 +21,7 @@ check("a valid quiz is read with its title", plain.ok && plain.title === "Math" 
 check("a fenced reply with text around it is read", parseQuizJson("Here it is:\n```json\n" + quiz + "\n```\nGood luck!", 100).ok);
 check("the questions array alone is read, with no title", (() => { const r = parseQuizJson(JSON.stringify([question]), 100); return r.ok && r.title === null; })());
 check("seconds is optional and defaults to 20", (() => { const r = parseQuizJson(JSON.stringify([{ ...question, seconds: undefined }]), 100); return r.ok && r.questions[0]?.seconds === 20; })());
+check("readSeconds is optional and defaults to 3, or is kept", (() => { const r = parseQuizJson(JSON.stringify([question, { ...question, readSeconds: 10 }]), 100); return r.ok && r.questions[0]?.readSeconds === 3 && r.questions[1]?.readSeconds === 10; })());
 check("two answers are padded to four tiles", (() => { const r = parseQuizJson(JSON.stringify([{ ...question, answers: ["Yes", "No"], correct: 1 }]), 100); return r.ok && r.questions[0]?.answers.join("|") === "Yes|No||"; })());
 check("texts are trimmed", (() => { const r = parseQuizJson(JSON.stringify([{ ...question, text: "  Q  " }]), 100); return r.ok && r.questions[0]?.text === "Q"; })());
 
@@ -32,6 +33,7 @@ check("one answer is too few, five too many", codes(JSON.stringify([{ ...questio
 check("blank answer", codes(JSON.stringify([{ ...question, answers: ["a", " ", "c", "d"] }])) === "ANSWER_INVALID@1");
 check("correct must point at an answer, 1-based", codes(JSON.stringify([{ ...question, correct: 0 }, { ...question, answers: ["a", "b"], correct: 3 }, { ...question, correct: "2" }])) === "CORRECT_INVALID@1,CORRECT_INVALID@2,CORRECT_INVALID@3");
 check("seconds outside 5 to 300", codes(JSON.stringify([{ ...question, seconds: 2 }, { ...question, seconds: 301 }])) === "SECONDS_INVALID@1,SECONDS_INVALID@2");
+check("readSeconds outside 3 to 10", codes(JSON.stringify([{ ...question, readSeconds: 2 }, { ...question, readSeconds: 11 }])) === "READ_SECONDS_INVALID@1,READ_SECONDS_INVALID@2");
 check("too long texts", codes(JSON.stringify([{ ...question, text: "x".repeat(501) }, { ...question, answers: ["a", "x".repeat(201)], correct: 1 }])) === "TEXT_TOO_LONG@1,ANSWER_TOO_LONG@2");
 check("title must be a string", codes(JSON.stringify({ title: 5, questions: [question] })) === "TITLE_INVALID");
 check("all or nothing: one bad question fails the import", !parseQuizJson(JSON.stringify([question, null]), 100).ok);
@@ -48,6 +50,15 @@ const loaded = initialEditorState({ id: "q1", title: "", status: "draft", questi
 const afterLoaded = editorReducer(loaded, imported);
 check("a saved question is kept in front, its id not reused", afterLoaded.quiz.questions[0]?.id === "question-2" && afterLoaded.quiz.questions[1]?.id !== "question-2");
 check("nothing to import changes nothing", editorReducer(fresh, { ...imported, questions: [] }) === fresh);
+
+// A new question takes the times of the one before it.
+const filled = editorReducer(
+  editorReducer(editorReducer(editorReducer(initialEditorState(blankQuiz()), { type: "QUESTION_TEXT_CHANGED", text: "Q" }), { type: "ANSWER_TEXT_CHANGED", position: 1, text: "a" }), { type: "ANSWER_TEXT_CHANGED", position: 2, text: "b" }),
+  { type: "READ_SECONDS_CHANGED", seconds: 7 },
+);
+const added = editorReducer(filled, { type: "QUESTION_ADDED" });
+check("a new question starts with the reading time of the one before", added.quiz.questions.length === 2 && added.quiz.questions[1]?.readSeconds === 7);
+check("a new quiz reads for 3 seconds", blankQuiz().questions[0]?.readSeconds === 3);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

@@ -47,6 +47,7 @@ export function useQuizEditor(quiz: Quiz) {
     ),
     setCorrect: useCallback((position: AnswerPosition) => dispatch({ type: "CORRECT_CHANGED", position }), []),
     setSeconds: useCallback((seconds: number) => dispatch({ type: "SECONDS_CHANGED", seconds }), []),
+    setReadSeconds: useCallback((seconds: number) => dispatch({ type: "READ_SECONDS_CHANGED", seconds }), []),
     addQuestion: useCallback(() => dispatch({ type: "QUESTION_ADDED" }), []),
     removeQuestion: useCallback((id: string) => dispatch({ type: "QUESTION_REMOVED", id }), []),
     importQuestions: useCallback(

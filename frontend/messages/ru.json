@@ -161,6 +161,7 @@
       "correctGroup": "Правильный ответ",
       "correctOption": "Отметить правильным: {shape}",
       "timeLabel": "Время на ответ",
+      "readLabel": "Время на чтение",
       "timeOption": "{seconds} сек",
       "customTimeLabel": "Другое время",
       "errors": {
@@ -199,7 +200,8 @@
           "ANSWER_INVALID": "Вопрос {question}: есть пустой ответ.",
           "ANSWER_TOO_LONG": "Вопрос {question}: ответ длиннее 200 символов.",
           "CORRECT_INVALID": "Вопрос {question}: «correct» должен быть номером ответа, считая с 1.",
-          "SECONDS_INVALID": "Вопрос {question}: «seconds» должно быть от 5 до 300."
+          "SECONDS_INVALID": "Вопрос {question}: «seconds» должно быть от 5 до 300.",
+          "READ_SECONDS_INVALID": "Вопрос {question}: «readSeconds» должно быть от 3 до 10."
         }
       }
     },

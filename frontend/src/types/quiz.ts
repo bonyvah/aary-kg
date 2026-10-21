@@ -13,6 +13,8 @@ export type QuizQuestion = {
   correct: AnswerPosition;
   /** Time to answer, in seconds. */
   seconds: number;
+  /** Time to read the question and its answers before they open, in seconds (3 to 10). */
+  readSeconds: number;
 };
 
 export type Quiz = {

@@ -1,6 +1,13 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import type { AnswerTexts, QuizQuestion } from "@/types/quiz";
-import { DEFAULT_SECONDS, MAX_SECONDS, MIN_SECONDS } from "@/lib/quizEditor/reducer";
+import {
+  DEFAULT_READ_SECONDS,
+  DEFAULT_SECONDS,
+  MAX_READ_SECONDS,
+  MAX_SECONDS,
+  MIN_READ_SECONDS,
+  MIN_SECONDS,
+} from "@/lib/quizEditor/reducer";
 
 /** The server's limits (backend/app/schemas/quiz.py). */
 export const MAX_QUESTIONS = 100;
@@ -27,7 +34,8 @@ export type ImportErrorCode =
   | "ANSWER_INVALID"
   | "ANSWER_TOO_LONG"
   | "CORRECT_INVALID"
-  | "SECONDS_INVALID";
+  | "SECONDS_INVALID"
+  | "READ_SECONDS_INVALID";
 
 export type ImportResult =
   | { ok: true; title: string | null; questions: ImportedQuestion[] }
@@ -82,13 +90,23 @@ function parseQuestion(value: unknown, question: number, errors: ImportError[]):
     return fail("SECONDS_INVALID");
   }
 
+  const readSeconds = value.readSeconds ?? DEFAULT_READ_SECONDS;
+  if (
+    typeof readSeconds !== "number" ||
+    !Number.isInteger(readSeconds) ||
+    readSeconds < MIN_READ_SECONDS ||
+    readSeconds > MAX_READ_SECONDS
+  ) {
+    return fail("READ_SECONDS_INVALID");
+  }
+
   // A question with two or three answers leaves the last tiles empty, as the editor does.
   const padded = [...trimmed, "", "", ""].slice(0, ANSWER_SLOTS) as AnswerTexts;
-  return { text, answers: padded, correct: correct as AnswerPosition, seconds };
+  return { text, answers: padded, correct: correct as AnswerPosition, seconds, readSeconds };
 }
 
 /**
- * Reads quiz JSON pasted from a chat: `{ title?, questions: [{ text, answers, correct, seconds? }] }`,
+ * Reads quiz JSON pasted from a chat: `{ title?, questions: [{ text, answers, correct, seconds?, readSeconds? }] }`,
  * or the questions array alone. `room` is how many questions the quiz can still take.
  * All or nothing: one bad question and nothing is imported.
  */

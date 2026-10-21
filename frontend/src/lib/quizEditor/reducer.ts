@@ -5,6 +5,10 @@ export const SECONDS_OPTIONS = [10, 20, 30, 60] as const;
 export const DEFAULT_SECONDS = 20;
 export const MIN_SECONDS = 5;
 export const MAX_SECONDS = 300;
+export const READ_SECONDS_OPTIONS = [3, 5, 10] as const;
+export const DEFAULT_READ_SECONDS = 3;
+export const MIN_READ_SECONDS = 3;
+export const MAX_READ_SECONDS = 10;
 /** A question needs its text and at least this many filled answers before the next one is added. */
 export const MIN_FILLED_ANSWERS = 2;
 
@@ -28,6 +32,7 @@ export type EditorEvent =
   | { type: "ANSWER_TEXT_CHANGED"; position: AnswerPosition; text: string }
   | { type: "CORRECT_CHANGED"; position: AnswerPosition }
   | { type: "SECONDS_CHANGED"; seconds: number }
+  | { type: "READ_SECONDS_CHANGED"; seconds: number }
   | { type: "QUESTION_ADDED" }
   | { type: "QUESTION_REMOVED"; id: string }
   /** Questions from pasted JSON, added at the end. The title is used only while the quiz has none. */
@@ -60,7 +65,16 @@ export function blankQuiz(): Quiz {
     id: NEW_QUIZ_ID,
     title: "",
     status: "draft",
-    questions: [{ id: "question-1", text: "", answers: ["", "", "", ""], correct: 1, seconds: DEFAULT_SECONDS }],
+    questions: [
+      {
+        id: "question-1",
+        text: "",
+        answers: ["", "", "", ""],
+        correct: 1,
+        seconds: DEFAULT_SECONDS,
+        readSeconds: DEFAULT_READ_SECONDS,
+      },
+    ],
   };
 }
 
@@ -151,14 +165,17 @@ export function editorReducer(state: EditorState, event: EditorEvent): EditorSta
       return updateSelected(state, (q) => ({ ...q, correct: event.position }));
     case "SECONDS_CHANGED":
       return updateSelected(state, (q) => ({ ...q, seconds: event.seconds }));
+    case "READ_SECONDS_CHANGED":
+      return updateSelected(state, (q) => ({ ...q, readSeconds: event.seconds }));
     case "QUESTION_ADDED": {
       const current = state.quiz.questions.find((q) => q.id === state.selectedId);
       const missing = current ? missingForNext(current) : [];
       if (missing.length > 0) return { ...state, errors: new Set(missing), saveResult: "invalid" };
       const id = `question-${state.nextNumber}`;
-      // The new question starts with the time of the one before it.
+      // The new question starts with the times of the one before it.
       const seconds = current?.seconds ?? DEFAULT_SECONDS;
-      const blank: QuizQuestion = { id, text: "", answers: ["", "", "", ""], correct: 1, seconds };
+      const readSeconds = current?.readSeconds ?? DEFAULT_READ_SECONDS;
+      const blank: QuizQuestion = { id, text: "", answers: ["", "", "", ""], correct: 1, seconds, readSeconds };
       return {
         ...state,
         quiz: { ...state.quiz, questions: [...state.quiz.questions, blank] },

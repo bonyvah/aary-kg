@@ -161,6 +161,7 @@
       "correctGroup": "Туура жооп",
       "correctOption": "Туура жооп катары белгилөө: {shape}",
       "timeLabel": "Жооп берүү убактысы",
+      "readLabel": "Окуу убактысы",
       "timeOption": "{seconds} сек",
       "customTimeLabel": "Башка убакыт",
       "errors": {
@@ -199,7 +200,8 @@
           "ANSWER_INVALID": "{question}-суроо: бош жооп бар.",
           "ANSWER_TOO_LONG": "{question}-суроо: жооп 200 белгиден узун.",
           "CORRECT_INVALID": "{question}-суроо: «correct» жооптун номери болушу керек, 1ден баштап.",
-          "SECONDS_INVALID": "{question}-суроо: «seconds» 5тен 300гө чейин болушу керек."
+          "SECONDS_INVALID": "{question}-суроо: «seconds» 5тен 300гө чейин болушу керек.",
+          "READ_SECONDS_INVALID": "{question}-суроо: «readSeconds» 3төн 10го чейин болушу керек."
         }
       }
     },

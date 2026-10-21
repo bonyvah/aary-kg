@@ -10,7 +10,16 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
 import { useToast } from "@/components/ui/useToast";
 import { knownCode } from "@/lib/api/client";
-import { answerKey, MAX_SECONDS, MIN_SECONDS, SECONDS_OPTIONS, textKey } from "@/lib/quizEditor/reducer";
+import {
+  answerKey,
+  MAX_READ_SECONDS,
+  MAX_SECONDS,
+  MIN_READ_SECONDS,
+  MIN_SECONDS,
+  READ_SECONDS_OPTIONS,
+  SECONDS_OPTIONS,
+  textKey,
+} from "@/lib/quizEditor/reducer";
 import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
@@ -62,6 +71,10 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const secondsOptions = Array.from(
     new Set([...SECONDS_OPTIONS, ...customSeconds.popular, ...state.quiz.questions.map((q) => q.seconds)]),
   )
+    .sort((a, b) => a - b)
+    .map((seconds) => ({ value: seconds, label: String(seconds) }));
+  // Reading time: the presets and the times already in this quiz.
+  const readOptions = Array.from(new Set([...READ_SECONDS_OPTIONS, ...state.quiz.questions.map((q) => q.readSeconds)]))
     .sort((a, b) => a - b)
     .map((seconds) => ({ value: seconds, label: String(seconds) }));
   // The blank question a new quiz starts with is replaced by an import, so it takes no room.
@@ -146,6 +159,20 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
                 min: MIN_SECONDS,
                 max: MAX_SECONDS,
                 onCommit: chooseSeconds,
+              }}
+            />
+            <Dropdown
+              label={t("readLabel")}
+              wrapperClassName="w-full max-w-[240px]"
+              value={question.readSeconds}
+              options={readOptions}
+              selectedLabel={t("timeOption", { seconds: question.readSeconds })}
+              onChange={editor.setReadSeconds}
+              custom={{
+                label: t("customTimeLabel"),
+                min: MIN_READ_SECONDS,
+                max: MAX_READ_SECONDS,
+                onCommit: editor.setReadSeconds,
               }}
             />
             <Button

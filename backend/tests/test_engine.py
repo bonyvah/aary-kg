@@ -248,16 +248,16 @@ async def test_the_correct_answer_is_not_sent_before_the_reveal(env):
 async def test_answers_score_by_speed_and_the_last_answer_closes_the_question(env):
     state, host, [aida, bek, chol], feeds = await new_game(env)
     await env.engine.start(state.id)
-    await env.engine.answer(state.id, aida.id, 1)  # right (q1 -> 1)
-    await asyncio.sleep(0.2)
+    await env.engine.answer(state.id, aida.id, 1)  # right (q1 -> 1), within the first half second
+    await asyncio.sleep(0.7)
     await env.engine.answer(state.id, bek.id, 1)  # right, slower
     await env.engine.answer(state.id, chol.id, 3)  # wrong: the last answer closes the question
     assert (await env.repo.get_game(state.id)).phase == "counts"
     await settle()
 
     scores = {p.id: p.score for p in await env.repo.get_players(state.id)}
-    assert 990 <= scores[aida.id] <= 1000
-    assert scores[aida.id] > scores[bek.id] >= 990 - 25  # 0.2 s of 20 s costs about 5 points
+    assert scores[aida.id] == 1000
+    assert scores[aida.id] > scores[bek.id] >= 990  # 0.2 s past the full-points window of 20 s: ~5 points
     assert scores[chol.id] == 0
     closed = {i: of(feeds[i], "question.closed")[0] for i in range(3)}
     assert closed[0]["reveal"] == {"correct": 1, "points": scores[aida.id]}

@@ -458,12 +458,12 @@ async def test_the_clients_own_time_is_ignored(room):
     await pa.wait("state")
     await host.send(type="start")
     await pa.wait("question.started")
-    await asyncio.sleep(0.15)
+    await asyncio.sleep(0.8)  # past the first half second, which scores the full 1000 anyway
     # claims to have answered instantly: the server never reads these fields
     await pa.raw(json.dumps({"v": 1, "type": "answer", "position": 1, "ms": 0, "at": 0, "time": 0}))
     closed = await pa.wait("question.closed")
     answers_ms = await ws_module.get_engine().repo.get_answers(room.game["gameId"], 0)
-    assert answers_ms[a["player"]["id"]]["ms"] >= 100
+    assert answers_ms[a["player"]["id"]]["ms"] >= 600
     assert closed["reveal"]["points"] < 1000
 
 

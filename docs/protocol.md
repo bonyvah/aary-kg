@@ -57,7 +57,7 @@ To the host: `host.state` (with `settings {showAnswers, scoring}`), `settings {s
 A `question` for players is `{index (from 1), total, text, seconds, positions}`; `positions` lists the shapes that have an answer (a question can have two or three), and an `answer` for any other shape is refused with `ANSWER_INVALID`. For the host it also has `answers`.
 
 ## Scoring
-A correct answer scores `500 + 500 x (time left / time allowed)`, so 500 to 1000. A wrong or missing answer scores 0. Time left is measured by the server. The leaderboard orders by score, then by the total time of the correct answers (faster first), then by nickname: there are no tied ranks, so the podium always has a first, second and third.
+Speed scoring (the default): a correct answer in the first 0.5 s scores 1000, then the points fall evenly to 500 at the buzzer. A wrong or missing answer scores 0. The time is measured by the server, minus the measured round trip to the phone (at most 300 ms). The leaderboard orders by score, then by the total time of the correct answers (faster first), then by nickname: there are no tied ranks, so the podium always has a first, second and third. Flat scoring: 1 per correct answer, time counts for nothing, and equal scores share the place.
 
 ## Anti-cheat
 - **Nicknames** are trimmed, 1 to 20 characters, no invisible characters. They are compared by a "skeleton" (case, spaces, punctuation and Cyrillic look-alikes of Latin letters ignored), so "Alex" and "Аlех" are the same name. Names containing "admin", "host", "ведущий" ... (look-alikes and digit swaps included) or words from `nickname_blocklist.txt` are refused. Extend that file for the community.

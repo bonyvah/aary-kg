@@ -26,7 +26,8 @@ log = logging.getLogger(__name__)
 MAX_PLAYERS = 200
 # The question closes this long after its deadline, so answers that were in flight still count.
 TIMER_GRACE_MS = 400
-# Answer times are reduced by the measured one-way delay, but never by more than this.
+# Answer times are reduced by the measured delay both ways (the question going out to the phone, the
+# answer coming back), but never by more than this: a phone can't fake a slow line to gain much.
 MAX_LATENCY_MS = 300
 LEADERBOARD_TOP = 5
 PODIUM = 3
@@ -589,8 +590,9 @@ class GameEngine:
         if now - latency > state.deadline_ms:
             raise GameError("ANSWER_CLOSED")
         total_ms = state.deadline_ms - state.question_started_ms
-        # The client's clock is never read: only when the server got the answer, minus the delay.
-        elapsed = min(max(0, now - state.question_started_ms - latency), total_ms)
+        # The client's clock is never read: only when the server got the answer, minus the round trip.
+        round_trip = min(2 * latency, MAX_LATENCY_MS)
+        elapsed = min(max(0, now - state.question_started_ms - round_trip), total_ms)
         rnd = state.round
         if not await self.repo.put_answer(
             game_id, rnd, player_id, {"position": position, "ms": elapsed, "at": now}

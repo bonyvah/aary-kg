@@ -8,11 +8,17 @@ from app.game import anticheat, characters, nicknames, scoring
 def test_points_range_and_speed():
     assert scoring.points(True, 20_000, 20_000) == 1000  # answered at once
     assert scoring.points(True, 0, 20_000) == 500  # answered at the buzzer
-    assert scoring.points(True, 10_000, 20_000) == 750
+    assert scoring.points(True, 10_000, 20_000) == 756  # 500 + 500 * 10 000 / 19 500
     assert scoring.points(False, 20_000, 20_000) == 0
-    # same shape for every allowed time: 500 + 500 * share of time left
-    assert scoring.points(True, 5_000, 10_000) == 750
-    assert scoring.points(True, 15_000, 60_000) == 625
+    # same shape for every allowed time: after the first half second, evenly down to 500
+    assert scoring.points(True, 5_000, 10_000) == 763
+    assert scoring.points(True, 15_000, 60_000) == 626
+
+
+def test_the_first_half_second_scores_the_full_1000():
+    assert scoring.points(True, 20_000 - 500, 20_000) == 1000
+    assert scoring.points(True, 5_000 - 500, 5_000) == 1000
+    assert scoring.points(True, 20_000 - 520, 20_000) == 999  # and then it falls, without a jump
 
 
 def test_points_clamps_out_of_range_time():

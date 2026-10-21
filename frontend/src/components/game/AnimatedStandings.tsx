@@ -7,9 +7,10 @@ import { LeaderboardRow } from "./LeaderboardRow";
 
 /** How long the old places stay on screen before anything moves. */
 const HOLD_MS = 600;
-// Slower than the design system's 150-250ms on purpose: the room watches the scores climb.
+// Slower than the design system's 150-250ms on purpose: the room watches the scores climb and the
+// places change.
 const COUNT_MS = 1200;
-const MOTION_MS = 250;
+const MOVE_MS = 800;
 
 /** Changes whenever the standings do, as a `key` that plays the animation again. */
 export const standingsKey = (rows: readonly Standing[]) => rows.map((row) => `${row.id}:${row.score}`).join();
@@ -85,8 +86,8 @@ export function AnimatedStandings({ rows, previous, badge, className }: Animated
       const delta = from - el.getBoundingClientRect().top;
       if (delta !== 0) {
         el.animate([{ transform: `translateY(${delta}px)` }, { transform: "none" }], {
-          duration: MOTION_MS,
-          easing: "ease-out",
+          duration: MOVE_MS,
+          easing: "ease-in-out",
         });
       }
     }

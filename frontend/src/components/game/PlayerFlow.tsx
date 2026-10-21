@@ -74,10 +74,12 @@ export function PlayerFlow() {
     }
   }
 
+  // No selecting text or long-press menu on the player's screens (copying a question out is not
+  // the game). The PIN and nickname fields stay selectable: iOS can't type into them otherwise.
   return (
-    <>
+    <div className="select-none [-webkit-touch-callout:none] [&_input]:select-text">
       {screen()}
       {flow.guard.blocked ? <FullscreenGate onEnter={flow.guard.enter} /> : null}
-    </>
+    </div>
   );
 }

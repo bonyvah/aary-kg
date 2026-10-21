@@ -7,6 +7,8 @@ import { LeaderboardRow } from "./LeaderboardRow";
 
 /** How long the old places stay on screen before anything moves. */
 const HOLD_MS = 600;
+// Slower than the design system's 150-250ms on purpose: the room watches the scores climb.
+const COUNT_MS = 1200;
 const MOTION_MS = 250;
 
 /** Changes whenever the standings do, as a `key` that plays the animation again. */
@@ -57,8 +59,8 @@ export function AnimatedStandings({ rows, previous, badge, className }: Animated
     const countUp = window.setTimeout(() => {
       const begin = performance.now();
       const step = (now: number) => {
-        const p = Math.min(1, (now - begin) / MOTION_MS);
-        setProgress(p);
+        const p = Math.min(1, (now - begin) / COUNT_MS);
+        setProgress(1 - (1 - p) ** 3); // ease-out: fast at first, settling on the new score
         if (p < 1) frame = requestAnimationFrame(step);
       };
       frame = requestAnimationFrame(step);
@@ -66,7 +68,7 @@ export function AnimatedStandings({ rows, previous, badge, className }: Animated
     const move = window.setTimeout(() => {
       for (const [id, el] of elements.current) tops.current.set(id, el.getBoundingClientRect().top);
       setMoved(true);
-    }, HOLD_MS + MOTION_MS);
+    }, HOLD_MS + COUNT_MS);
     return () => {
       window.clearTimeout(countUp);
       window.clearTimeout(move);

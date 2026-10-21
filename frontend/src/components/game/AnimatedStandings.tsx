@@ -9,7 +9,7 @@ import { LeaderboardRow } from "./LeaderboardRow";
 const HOLD_MS = 600;
 // Slower than the design system's 150-250ms on purpose: the room watches the scores climb and the
 // places change.
-const COUNT_MS = 1200;
+const COUNT_MS = 800;
 const MOVE_MS = 800;
 
 /** Changes whenever the standings do, as a `key` that plays the animation again. */
@@ -27,8 +27,8 @@ type AnimatedStandingsProps = {
 };
 
 /**
- * A leaderboard that starts on the places of the round before, counts the scores up, then moves the
- * rows to their new places. Rows not in `previous` come in from below with their score as is.
+ * A leaderboard that starts on the places of the round before, then counts the scores up while the
+ * rows move to their new places. Rows not in `previous` come in from below with their score as is.
  * Remount it (a new `key`) to play it again.
  */
 export function AnimatedStandings({ rows, previous, badge, className }: AnimatedStandingsProps) {
@@ -69,7 +69,7 @@ export function AnimatedStandings({ rows, previous, badge, className }: Animated
     const move = window.setTimeout(() => {
       for (const [id, el] of elements.current) tops.current.set(id, el.getBoundingClientRect().top);
       setMoved(true);
-    }, HOLD_MS + COUNT_MS);
+    }, HOLD_MS); // together with the count-up
     return () => {
       window.clearTimeout(countUp);
       window.clearTimeout(move);

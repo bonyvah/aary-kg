@@ -75,6 +75,13 @@ class End(_In):
     type: Literal["end"]
 
 
+class Settings(_In):
+    """Host, in the lobby: how this game is played. A field left out keeps its value."""
+
+    type: Literal["settings"]
+    show_answers: bool | None = None
+
+
 Ruling = Literal["kick", "zero", "void_last", "mercy"]
 
 
@@ -87,7 +94,7 @@ class Rule(_In):
 
 
 PlayerMessage = Annotated[Hello | Answer | Signal | Pong | SetCharacter, Field(discriminator="type")]
-HostMessage = Annotated[Start | Next | Kick | End | Rule, Field(discriminator="type")]
+HostMessage = Annotated[Start | Next | Kick | End | Rule | Settings, Field(discriminator="type")]
 
 _player = TypeAdapter(PlayerMessage)
 _host = TypeAdapter(HostMessage)
@@ -100,7 +107,7 @@ def parse_player(data: Any) -> Hello | Answer | Signal | Pong | SetCharacter | N
         return None
 
 
-def parse_host(data: Any) -> Start | Next | Kick | End | Rule | None:
+def parse_host(data: Any) -> Start | Next | Kick | End | Rule | Settings | None:
     try:
         return _host.validate_python(data)
     except ValidationError:
@@ -134,12 +141,19 @@ class PlayerQuestion(CamelModel):
     seconds: int
     # Which of the four shapes have an answer. A question can have two or three: the rest are not shown.
     positions: list[int] = [1, 2, 3, 4]
+    # The four answer texts, only when the host shows them on the players' screens (otherwise the key
+    # is not sent at all). Never which one is right.
+    answers: list[str] | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class HostQuestion(PlayerQuestion):
     """The host screen also shows the four answer texts (triangle, diamond, circle, square)."""
 
     answers: list[str]
+
+
+class GameSettings(CamelModel):
+    show_answers: bool
 
 
 class Reveal(CamelModel):
@@ -186,6 +200,7 @@ class HostStateEvent(_Out):
     game_id: str
     pin: str
     phase: Phase
+    settings: GameSettings
     total: int
     players: list[PlayerPublic]
     question: HostQuestion | None = None
@@ -195,6 +210,11 @@ class HostStateEvent(_Out):
     correct: Position | None = None
     standings: list[Standing] | None = None
     cheaters: list[Cheater] | None = None
+
+
+class SettingsUpdated(_Out):
+    type: Literal["settings"] = "settings"
+    settings: GameSettings
 
 
 class LobbyUpdated(_Out):

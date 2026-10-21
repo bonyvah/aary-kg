@@ -29,6 +29,8 @@ class GameState:
     deadline_ms: int = 0
     finished_ms: int = 0
     next_id: str = ""  # the game the host went on to with the same players, after the podium
+    # Chosen by the host in the lobby.
+    show_answers: bool = False  # the answer texts on the players' screens too, not only the shapes
 
     def dump(self) -> dict[str, Any]:
         return asdict(self)

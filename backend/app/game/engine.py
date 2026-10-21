@@ -83,7 +83,12 @@ class GameEngine:
             text=q["text"],
             seconds=q["seconds"],
             positions=self._positions(q),
+            answers=list(q["answers"]) if state.show_answers else None,
         )
+
+    @staticmethod
+    def _settings(state: GameState) -> p.GameSettings:
+        return p.GameSettings(show_answers=state.show_answers)
 
     @staticmethod
     def _positions(question: dict[str, Any]) -> list[int]:
@@ -140,7 +145,14 @@ class GameEngine:
             if not await self.repo.move_pin(pin, game_id, new_id):
                 pin = await self.repo.reserve_pin(new_id)
             now = await self.repo.now_ms()
-            state = GameState(id=new_id, owner_id=owner_id, quiz_id=str(quiz["id"]), pin=pin, created_ms=now)
+            state = GameState(
+                id=new_id,
+                owner_id=owner_id,
+                quiz_id=str(quiz["id"]),
+                pin=pin,
+                created_ms=now,
+                show_answers=old.show_answers,  # the same room, played the same way
+            )
             await self.repo.create_game(state, quiz)
             await self.audit(
                 new_id, "game.created", at=now, owner=owner_id, quiz=state.quiz_id, after=game_id
@@ -204,6 +216,18 @@ class GameEngine:
         await self.repo.save_players(game_id, [player])
         await self._lobby_updated(game_id)
 
+    async def settings(self, game_id: str, show_answers: bool | None = None) -> None:
+        """Host, in the lobby: how this game is played. Fixed once it starts."""
+        async with self.repo.lock(game_id):
+            state = await self._game(game_id)
+            if state.phase != "lobby":
+                raise GameError("INVALID_STATE")
+            if show_answers is not None:
+                state.show_answers = show_answers
+            await self.repo.save_game(state)
+            await self.audit(game_id, "game.settings", show_answers=state.show_answers)
+        await self._emit(game_id, "host", p.SettingsUpdated(settings=self._settings(state)))
+
     async def kick(self, game_id: str, player_id: str) -> None:
         player = await self.repo.get_player(game_id, player_id)
         if player is None:
@@ -255,6 +279,7 @@ class GameEngine:
             game_id=state.id,
             pin=state.pin,
             phase=state.phase,
+            settings=self._settings(state),
             total=len(quiz["questions"]),
             players=self._public(players),
         )

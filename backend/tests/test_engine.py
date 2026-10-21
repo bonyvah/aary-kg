@@ -720,3 +720,37 @@ async def test_the_next_game_gets_a_new_pin_when_the_old_one_was_given_away(env)
     nxt = await env.engine.next_game(state.id, "owner-1", make_quiz(), token_for)
     assert nxt.pin != state.pin and (await env.engine.lookup_pin(nxt.pin)).id == nxt.id
     assert await env.repo.game_id_for_pin(state.pin) == "another-game"
+
+
+# --- game settings --------------------------------------------------------------------------
+
+
+async def test_players_get_the_answer_texts_only_when_the_host_shows_them(env):
+    state, host, (aida, *_), feeds = await new_game(env)
+    await env.engine.start(state.id)
+    await settle()
+    assert "answers" not in of(feeds[0], "question.started")[0]["question"]
+
+    state, host, (aida, *_), feeds = await new_game(env, players=("Dana",))
+    await env.engine.settings(state.id, show_answers=True)
+    await settle()
+    assert of(host, "settings")[-1]["settings"] == {"showAnswers": True}
+    assert (await env.engine.host_snapshot(state.id)).settings.show_answers is True
+    await env.engine.start(state.id)
+    await settle()
+    question = of(feeds[0], "question.started")[0]["question"]
+    assert question["answers"] == ["a", "b", "c", "d"] and "correct" not in question
+    snap = await env.engine.player_snapshot(state.id, aida.id)
+    assert snap.question.answers == ["a", "b", "c", "d"]
+
+
+async def test_settings_are_fixed_once_the_game_starts_and_go_on_to_the_next_game(env):
+    state, *_ = await new_game(env)
+    await env.engine.settings(state.id, show_answers=True)
+    await env.engine.start(state.id)
+    with pytest.raises(GameError) as e:
+        await env.engine.settings(state.id, show_answers=False)
+    assert e.value.code == "INVALID_STATE"
+    await env.engine.end(state.id)
+    nxt = await env.engine.next_game(state.id, "owner-1", make_quiz(), token_for)
+    assert nxt.show_answers is True

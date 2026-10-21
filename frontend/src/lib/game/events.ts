@@ -45,7 +45,9 @@ export type Cheater = { playerId: string; nickname: string; flags: { kind: strin
 export type Ruling = "kick" | "zero" | "void_last" | "mercy";
 
 /** How the host chose to play this game, in the lobby. */
-export type GameSettings = { showAnswers: boolean };
+/** `flat`: 1 point per right answer, however long it took, and equal scores share the place. */
+export type Scoring = "speed" | "flat";
+export type GameSettings = { showAnswers: boolean; scoring: Scoring };
 
 export type HostEvent =
   | {
@@ -82,7 +84,7 @@ export type PlayerMessage =
   | { type: "character.set"; character: Character };
 
 export type HostMessage =
-  | { type: "settings"; showAnswers?: boolean }
+  | { type: "settings"; showAnswers?: boolean; scoring?: Scoring }
   | { type: "start" }
   /** `fromPhase`: the screen it was pressed on. The server ignores a press that is out of date. */
   | { type: "next"; fromPhase: "question" | "counts" | "leaderboard" }

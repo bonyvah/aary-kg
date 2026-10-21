@@ -80,6 +80,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
             players={state.players}
             settings={state.settings}
             onShowAnswers={flow.setShowAnswers}
+            onScoring={flow.setScoring}
             onKick={flow.kick}
             onStart={flow.start}
           />

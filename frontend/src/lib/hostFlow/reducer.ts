@@ -43,7 +43,7 @@ export const initialHostState: HostState = {
   pin: "",
   round: 0,
   totalQuestions: 0,
-  settings: { showAnswers: false },
+  settings: { showAnswers: false, scoring: "speed" },
   players: [],
   question: null,
   secondsLeft: 0,

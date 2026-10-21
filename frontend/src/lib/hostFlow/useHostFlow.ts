@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createGame, createNextGame, getHostTicket } from "@/lib/api/games";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
-import type { HostEvent, HostMessage, Ruling } from "@/lib/game/events";
+import type { HostEvent, HostMessage, Ruling, Scoring } from "@/lib/game/events";
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
 import type { Quiz } from "@/types/quiz";
 import { readHostGame, writeHostGame, type HostGame } from "./hostGame";
@@ -109,6 +109,7 @@ export function useHostFlow(quiz: Quiz) {
     }, []),
     start: useCallback(() => send({ type: "start" }), [send]),
     setShowAnswers: useCallback((showAnswers: boolean) => send({ type: "settings", showAnswers }), [send]),
+    setScoring: useCallback((scoring: Scoring) => send({ type: "settings", scoring }), [send]),
     /** The host's «continue»: close the question, show the leaderboard, go to the next question or the end. */
     advance: useCallback(() => {
       // Says which screen the button was on, so a double click doesn't skip the next one.

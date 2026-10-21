@@ -547,20 +547,23 @@ async def test_ending_in_the_lobby_closes_it_and_saves_nothing(env):
 
 
 def test_leaderboard_ties_go_to_the_faster_player_then_the_name():
-    from app.game.models import PlayerState
+    from app.game.models import GameState, PlayerState
 
     def pl(pid, name, score, time_ms):
         return PlayerState(id=pid, nickname=name, character={}, score=score, time_ms=time_ms)
 
-    ranked = GameEngine._standings(
-        [
-            pl("1", "Zed", 900, 5000),
-            pl("2", "Amy", 900, 3000),
-            pl("3", "Bob", 900, 3000),
-            pl("4", "Top", 1500, 9000),
-        ]
-    )
+    players = [
+        pl("1", "Zed", 900, 5000),
+        pl("2", "Amy", 900, 3000),
+        pl("3", "Bob", 900, 3000),
+        pl("4", "Top", 1500, 9000),
+    ]
+    game = GameState(id="g", owner_id="o", quiz_id="q", pin="123456")
+    ranked = GameEngine._standings(game, players)
     assert [(s.nickname, s.rank) for s in ranked] == [("Top", 1), ("Amy", 2), ("Bob", 3), ("Zed", 4)]
+    game.scoring = "flat"  # nobody is rushed: no time tie-break, the same score is the same place
+    ranked = GameEngine._standings(game, players)
+    assert [(s.nickname, s.rank) for s in ranked] == [("Top", 1), ("Amy", 2), ("Bob", 2), ("Zed", 2)]
 
 
 # --- reconnecting ---------------------------------------------------------------------------
@@ -734,7 +737,7 @@ async def test_players_get_the_answer_texts_only_when_the_host_shows_them(env):
     state, host, (aida, *_), feeds = await new_game(env, players=("Dana",))
     await env.engine.settings(state.id, show_answers=True)
     await settle()
-    assert of(host, "settings")[-1]["settings"] == {"showAnswers": True}
+    assert of(host, "settings")[-1]["settings"] == {"showAnswers": True, "scoring": "speed"}
     assert (await env.engine.host_snapshot(state.id)).settings.show_answers is True
     await env.engine.start(state.id)
     await settle()
@@ -754,3 +757,32 @@ async def test_settings_are_fixed_once_the_game_starts_and_go_on_to_the_next_gam
     await env.engine.end(state.id)
     nxt = await env.engine.next_game(state.id, "owner-1", make_quiz(), token_for)
     assert nxt.show_answers is True
+
+
+def test_places_are_shared_only_in_flat_scoring():
+    from app.game.scoring import places
+
+    assert places([5, 5, 3, 3, 1], shared=True) == [1, 1, 3, 3, 5]
+    assert places([5, 5, 3], shared=False) == [1, 2, 3]
+    assert places([], shared=True) == []
+
+
+async def test_flat_scoring_gives_one_point_per_right_answer_and_shares_the_place(env):
+    state, host, (aida, bek, chol), feeds = await new_game(env, n=2)
+    await env.engine.settings(state.id, scoring="flat")
+    await settle()
+    assert of(host, "settings")[-1]["settings"] == {"showAnswers": False, "scoring": "flat"}
+    await env.engine.start(state.id)
+    await env.engine.answer(state.id, bek.id, 1)  # Bek first, Aida later: speed counts for nothing
+    await env.repo.r.hset(f"game:{state.id}:ans:0", aida.id, '{"position": 1, "ms": 19000, "at": 0}')
+    await env.engine.answer(state.id, chol.id, 2)  # wrong
+    await settle()
+    results = await env.repo.get_results(state.id, 0)
+    assert {pid: r["points"] for pid, r in results.items()} == {aida.id: 1, bek.id: 1, chol.id: 0}
+    await env.engine.next(state.id)
+    standings = of(host, "leaderboard")[-1]["standings"]
+    assert [(s["nickname"], s["rank"], s["score"]) for s in standings] == [
+        ("Aida", 1, 1),
+        ("Bek", 1, 1),  # the same place, listed by name
+        ("Cholpon", 3, 0),
+    ]

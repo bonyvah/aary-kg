@@ -359,3 +359,24 @@ async def test_unknown_game_and_player(finished):
     assert (
         await f.admin.post(f"/admin/games/{ghost}/players/{ghost}/adjust", json={"delta": 1})
     ).status_code == 404
+
+
+async def test_a_flat_game_stays_flat_when_corrected(client, as_user):
+    """1 point per right answer, and equal scores share the place, after an edit too."""
+    _, _, _, game = await make_game(as_user, n=2)
+    ids = {}
+    for name in ("Aida", "Bek", "Cholpon"):
+        ids[name] = (await join(client, game["pin"], name)).json()["player"]["id"]
+    await get_engine().settings(game["gameId"], scoring="flat")
+    await get_engine().start(game["gameId"])
+    await play_to_the_end(
+        game, [(ids["Aida"], [1, 2]), (ids["Bek"], [1, 4]), (ids["Cholpon"], [3])], started=True
+    )
+    await asyncio.sleep(0.15)
+    admin, _ = await as_user("root", role="admin")
+    url = f"/admin/games/{game['gameId']}"
+    ranks = lambda d: {p["nickname"]: (p["score"], p["rank"]) for p in d["players"]}  # noqa: E731
+    assert ranks((await admin.get(url)).json()) == {"Aida": (2, 1), "Bek": (1, 2), "Cholpon": (0, 3)}
+    # Bek's q2 counted as right after all: 1 point, and he shares first place with Aida
+    r = await admin.patch(f"{url}/players/{ids['Bek']}/answers/q2", json={"correct": True})
+    assert ranks(r.json()) == {"Aida": (2, 1), "Bek": (2, 1), "Cholpon": (0, 3)}

@@ -24,6 +24,8 @@ class Game(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     duration_seconds: Mapped[int] = mapped_column(Integer)
+    # "speed" or "flat" (see app/game/scoring.py): how the answers were scored and ties placed.
+    scoring: Mapped[str] = mapped_column(String(8), server_default="speed")
     # Everything that happened, with timestamps, for review after the game.
     audit: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
 

@@ -80,6 +80,7 @@ class Settings(_In):
 
     type: Literal["settings"]
     show_answers: bool | None = None
+    scoring: Literal["speed", "flat"] | None = None
 
 
 Ruling = Literal["kick", "zero", "void_last", "mercy"]
@@ -154,6 +155,7 @@ class HostQuestion(PlayerQuestion):
 
 class GameSettings(CamelModel):
     show_answers: bool
+    scoring: Literal["speed", "flat"]
 
 
 class Reveal(CamelModel):

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.errors import ApiError
 from app.game import nicknames
 from app.game.runtime import get_engine
+from app.game.scoring import places
 from app.models.game import Game, GamePlayer
 from app.models.user import User
 from app.schemas.game_admin import (
@@ -83,9 +84,11 @@ def _answers_sum(player: GamePlayer) -> int:
     return sum(int(a["points"]) for a in player.answers)
 
 
-def _recompute(players: list[GamePlayer]) -> None:
-    """Totals and ranks, the way the live game does them: score, then the time of the right answers,
-    then the name. Refuses a result that would leave anybody below zero."""
+def _recompute(game: Game, players: list[GamePlayer]) -> None:
+    """Totals and ranks, the way the live game does them: score, then (speed scoring) the time of the
+    right answers, then the name; in flat scoring equal scores share the place. Refuses a result that
+    would leave anybody below zero."""
+    flat = game.scoring == "flat"
     for p in players:
         p.score = _answers_sum(p) + p.adjustment
         if p.score < 0:
@@ -93,10 +96,11 @@ def _recompute(players: list[GamePlayer]) -> None:
         p.correct = sum(1 for a in p.answers if a["correct"])
 
     def key(p: GamePlayer) -> tuple[int, int, str, str]:
-        time_ms = sum(int(a["ms"]) for a in p.answers if a["correct"])
+        time_ms = 0 if flat else sum(int(a["ms"]) for a in p.answers if a["correct"])
         return (-p.score, time_ms, p.nickname.casefold(), str(p.id))
 
-    for rank, p in enumerate(sorted(players, key=key), start=1):
+    ordered = sorted(players, key=key)
+    for p, rank in zip(ordered, places([p.score for p in ordered], shared=flat), strict=True):
         p.rank = rank
 
 
@@ -110,7 +114,7 @@ async def adjust_score(
     player = _player(players, player_id)
     before = player.score
     player.adjustment += delta
-    _recompute(players)
+    _recompute(game, players)
     _log(game, admin, "adjust_score", player, delta=delta, before=before, after=player.score)
     await session.commit()
     return await detail(session, game_id)
@@ -125,7 +129,7 @@ async def set_score(
     player.adjustment = score - _answers_sum(
         player
     )  # the answers keep their points; the gap is the adjustment
-    _recompute(players)
+    _recompute(game, players)
     _log(game, admin, "set_score", player, before=before, after=player.score)
     await session.commit()
     return await detail(session, game_id)
@@ -152,14 +156,15 @@ async def edit_answer(
     if correct is None:
         correct = points > 0  # type: ignore[operator]
     if points is None:
-        points = BASE_POINTS if correct and not answer["points"] else (answer["points"] if correct else 0)
+        base = 1 if game.scoring == "flat" else BASE_POINTS
+        points = base if correct and not answer["points"] else (answer["points"] if correct else 0)
     if correct != (points > 0):
         raise ApiError(400, "ANSWER_INCONSISTENT")  # a wrong answer is worth 0, a right one 1-1000
 
     before = {"correct": answer["correct"], "points": answer["points"]}
     answer["correct"], answer["points"] = correct, points
     player.answers = answers
-    _recompute(players)
+    _recompute(game, players)
     _log(
         game, admin, "edit_answer", player,
         question=question_id, before=before, after={"correct": correct, "points": points},
@@ -181,7 +186,7 @@ async def rename_player(
     if nicknames.skeleton(clean) in taken:
         raise ApiError(409, "NICKNAME_TAKEN", "nickname")
     before, player.nickname = player.nickname, clean
-    _recompute(players)  # the name is the last tie-break
+    _recompute(game, players)  # the name is the last tie-break
     _log(game, admin, "rename_player", player, before=before, after=clean)
     await session.commit()
     return await detail(session, game_id)
@@ -195,7 +200,7 @@ async def remove_player(
     _log(game, admin, "remove_player", player, score=player.score, rank=player.rank)
     await session.delete(player)
     await session.flush()
-    _recompute([p for p in players if p.id != player.id])
+    _recompute(game, [p for p in players if p.id != player.id])
     await session.commit()
     return await detail(session, game_id)
 

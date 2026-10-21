@@ -18,7 +18,7 @@ from app.game import protocol as p
 from app.game.characters import is_character, random_character
 from app.game.hub import Hub
 from app.game.models import FinishedGame, GameError, GameState, PlayerState
-from app.game.scoring import points
+from app.game.scoring import flat_points, places, points
 from app.game.state_repo import GameStateRepo
 
 log = logging.getLogger(__name__)
@@ -58,12 +58,17 @@ class GameEngine:
         await self.repo.add_audit(game_id, {"at": when, "type": type_, **data})
 
     @staticmethod
-    def _standings(players: list[PlayerState]) -> list[p.Standing]:
-        """Best first. Equal scores: whoever was faster on their correct answers, then by name."""
-        ordered = sorted(players, key=lambda x: (-x.score, x.time_ms, x.nickname.casefold(), x.id))
+    def _standings(state: GameState, players: list[PlayerState]) -> list[p.Standing]:
+        """Best first. Equal scores: in speed scoring whoever was faster on their correct answers,
+        then by name; in flat scoring nobody is rushed, so they share the place (listed by name)."""
+        flat = state.scoring == "flat"
+        ordered = sorted(
+            players, key=lambda x: (-x.score, 0 if flat else x.time_ms, x.nickname.casefold(), x.id)
+        )
+        ranks = places([x.score for x in ordered], shared=flat)
         return [
-            p.Standing(id=x.id, nickname=x.nickname, character=x.character, score=x.score, rank=i + 1)
-            for i, x in enumerate(ordered)
+            p.Standing(id=x.id, nickname=x.nickname, character=x.character, score=x.score, rank=rank)
+            for x, rank in zip(ordered, ranks, strict=True)
         ]
 
     @staticmethod
@@ -88,7 +93,7 @@ class GameEngine:
 
     @staticmethod
     def _settings(state: GameState) -> p.GameSettings:
-        return p.GameSettings(show_answers=state.show_answers)
+        return p.GameSettings(show_answers=state.show_answers, scoring=state.scoring)
 
     @staticmethod
     def _positions(question: dict[str, Any]) -> list[int]:
@@ -152,6 +157,7 @@ class GameEngine:
                 pin=pin,
                 created_ms=now,
                 show_answers=old.show_answers,  # the same room, played the same way
+                scoring=old.scoring,
             )
             await self.repo.create_game(state, quiz)
             await self.audit(
@@ -216,7 +222,9 @@ class GameEngine:
         await self.repo.save_players(game_id, [player])
         await self._lobby_updated(game_id)
 
-    async def settings(self, game_id: str, show_answers: bool | None = None) -> None:
+    async def settings(
+        self, game_id: str, show_answers: bool | None = None, scoring: str | None = None
+    ) -> None:
         """Host, in the lobby: how this game is played. Fixed once it starts."""
         async with self.repo.lock(game_id):
             state = await self._game(game_id)
@@ -224,8 +232,10 @@ class GameEngine:
                 raise GameError("INVALID_STATE")
             if show_answers is not None:
                 state.show_answers = show_answers
+            if scoring is not None:
+                state.scoring = scoring
             await self.repo.save_game(state)
-            await self.audit(game_id, "game.settings", show_answers=state.show_answers)
+            await self.audit(game_id, "game.settings", show_answers=state.show_answers, scoring=state.scoring)
         await self._emit(game_id, "host", p.SettingsUpdated(settings=self._settings(state)))
 
     async def kick(self, game_id: str, player_id: str) -> None:
@@ -245,7 +255,7 @@ class GameEngine:
         me = next((x for x in players if x.id == player_id), None)
         if me is None:
             raise GameError("UNKNOWN_PLAYER")
-        standings = self._standings(players)
+        standings = self._standings(state, players)
         you = next(s for s in standings if s.id == player_id)
         event = p.StateEvent(phase=state.phase, you=you, players=self._public(players))
         if state.phase == "lobby":
@@ -293,7 +303,7 @@ class GameEngine:
                 event.counts = self._counts(answers)
                 event.correct = self._question(quiz, state, state.round)["correct"]
         elif state.phase in ("leaderboard", "ended"):
-            event.standings = self._standings(players)
+            event.standings = self._standings(state, players)
         if state.phase in ("counts", "leaderboard", "ended"):
             event.cheaters = await self._cheaters(state, players)
         return event
@@ -424,7 +434,7 @@ class GameEngine:
             if player is None:  # kicked while the question was open
                 continue
             ok = a["position"] == correct
-            earned = points(ok, total_ms - a["ms"], total_ms)
+            earned = flat_points(ok) if state.scoring == "flat" else points(ok, total_ms - a["ms"], total_ms)
             player.score += earned
             if ok:
                 player.correct += 1
@@ -435,7 +445,7 @@ class GameEngine:
 
         state.phase = "counts"
         await self.repo.save_game(state)
-        standings = {s.id: s for s in self._standings(list(players.values()))}
+        standings = {s.id: s for s in self._standings(state, list(players.values()))}
         correct_pos = correct
         for pid, player in players.items():
             reveal = p.Reveal(correct=correct_pos, points=results.get(pid, {}).get("points", 0))
@@ -449,7 +459,7 @@ class GameEngine:
 
     async def _leaderboard_locked(self, state: GameState) -> None:
         players = await self.repo.get_players(state.id)
-        standings = self._standings(players)
+        standings = self._standings(state, players)
         state.phase = "leaderboard"
         await self.repo.save_game(state)
         for s in standings:
@@ -476,7 +486,7 @@ class GameEngine:
         if self.on_finished is None:
             return
         players = await self.repo.get_players(state.id)
-        standings = self._standings(players)
+        standings = self._standings(state, players)
         finished = FinishedGame(
             game=state,
             quiz=await self.repo.get_quiz(state.id),
@@ -494,7 +504,7 @@ class GameEngine:
 
     async def _publish_ended(self, state: GameState) -> None:
         players = await self.repo.get_players(state.id)
-        standings = self._standings(players)
+        standings = self._standings(state, players)
         for s in standings:
             await self._emit(state.id, f"p:{s.id}", p.GameEnded(top=standings[:PODIUM], you=s))
         cheaters = await self._cheaters(state, players)

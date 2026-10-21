@@ -31,6 +31,7 @@ class GameState:
     next_id: str = ""  # the game the host went on to with the same players, after the podium
     # Chosen by the host in the lobby.
     show_answers: bool = False  # the answer texts on the players' screens too, not only the shapes
+    scoring: str = "speed"  # "speed" or "flat", see app/game/scoring.py
 
     def dump(self) -> dict[str, Any]:
         return asdict(self)

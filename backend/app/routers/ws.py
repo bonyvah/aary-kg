@@ -124,7 +124,9 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
                     case p.Rule():
                         await engine.rule(game_id, message.player_id, message.action)
                     case p.Settings():
-                        await engine.settings(game_id, show_answers=message.show_answers)
+                        await engine.settings(
+                            game_id, show_answers=message.show_answers, scoring=message.scoring
+                        )
             except GameError as e:
                 await conn.send(p.dump(p.ErrorEvent(code=e.code)))
     except WebSocketDisconnect:

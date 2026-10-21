@@ -33,6 +33,7 @@ async def persist_finished(finished: FinishedGame) -> None:
         started_at=_at(state.started_ms),
         finished_at=_at(state.finished_ms),
         duration_seconds=max(0, (state.finished_ms - state.started_ms) // 1000),
+        scoring=state.scoring,
         audit=finished.audit,
     )
     players = []

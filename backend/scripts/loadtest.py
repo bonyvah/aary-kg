@@ -77,7 +77,8 @@ class Player:
                 number = event["question"]["index"]
                 self.questions_seen += 1
                 self.started_at[number] = time.monotonic()
-                asyncio.create_task(self._answer(number, correct_share, answer_after))
+                reading = event.get("readingMs", 0) / 1000  # the answers open after the reading time
+                asyncio.create_task(self._answer(number, correct_share, answer_after, reading))
             elif kind == "answer.accepted":
                 self.ack_latencies.append(time.monotonic() - self._answer_sent_at)
             elif kind == "question.closed":
@@ -88,8 +89,10 @@ class Player:
             elif kind == "error":
                 self.errors.append(event["code"])
 
-    async def _answer(self, number: int, correct_share: float, answer_after: tuple[float, float]):
-        await asyncio.sleep(random.uniform(*answer_after))
+    async def _answer(
+        self, number: int, correct_share: float, answer_after: tuple[float, float], reading: float
+    ):
+        await asyncio.sleep(reading + random.uniform(*answer_after))
         # question n: the right shape is ((n - 1) % 4) + 1, as the quiz below is built
         right = ((number - 1) % 4) + 1
         tap = right if random.random() < correct_share else (right % 4) + 1

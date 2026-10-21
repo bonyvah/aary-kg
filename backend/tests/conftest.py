@@ -38,6 +38,15 @@ async def clean_db(migrated: None):
 
 
 @pytest.fixture(autouse=True)
+def no_reading_time(monkeypatch):
+    """Questions open for answers at once, as before reading times existed: otherwise every test that
+    plays a question waits 3 s for it. The reading-time tests set their own short second."""
+    from app.game import engine
+
+    monkeypatch.setattr(engine, "READ_MS_PER_SECOND", 0)
+
+
+@pytest.fixture(autouse=True)
 async def clean_redis():
     from app.redis import get_redis
 

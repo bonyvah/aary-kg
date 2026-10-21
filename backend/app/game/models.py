@@ -25,7 +25,7 @@ class GameState:
     order: list[int] = field(default_factory=list)  # question indexes in the order they are played
     created_ms: int = 0
     started_ms: int = 0  # when the first question began
-    question_started_ms: int = 0
+    question_started_ms: int = 0  # when the answers opened (after the reading time): times count from here
     deadline_ms: int = 0
     finished_ms: int = 0
     next_id: str = ""  # the game the host went on to with the same players, after the podium

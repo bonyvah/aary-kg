@@ -20,6 +20,7 @@ from app.game.hub import Hub
 from app.game.models import FinishedGame, GameError, GameState, PlayerState
 from app.game.scoring import flat_points, places, points
 from app.game.state_repo import GameStateRepo
+from app.schemas.quiz import DEFAULT_READ_SECONDS
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +30,8 @@ TIMER_GRACE_MS = 400
 # Answer times are reduced by the measured delay both ways (the question going out to the phone, the
 # answer coming back), but never by more than this: a phone can't fake a slow line to gain much.
 MAX_LATENCY_MS = 300
+# A second of reading time, in ms. The tests make it shorter.
+READ_MS_PER_SECOND = 1000
 LEADERBOARD_TOP = 5
 PODIUM = 3
 
@@ -266,6 +269,7 @@ class GameEngine:
             now = await self.repo.now_ms()
             event.question = self._player_question(quiz, state, state.round)
             event.remaining_ms = max(0, state.deadline_ms - now)
+            event.reading_ms = max(0, state.question_started_ms - now)
             mine = (await self.repo.get_answers(game_id, state.round)).get(player_id)
             event.answered = mine["position"] if mine else None
         elif state.phase == "counts":
@@ -299,7 +303,9 @@ class GameEngine:
             answers = await self.repo.get_answers(game_id, state.round)
             event.answered = len(answers)
             if state.phase == "question":
-                event.remaining_ms = max(0, state.deadline_ms - await self.repo.now_ms())
+                now = await self.repo.now_ms()
+                event.remaining_ms = max(0, state.deadline_ms - now)
+                event.reading_ms = max(0, state.question_started_ms - now)
             else:
                 event.counts = self._counts(answers)
                 event.correct = self._question(quiz, state, state.round)["correct"]
@@ -379,21 +385,30 @@ class GameEngine:
     # --- transitions (the game lock is held) ----------------------------------------------------
 
     async def _begin_question(self, state: GameState, quiz: dict[str, Any], rnd: int) -> None:
+        """Shows the question (and its answers) for its reading time, then the answers open and its
+        timer runs. Answers sent while it is being read are refused."""
         question = self._question(quiz, state, rnd)
         now = await self.repo.now_ms()
+        reading = question.get("read_seconds", DEFAULT_READ_SECONDS) * READ_MS_PER_SECOND
         state.phase = "question"
         state.round = rnd
-        state.question_started_ms = now
-        state.deadline_ms = now + question["seconds"] * 1000
+        state.question_started_ms = now + reading
+        state.deadline_ms = state.question_started_ms + question["seconds"] * 1000
         await self.repo.save_game(state)
-        await self.audit(state.id, "question.started", at=now, round=rnd, question=question["id"])
-        await self._emit(
-            state.id, "players", p.QuestionStarted(question=self._player_question(quiz, state, rnd))
+        await self.audit(
+            state.id, "question.started", at=now, round=rnd, question=question["id"], reading_ms=reading
         )
         await self._emit(
-            state.id, "host", p.HostQuestionStarted(question=self._host_question(quiz, state, rnd))
+            state.id,
+            "players",
+            p.QuestionStarted(question=self._player_question(quiz, state, rnd), reading_ms=reading),
         )
-        self._schedule_close(state.id, rnd, question["seconds"] * 1000 + TIMER_GRACE_MS)
+        await self._emit(
+            state.id,
+            "host",
+            p.HostQuestionStarted(question=self._host_question(quiz, state, rnd), reading_ms=reading),
+        )
+        self._schedule_close(state.id, rnd, reading + question["seconds"] * 1000 + TIMER_GRACE_MS)
 
     def _schedule_close(self, game_id: str, rnd: int, delay_ms: int) -> None:
         async def timer() -> None:
@@ -586,6 +601,8 @@ class GameEngine:
         if position not in self._positions(self._question(quiz, state, state.round)):
             raise GameError("ANSWER_INVALID")  # a shape the question does not have
         now = await self.repo.now_ms()
+        if now < state.question_started_ms:
+            raise GameError("ANSWER_NOT_OPEN")  # still the reading time
         latency = min(max(latency_ms, 0), MAX_LATENCY_MS)
         if now - latency > state.deadline_ms:
             raise GameError("ANSWER_CLOSED")

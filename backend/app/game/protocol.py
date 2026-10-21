@@ -171,7 +171,8 @@ class StateEvent(_Out):
     you: Standing
     players: list[PlayerPublic]
     question: PlayerQuestion | None = None
-    remaining_ms: int | None = None
+    remaining_ms: int | None = None  # until the question closes, reading time included
+    reading_ms: int | None = None  # until the answers open, while the question is being read
     answered: Position | None = None
     reveal: Reveal | None = None
     top: list[Standing] | None = None
@@ -206,7 +207,8 @@ class HostStateEvent(_Out):
     total: int
     players: list[PlayerPublic]
     question: HostQuestion | None = None
-    remaining_ms: int | None = None
+    remaining_ms: int | None = None  # until the question closes, reading time included
+    reading_ms: int | None = None  # until the answers open, while the question is being read
     answered: int = 0
     counts: list[int] | None = None
     correct: Position | None = None
@@ -227,11 +229,13 @@ class LobbyUpdated(_Out):
 class QuestionStarted(_Out):
     type: Literal["question.started"] = "question.started"
     question: PlayerQuestion
+    reading_ms: int  # the answers open this long after this event: until then, only reading
 
 
 class HostQuestionStarted(_Out):
     type: Literal["question.started"] = "question.started"
     question: HostQuestion
+    reading_ms: int
 
 
 class AnswerAccepted(_Out):

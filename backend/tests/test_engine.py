@@ -786,3 +786,42 @@ async def test_flat_scoring_gives_one_point_per_right_answer_and_shares_the_plac
         ("Bek", 1, 1),  # the same place, listed by name
         ("Cholpon", 3, 0),
     ]
+
+
+# --- reading time ---------------------------------------------------------------------------
+
+
+async def test_the_answers_open_after_the_reading_time(env, monkeypatch):
+    from app.game import engine as engine_module
+
+    monkeypatch.setattr(engine_module, "READ_MS_PER_SECOND", 100)  # a reading second lasts 0.1 s here
+    quiz = make_quiz(n=2)
+    quiz["questions"][0]["read_seconds"] = 4
+    state = await env.engine.create_game("owner-1", quiz)
+    host = await connect(env, state.id, "host")
+    _, aida = await env.engine.join(state.pin, "Aida")
+    feed = await connect(env, state.id, "player", aida.id)
+    await env.engine.start(state.id)
+    await settle()
+    assert of(feed, "question.started")[0]["readingMs"] == 400
+    assert of(host, "question.started")[0]["readingMs"] == 400
+    snap = await env.engine.player_snapshot(state.id, aida.id)
+    assert 0 < snap.reading_ms <= 400 and snap.remaining_ms > 20_000 - 100  # reading time included
+    with pytest.raises(GameError) as e:
+        await env.engine.answer(state.id, aida.id, 1)  # still reading
+    assert e.value.code == "ANSWER_NOT_OPEN"
+
+    await asyncio.sleep(0.45)
+    await env.engine.answer(state.id, aida.id, 1)
+    assert (await env.repo.get_players(state.id))[0].score == 1000  # timed from the opening, not the start
+    assert (await env.engine.host_snapshot(state.id)).phase == "counts"
+
+
+async def test_a_question_without_a_reading_time_reads_for_three_seconds(env, monkeypatch):
+    from app.game import engine as engine_module
+
+    monkeypatch.setattr(engine_module, "READ_MS_PER_SECOND", 10)
+    state, host, *_ = await new_game(env)  # make_quiz: no read_seconds, like quizzes saved before
+    await env.engine.start(state.id)
+    await settle()
+    assert of(host, "question.started")[0]["readingMs"] == 30

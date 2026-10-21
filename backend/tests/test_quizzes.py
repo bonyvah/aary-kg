@@ -18,7 +18,8 @@ async def test_create_get_list_and_update(as_user):
     assert r.status_code == 201
     body = r.json()
     assert body["title"] == "Math" and body["status"] == "ready"
-    assert body["questions"][0] == question()  # ids and order kept as the editor sent them
+    # ids and order kept as the editor sent them; no reading time given: the shortest, 3 s
+    assert body["questions"][0] == {**question(), "readSeconds": 3}
     qid = body["id"]
 
     assert (await c.get(f"/quizzes/{qid}")).json() == body
@@ -59,6 +60,8 @@ async def test_shape_errors_are_validation_errors(as_user):
         quiz(questions=[question(correct=5)]),
         quiz(questions=[question(seconds=4)]),
         quiz(questions=[question(seconds=301)]),
+        quiz(questions=[question(readSeconds=2)]),
+        quiz(questions=[question(readSeconds=11)]),
         quiz(questions=[question("x"), question("x")]),
     ]
     for body in cases:
@@ -90,3 +93,9 @@ async def test_unknown_quiz_is_404(as_user):
     c, _ = await as_user("ulan")
     r = await c.get("/quizzes/00000000-0000-0000-0000-000000000000")
     assert (r.status_code, r.json()["code"]) == (404, "QUIZ_NOT_FOUND")
+
+
+async def test_a_question_keeps_its_reading_time(as_user):
+    c, _ = await as_user("ulan")
+    r = await c.post("/quizzes", json=quiz(questions=[question(readSeconds=10)]))
+    assert r.status_code == 201 and r.json()["questions"][0]["readSeconds"] == 10

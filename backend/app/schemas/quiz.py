@@ -10,6 +10,10 @@ Answer = Annotated[str, StringConstraints(max_length=200)]
 
 MIN_SECONDS = 5
 MAX_SECONDS = 300
+# Reading time: the question and its answers are shown this long before the answers open.
+MIN_READ_SECONDS = 3
+MAX_READ_SECONDS = 10
+DEFAULT_READ_SECONDS = 3
 
 
 class Question(CamelModel):
@@ -19,6 +23,7 @@ class Question(CamelModel):
     answers: list[Answer] = Field(min_length=4, max_length=4)  # triangle, diamond, circle, square
     correct: Literal[1, 2, 3, 4]
     seconds: int = Field(ge=MIN_SECONDS, le=MAX_SECONDS)
+    read_seconds: int = Field(default=DEFAULT_READ_SECONDS, ge=MIN_READ_SECONDS, le=MAX_READ_SECONDS)
 
 
 class QuizIn(CamelModel):

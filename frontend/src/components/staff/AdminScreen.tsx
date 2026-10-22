@@ -18,7 +18,7 @@ import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { Key, WarningCircle } from "@phosphor-icons/react";
+import { ArrowsLeftRight, CheckCircle, Password, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminGamesTable } from "./AdminGamesTable";
@@ -228,24 +228,40 @@ export function AdminScreen() {
                     {isAdminUser ? null : (
                       <div className="flex flex-wrap items-center gap-2">
                         {user.active ? (
-                          <Button variant="danger" onClick={() => setPending({ kind: "disable", user })}>
-                            {t("actions.disable")}
+                          <Button
+                            variant="danger"
+                            aria-label={`${t("actions.disable")}: ${user.name}`}
+                            title={`${t("actions.disable")}: ${user.name}`}
+                            onClick={() => setPending({ kind: "disable", user })}
+                          >
+                            <Icon icon={Prohibit} weight="bold" />
                           </Button>
                         ) : (
-                          <Button variant="secondary" onClick={() => setActive(user, true)}>
-                            {t("actions.enable")}
+                          <Button
+                            variant="secondary"
+                            aria-label={`${t("actions.enable")}: ${user.name}`}
+                            title={`${t("actions.enable")}: ${user.name}`}
+                            onClick={() => setActive(user, true)}
+                          >
+                            <Icon icon={CheckCircle} weight="bold" />
                           </Button>
                         )}
                         <Button
                           variant="secondary"
                           aria-label={`${t("actions.resetPassword")}: ${user.name}`}
+                          title={`${t("actions.resetPassword")}: ${user.name}`}
                           onClick={() => setPending({ kind: "reset", user })}
                         >
-                          <Icon icon={Key} weight="bold" />
+                          <Icon icon={Password} weight="bold" />
                         </Button>
                         {user.role === "student" ? (
-                          <Button variant="secondary" onClick={() => void withGroups(() => setMoving(user))}>
-                            {t("actions.moveGroup")}
+                          <Button
+                            variant="secondary"
+                            aria-label={`${t("actions.moveGroup")}: ${user.name}`}
+                            title={`${t("actions.moveGroup")}: ${user.name}`}
+                            onClick={() => void withGroups(() => setMoving(user))}
+                          >
+                            <Icon icon={ArrowsLeftRight} weight="bold" />
                           </Button>
                         ) : null}
                       </div>

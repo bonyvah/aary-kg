@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Trash, UsersThree } from "@phosphor-icons/react";
+import { PencilSimple, Trash, UsersThree } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
@@ -94,10 +94,20 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                     <Td className="whitespace-nowrap">{dateTime(new Date(group.createdAt), { time: false })}</Td>
                     <Td>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="secondary" onClick={() => setRenaming(group)}>
-                          {t("rename")}
+                        <Button
+                          variant="secondary"
+                          aria-label={`${t("rename")}: ${group.name}`}
+                          title={`${t("rename")}: ${group.name}`}
+                          onClick={() => setRenaming(group)}
+                        >
+                          <Icon icon={PencilSimple} weight="bold" />
                         </Button>
-                        <Button variant="danger" aria-label={`${t("delete")}: ${group.name}`} onClick={() => setDeleting(group)}>
+                        <Button
+                          variant="danger"
+                          aria-label={`${t("delete")}: ${group.name}`}
+                          title={`${t("delete")}: ${group.name}`}
+                          onClick={() => setDeleting(group)}
+                        >
                           <Icon icon={Trash} weight="bold" />
                         </Button>
                       </div>

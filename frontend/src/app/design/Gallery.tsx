@@ -137,7 +137,7 @@ export function Gallery({ idBase }: { idBase: string }) {
       <Section title={t("section.badges")}>
         <div className={wrap}>
           <Badge>{t("badge.admin")}</Badge>
-          <Badge variant="neutral">{t("badge.user")}</Badge>
+          <Badge variant="neutral">{t("badge.teacher")}</Badge>
           <Badge>{t("badge.jury")}</Badge>
           <Badge variant="accent">{t("badge.live")}</Badge>
           <Badge variant="success">{t("badge.done")}</Badge>

@@ -92,6 +92,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
             round={state.round}
             totalQuestions={state.totalQuestions}
             secondsLeft={state.secondsLeft}
+            readingLeft={state.readingLeft}
             answered={state.answered}
             total={state.players.length}
           />

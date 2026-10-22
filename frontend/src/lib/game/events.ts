@@ -22,12 +22,13 @@ export type PlayerEvent =
       players: PlayerPublic[];
       question: PlayerQuestion | null;
       remainingMs: number | null;
+      readingMs: number | null;
       answered: AnswerPosition | null;
       reveal: RevealPayload | null;
       top: ServerStanding[] | null;
     }
   | { type: "lobby.updated"; players: PlayerPublic[] }
-  | { type: "question.started"; question: PlayerQuestion }
+  | { type: "question.started"; question: PlayerQuestion; readingMs: number }
   | { type: "answer.accepted"; position: AnswerPosition }
   | { type: "question.closed"; reveal: RevealPayload; score: number; rank: number }
   | { type: "leaderboard"; top: ServerStanding[]; you: ServerStanding }
@@ -60,6 +61,7 @@ export type HostEvent =
       players: PlayerPublic[];
       question: HostQuestion | null;
       remainingMs: number | null;
+      readingMs: number | null;
       answered: number;
       counts: number[] | null;
       correct: AnswerPosition | null;
@@ -67,7 +69,7 @@ export type HostEvent =
       cheaters: Cheater[] | null;
     }
   | { type: "lobby.updated"; players: PlayerPublic[] }
-  | { type: "question.started"; question: HostQuestion }
+  | { type: "question.started"; question: HostQuestion; readingMs: number }
   | { type: "answer.count"; answered: number; total: number }
   | { type: "question.closed"; counts: number[]; correct: AnswerPosition }
   | { type: "leaderboard"; standings: ServerStanding[] }

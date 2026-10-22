@@ -31,19 +31,21 @@ type HostQuestionScreenProps = {
   round: number;
   totalQuestions: number;
   secondsLeft: number;
+  /** While above 0 the question is being read: the timer waits, full. */
+  readingLeft: number;
   answered: number;
   total: number;
 };
 
 /** The open question on the projector: the question, the clock and all four answers WITH their text. */
-export function HostQuestionScreen({ question, round, totalQuestions, secondsLeft, answered, total }: HostQuestionScreenProps) {
+export function HostQuestionScreen({ question, round, totalQuestions, secondsLeft, readingLeft, answered, total }: HostQuestionScreenProps) {
   const t = useTranslations("host.live");
 
   return (
     <div className="flex flex-1 flex-col gap-6">
       <HostQuestionHeader round={round} totalQuestions={totalQuestions} answered={{ count: answered, total }} />
       <h1 className="text-display font-black [overflow-wrap:anywhere]">{question.text}</h1>
-      <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
+      <TimerBar remaining={readingLeft > 0 ? question.seconds : secondsLeft} total={question.seconds} unit={t("unit")} />
       <div className="grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2">
         {POSITIONS.filter((position) => question.positions.includes(position)).map((position, index, shown) => (
           <AnswerTile

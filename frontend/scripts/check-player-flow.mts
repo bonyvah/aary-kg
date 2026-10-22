@@ -27,6 +27,13 @@ const playing = run([server({ type: "question.started", question })], joined);
 check("a question starts with the full time on the clock", playing.phase === "question" && playing.secondsLeft === 20 && playing.selected === null);
 check("the clock only draws: ticks count down to zero and stop", run(Array(25).fill({ type: "TICK" }), playing).secondsLeft === 0 && run(Array(25).fill({ type: "TICK" }), playing).phase === "question");
 
+const readingStart = run([server({ type: "question.started", question, readingMs: 3000 })], joined);
+check("a question is read first: the answer clock waits", readingStart.readingLeft === 3 && readingStart.secondsLeft === 20);
+const afterReading = run(Array(4).fill({ type: "TICK" }), readingStart);
+check("after the reading time the answer clock runs", afterReading.readingLeft === 0 && afterReading.secondsLeft === 19);
+const resumedReading = run([server({ type: "state", phase: "question", you: { id: "me", nickname: "ME", character, score: 0, rank: 1 }, players: [], question, remainingMs: 21_500, readingMs: 1_500, answered: null, reveal: null, top: null })], joined);
+check("a reconnect while reading splits the time: reading, then answering", resumedReading.readingLeft === 2 && resumedReading.secondsLeft === 20);
+
 const answered = run([{ type: "ANSWER_SELECTED", position: 2 }, { type: "ANSWER_SELECTED", position: 4 }], playing);
 check("one tap locks the answer, a second tap changes nothing", answered.phase === "answered" && answered.selected === 2);
 check("taps in the lobby or on the results screen do nothing", run([{ type: "ANSWER_SELECTED", position: 1 }], joined).phase === "lobby");

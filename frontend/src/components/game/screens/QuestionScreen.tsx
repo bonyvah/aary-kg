@@ -17,6 +17,8 @@ const POSITIONS = [
 type QuestionScreenProps = {
   question: PlayerQuestion;
   secondsLeft: number;
+  /** While above 0 the question is being read: answers can't be given yet. */
+  readingLeft: number;
   /** The locked answer. While it is set, the question and tiles give way to the waiting view. */
   selected: AnswerPosition | null;
   onAnswer: (position: AnswerPosition) => void;
@@ -27,11 +29,12 @@ type QuestionScreenProps = {
  * Open question and, once an answer is locked, the waiting state. Shapes only, the answers are read on
  * the host screen, unless the host shows them on the players' screens too.
  */
-export function QuestionScreen({ question, secondsLeft, selected, onAnswer, onLeave }: QuestionScreenProps) {
+export function QuestionScreen({ question, secondsLeft, readingLeft, selected, onAnswer, onLeave }: QuestionScreenProps) {
   const t = useTranslations("player.question");
   const tc = useTranslations("common");
   const locked = selected !== null;
   const texts = question.answers;
+  const reading = readingLeft > 0;
 
   return (
     <PlayerScreen
@@ -40,14 +43,24 @@ export function QuestionScreen({ question, secondsLeft, selected, onAnswer, onLe
     >
       {locked ? (
         <WaitingForOthers secondsLeft={secondsLeft} total={question.seconds} />
+      ) : reading && !texts ? (
+        // The answers are read on the host screen.
+        <p className="my-auto text-center text-display font-black">{t("getReady")}</p>
       ) : (
         <>
-          <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
+          <TimerBar remaining={reading ? question.seconds : secondsLeft} total={question.seconds} unit={t("unit")} />
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
           <div className={cx("mt-auto grid gap-4 pb-2", texts ? "grid-cols-1" : "grid-cols-2")}>
             {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) =>
               texts ? (
-                <AnswerTile key={position} position={position} onClick={() => onAnswer(position)}>
+                <AnswerTile
+                  key={position}
+                  position={position}
+                  // While it is read, the tiles are shown but can't be tapped yet.
+                  disabled={reading}
+                  className={reading ? "pointer-events-none" : undefined}
+                  onClick={() => onAnswer(position)}
+                >
                   {texts[position - 1]}
                 </AnswerTile>
               ) : (

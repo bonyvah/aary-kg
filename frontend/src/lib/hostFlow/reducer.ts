@@ -1,4 +1,5 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
+import { questionClock, tickClock } from "@/lib/game/clock";
 import type { Cheater, GameSettings, HostEvent, HostQuestion, PlayerPublic, ServerPhase, ServerStanding } from "@/lib/game/events";
 import type { Player, Standing } from "@/types/game";
 
@@ -18,6 +19,8 @@ export type HostState = {
   /** The open question with its four answer texts. The right one is not known until it closes. */
   question: HostQuestion | null;
   secondsLeft: number;
+  /** Seconds of reading time left: the answers open when it reaches 0. */
+  readingLeft: number;
   /** Players who sent an answer to the current question. */
   answered: number;
   /** Answers per position after the question closed. */
@@ -47,6 +50,7 @@ export const initialHostState: HostState = {
   players: [],
   question: null,
   secondsLeft: 0,
+  readingLeft: 0,
   answered: 0,
   counts: null,
   correct: null,
@@ -82,8 +86,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         settings: event.settings,
         players: toPlayers(event.players),
         question: event.question,
-        secondsLeft:
-          event.remainingMs === null ? (event.question?.seconds ?? 0) : Math.ceil(event.remainingMs / 1000),
+        ...questionClock(event.question?.seconds ?? 0, event.remainingMs, event.readingMs),
         answered: event.answered,
         counts: event.counts ? toCounts(event.counts) : null,
         correct: event.correct,
@@ -99,7 +102,7 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
         phase: "question",
         round: event.question.index,
         question: event.question,
-        secondsLeft: event.question.seconds,
+        ...questionClock(event.question.seconds, null, event.readingMs),
         answered: 0,
         counts: null,
         correct: null,
@@ -132,6 +135,6 @@ export function hostReducer(state: HostState, event: HostFlowEvent): HostState {
       return applyServerEvent(state, event.event);
     case "TICK":
       // Only draws the clock. The server closes the question.
-      return state.phase === "question" ? { ...state, secondsLeft: Math.max(0, state.secondsLeft - 1) } : state;
+      return state.phase === "question" ? { ...state, ...tickClock(state) } : state;
   }
 }

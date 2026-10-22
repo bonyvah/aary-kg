@@ -1,4 +1,5 @@
 import type { AnswerPosition } from "@/components/game/AnswerTile";
+import { questionClock, tickClock } from "@/lib/game/clock";
 import type { Character } from "@/components/game/avatar/characters";
 import type { PlayerEvent, ServerPhase, ServerStanding } from "@/lib/game/events";
 import type { ErrorCode, GamePhase, PlayerQuestion, RevealPayload, Standing } from "@/types/game";
@@ -12,6 +13,8 @@ export type FlowState = {
   character: Character;
   question: PlayerQuestion | null;
   secondsLeft: number;
+  /** Seconds of reading time left: the answers open when it reaches 0. */
+  readingLeft: number;
   selected: AnswerPosition | null;
   reveal: RevealPayload | null;
   score: number;
@@ -48,6 +51,7 @@ export const initialState: FlowState = {
   character: INITIAL_CHARACTER,
   question: null,
   secondsLeft: 0,
+  readingLeft: 0,
   selected: null,
   reveal: null,
   score: 0,
@@ -88,7 +92,7 @@ function applyServerEvent(state: FlowState, event: PlayerEvent): FlowState {
         character: event.you.character,
         score: event.you.score,
         question: event.question,
-        secondsLeft: event.remainingMs === null ? (event.question?.seconds ?? 0) : Math.ceil(event.remainingMs / 1000),
+        ...questionClock(event.question?.seconds ?? 0, event.remainingMs, event.readingMs),
         selected: event.answered,
         reveal: event.reveal,
         standings: event.top ? toStandings(event.top, event.you) : [],
@@ -101,7 +105,7 @@ function applyServerEvent(state: FlowState, event: PlayerEvent): FlowState {
         ...state,
         phase: "question",
         question: event.question,
-        secondsLeft: event.question.seconds,
+        ...questionClock(event.question.seconds, null, event.readingMs),
         selected: null,
         reveal: null,
       };
@@ -163,7 +167,7 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
     case "TICK":
       // Only draws the clock. The server decides when the question is over.
       return state.phase === "question" || state.phase === "answered"
-        ? { ...state, secondsLeft: Math.max(0, state.secondsLeft - 1) }
+        ? { ...state, ...tickClock(state) }
         : state;
     case "ANSWER_SELECTED":
       // The server accepts one answer per question, only while the question is open.

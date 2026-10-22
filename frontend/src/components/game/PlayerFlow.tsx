@@ -56,7 +56,14 @@ export function PlayerFlow() {
       case "question":
       case "answered":
         return question ? (
-          <QuestionScreen question={question} secondsLeft={state.secondsLeft} selected={selected} onAnswer={flow.answer} onLeave={flow.reset} />
+          <QuestionScreen
+            question={question}
+            secondsLeft={state.secondsLeft}
+            readingLeft={state.readingLeft}
+            selected={selected}
+            onAnswer={flow.answer}
+            onLeave={flow.reset}
+          />
         ) : null;
       case "result":
         return question && reveal ? <ResultScreen question={question} selected={selected} reveal={reveal} onLeave={flow.reset} /> : null;

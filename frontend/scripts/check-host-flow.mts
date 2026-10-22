@@ -25,6 +25,7 @@ check("players joining show up in the lobby", lobby.players.map((p) => p.nicknam
 
 const playing = run([server({ type: "question.started", question })], lobby);
 check("a question starts: phase, round, full clock, no answers yet, correct unknown", playing.phase === "question" && playing.round === 1 && playing.secondsLeft === 20 && playing.answered === 0 && playing.correct === null);
+check("the host clock waits for the reading time", (() => { const r = run([server({ type: "question.started", question, readingMs: 5000 })], lobby); return r.readingLeft === 5 && run(Array(5).fill({ type: "TICK" }), r).secondsLeft === 20; })());
 check("the host screen gets the four answer texts", playing.question?.answers.join("") === "abcd");
 check("answer counts arrive while the question is open", run([server({ type: "answer.count", answered: 2, total: 2 })], playing).answered === 2);
 check("a late answer count after the question closed is ignored", run([server({ type: "question.closed", counts: [1, 0, 1, 0], correct: 1 }), server({ type: "answer.count", answered: 9, total: 9 })], playing).answered === 0);

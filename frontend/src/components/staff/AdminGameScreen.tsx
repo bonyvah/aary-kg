@@ -92,7 +92,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ButtonLink href="/admin" variant="secondary">
+          <ButtonLink href="/admin" variant="neutral">
             {t("back")}
           </ButtonLink>
           <Button variant="danger" disabled={busy} onClick={() => setPending({ kind: "deleteGame" })}>
@@ -149,7 +149,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
                 </Td>
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="neutral" disabled={busy} onClick={() => setEditingId(player.id)}>
+                    <Button variant="secondary" disabled={busy} onClick={() => setEditingId(player.id)}>
                       {t("editPlayer")}
                     </Button>
                     <Button variant="neutral" disabled={busy} onClick={() => setPending({ kind: "removePlayer", player })}>

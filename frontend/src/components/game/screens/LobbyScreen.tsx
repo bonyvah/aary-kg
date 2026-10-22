@@ -21,7 +21,7 @@ export function LobbyScreen({ nickname, character, onChangeCharacter, onLeave }:
         <Avatar character={character} size="xl" />
         <h1 className="max-w-full text-h1 font-black [overflow-wrap:anywhere]">{nickname}</h1>
         <p className="text-body text-ink-muted">{t("hint")}</p>
-        <Button variant="neutral" onClick={onChangeCharacter}>
+        <Button variant="secondary" onClick={onChangeCharacter}>
           {tc("change")}
         </Button>
       </div>

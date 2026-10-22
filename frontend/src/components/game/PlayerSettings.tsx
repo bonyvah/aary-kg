@@ -34,7 +34,7 @@ export function PlayerSettings({ onLeave }: { onLeave?: () => void }) {
           <div className="flex w-full gap-4">
             {confirming ? (
               <>
-                <Button variant="secondary" className="flex-auto" onClick={() => setConfirming(false)}>
+                <Button variant="neutral" className="flex-auto" onClick={() => setConfirming(false)}>
                   {t("cancel")}
                 </Button>
                 <Button variant="danger" className="flex-auto" onClick={onLeave}>
@@ -48,7 +48,7 @@ export function PlayerSettings({ onLeave }: { onLeave?: () => void }) {
                     {t("leave")}
                   </Button>
                 ) : null}
-                <Button variant="secondary" className="flex-auto" onClick={close}>
+                <Button variant="neutral" className="flex-auto" onClick={close}>
                   {t("close")}
                 </Button>
               </>

@@ -76,7 +76,7 @@ export function ImportQuizModal({ open, room, onClose, onImport }: ImportQuizMod
       wide
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button variant="success" disabled={raw.trim() === ""} onClick={submit}>
@@ -88,10 +88,10 @@ export function ImportQuizModal({ open, room, onClose, onImport }: ImportQuizMod
       <div className="flex flex-col gap-4">
         <p>{t("intro")}</p>
         <div className="flex flex-wrap gap-4">
-          <Button variant="neutral" onClick={() => void copy(t("prompt", { format }))}>
+          <Button variant="secondary" onClick={() => void copy(t("prompt", { format }))}>
             {t("copyPrompt")}
           </Button>
-          <Button variant="neutral" onClick={() => void copy(format)}>
+          <Button variant="secondary" onClick={() => void copy(format)}>
             {t("copyFormat")}
           </Button>
         </div>

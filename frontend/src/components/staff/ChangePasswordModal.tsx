@@ -71,7 +71,7 @@ export function ChangePasswordModal({ open, onClose, onChanged }: ChangePassword
       title={t("password.title")}
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button type="submit" form={FORM_ID} disabled={busy}>

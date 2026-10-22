@@ -69,7 +69,7 @@ export function ChangeLoginModal({ open, currentLogin, onClose, onChanged }: Cha
       title={t("login.title")}
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button type="submit" form={FORM_ID} disabled={busy}>

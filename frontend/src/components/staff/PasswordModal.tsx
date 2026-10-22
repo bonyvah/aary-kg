@@ -26,7 +26,7 @@ export function PasswordModal({ open, name, password, onCopy, onClose }: Passwor
       title={t("title")}
       actions={
         <>
-          <Button variant="neutral" onClick={onCopy}>
+          <Button variant="secondary" onClick={onCopy}>
             <Icon icon={Copy} weight="bold" />
             {t("copy")}
           </Button>

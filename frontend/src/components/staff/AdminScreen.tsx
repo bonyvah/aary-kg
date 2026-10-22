@@ -200,7 +200,7 @@ export function AdminScreen() {
                             {t("actions.disable")}
                           </Button>
                         ) : (
-                          <Button variant="neutral" onClick={() => setActive(user, true)}>
+                          <Button variant="secondary" onClick={() => setActive(user, true)}>
                             {t("actions.enable")}
                           </Button>
                         )}

@@ -90,7 +90,7 @@ function AnswerRow({
             error={invalid ? t("pointsInvalid") : undefined}
             wrapperClassName="w-[140px]"
           />
-          <Button variant="neutral" disabled={busy} onClick={() => void save()} aria-label={`${t("saveAnswer")}: ${label}`}>
+          <Button variant="secondary" disabled={busy} onClick={() => void save()} aria-label={`${t("saveAnswer")}: ${label}`}>
             {t("saveAnswer")}
           </Button>
         </div>
@@ -142,7 +142,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
       onClose={onClose}
       title={t("title", { nickname: savedNickname })}
       actions={
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="neutral" onClick={onClose}>
           {t("close")}
         </Button>
       }
@@ -158,7 +158,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
               wrapperClassName="min-w-[200px] flex-1"
               autoComplete="off"
             />
-            <Button variant="neutral" disabled={busy || nickname.trim() === "" || nickname === player.nickname} onClick={() => void rename(nickname)}>
+            <Button variant="secondary" disabled={busy || nickname.trim() === "" || nickname === player.nickname} onClick={() => void rename(nickname)}>
               {t("saveNickname")}
             </Button>
           </section>
@@ -176,7 +176,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
                 error={invalid === "delta" ? t("numberInvalid") : undefined}
                 wrapperClassName="w-[200px]"
               />
-              <Button variant="neutral" disabled={busy} onClick={() => void applyDelta()}>
+              <Button variant="secondary" disabled={busy} onClick={() => void applyDelta()}>
                 {t("adjustApply")}
               </Button>
             </div>
@@ -189,7 +189,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
                 error={invalid === "total" ? t("numberInvalid") : undefined}
                 wrapperClassName="w-[200px]"
               />
-              <Button variant="neutral" disabled={busy} onClick={() => void applyTotal()}>
+              <Button variant="secondary" disabled={busy} onClick={() => void applyTotal()}>
                 {t("totalApply")}
               </Button>
             </div>
@@ -223,7 +223,7 @@ export function PlayerEditModal({ open, player, questions, busy, onClose, rename
                       {tf(flag.kind, { count: flag.count })}
                     </Badge>
                     <Button
-                      variant="neutral"
+                      variant="secondary"
                       disabled={busy}
                       onClick={() => void clearFlag(flag.kind)}
                       aria-label={t("clearFlag", { flag: tf(flag.kind, { count: flag.count }) })}

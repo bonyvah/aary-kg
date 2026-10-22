@@ -26,7 +26,7 @@ export function ConfirmModal({ open, title, body, confirmLabel, cancelLabel, var
       title={title}
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {cancelLabel}
           </Button>
           <Button variant={variant} disabled={busy} onClick={onConfirm}>

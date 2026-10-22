@@ -38,7 +38,7 @@ export function CharacterBuilder({ value, onChange, className }: CharacterBuilde
     <div className={cx("flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between gap-4">
         <Avatar character={value} size="xl" />
-        <Button variant="neutral" onClick={() => onChange(randomCharacter())}>
+        <Button variant="secondary" onClick={() => onChange(randomCharacter())}>
           <Icon icon={Shuffle} weight="bold" />
           {t("shuffle")}
         </Button>

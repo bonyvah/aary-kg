@@ -69,7 +69,7 @@ export function GroupModal({ open, group, existing, onClose, onSave }: GroupModa
       title={t(group ? "renameTitle" : "createTitle")}
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button type="submit" form={FORM_ID} disabled={busy}>

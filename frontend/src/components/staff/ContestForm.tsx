@@ -48,7 +48,7 @@ export function ContestForm() {
   return (
     <StaffShell topRight={<StaffMenu />} className="gap-8">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <ButtonLink href={home} variant="secondary">
+        <ButtonLink href={home} variant="neutral">
           {t("back")}
         </ButtonLink>
         <div className="min-w-[200px] flex-1">
@@ -122,7 +122,7 @@ export function ContestForm() {
         </ul>
         {errorFor("criteria") ? <p className="text-caption font-bold text-danger-text">{errorFor("criteria")}</p> : null}
         <div>
-          <Button variant="neutral" onClick={() => send({ type: "CRITERION_ADDED" })}>
+          <Button variant="secondary" onClick={() => send({ type: "CRITERION_ADDED" })}>
             {t("criteria.add")}
           </Button>
         </div>
@@ -156,7 +156,7 @@ export function ContestForm() {
         </ul>
         {errorFor("entries") ? <p className="text-caption font-bold text-danger-text">{errorFor("entries")}</p> : null}
         <div>
-          <Button variant="neutral" onClick={() => send({ type: "ENTRY_ADDED" })}>
+          <Button variant="secondary" onClick={() => send({ type: "ENTRY_ADDED" })}>
             {t("entries.add")}
           </Button>
         </div>

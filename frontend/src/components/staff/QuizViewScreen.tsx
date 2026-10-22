@@ -35,7 +35,7 @@ export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <h1 className="min-w-0 flex-1 text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
         <div className="flex flex-wrap gap-3">
-          <ButtonLink href="/dashboard" variant="secondary">
+          <ButtonLink href="/dashboard" variant="neutral">
             {t("back")}
           </ButtonLink>
           <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
@@ -50,7 +50,7 @@ export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-h3 font-bold">{t("questions", { count: quiz.questions.length })}</h2>
         <Button
-          variant="secondary"
+          variant="neutral"
           onClick={() => setOpen(allOpen ? new Set() : new Set(quiz.questions.map((q) => q.id)))}
         >
           {allOpen ? t("collapseAll") : t("expandAll")}

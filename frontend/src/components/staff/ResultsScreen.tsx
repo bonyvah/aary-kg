@@ -28,7 +28,7 @@ export function ResultsScreen({ contest, results }: { contest: Contest; results:
     <StaffShell
       topRight={
         <div className="flex items-center gap-3">
-          <ButtonLink href={`/contests/${contest.id}`} variant="secondary">
+          <ButtonLink href={`/contests/${contest.id}`} variant="neutral">
             {t("back")}
           </ButtonLink>
           <StaffMenu />
@@ -86,7 +86,7 @@ export function ResultsScreen({ contest, results }: { contest: Contest; results:
               })}
               {mayExplain ? (
                 <Td>
-                  <Button variant="neutral" onClick={() => setExplained(item)}>
+                  <Button variant="secondary" onClick={() => setExplained(item)}>
                     {t("breakdown")}
                   </Button>
                 </Td>

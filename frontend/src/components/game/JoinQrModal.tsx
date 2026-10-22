@@ -26,7 +26,7 @@ export function JoinQrModal({ pin, open, onClose }: JoinQrModalProps) {
       onClose={onClose}
       title={t("joinTitle")}
       actions={
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="neutral" onClick={onClose}>
           {t("closeQr")}
         </Button>
       }

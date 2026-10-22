@@ -87,7 +87,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
     <div className="flex min-h-dvh flex-col">
       <StaffTopBar topRight={<StaffMenu />} />
       <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 md:px-6">
-        <ButtonLink href="/dashboard" variant="secondary">
+        <ButtonLink href="/dashboard" variant="neutral">
           {t("back")}
         </ButtonLink>
         <div className="min-w-[200px] flex-1">
@@ -100,7 +100,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
             error={state.errors.has("title") ? required : undefined}
           />
         </div>
-        <Button variant="neutral" onClick={() => setImporting(true)}>
+        <Button variant="secondary" onClick={() => setImporting(true)}>
           {t("import.open")}
         </Button>
         <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>

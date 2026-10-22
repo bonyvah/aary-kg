@@ -29,7 +29,7 @@ export function SettingsModal({ open, onClose, onChangeLogin, onChangePassword }
       title={t("title")}
       actions={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="neutral" onClick={onClose}>
             {t("close")}
           </Button>
           <Button variant="danger" onClick={() => void session?.signOut()}>

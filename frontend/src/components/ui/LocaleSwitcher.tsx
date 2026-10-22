@@ -24,7 +24,7 @@ export function LocaleSwitcher() {
       {locales.map((locale) => (
         <Button
           key={locale}
-          variant={locale === current ? "primary" : "secondary"}
+          variant={locale === current ? "primary" : "neutral"}
           aria-pressed={locale === current}
           onClick={() => select(locale)}
         >

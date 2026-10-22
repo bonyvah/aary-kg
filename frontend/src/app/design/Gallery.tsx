@@ -7,6 +7,7 @@ import { AnswerTile } from "@/components/game/AnswerTile";
 import { LeaderboardRow } from "@/components/game/LeaderboardRow";
 import { LobbyChip } from "@/components/game/LobbyChip";
 import { Podium } from "@/components/game/Podium";
+import { CountdownRing } from "@/components/game/CountdownRing";
 import { TimerBar } from "@/components/game/TimerBar";
 import {
   AnswerCircle,
@@ -222,6 +223,10 @@ export function Gallery({ idBase }: { idBase: string }) {
           <Case label={t("state.urgent")}>
             <TimerBar remaining={3} total={20} unit={t("timer.unit")} />
           </Case>
+        </div>
+        <div className="mt-6 flex flex-wrap items-center gap-6">
+          <CountdownRing remaining={5} total={5} unit={t("timer.unit")} />
+          <CountdownRing remaining={2} total={5} unit={t("timer.unit")} size="lg" />
         </div>
       </Section>
 

@@ -47,3 +47,14 @@
     }
   }
 }
+
+/* The reading countdown ring empties once, over the reading time. CountdownRing sets the variables on
+   the ring itself, so this is not a theme animation: a theme variable would read them on :root. */
+@keyframes ring-empty {
+  from {
+    stroke-dashoffset: var(--ring-from);
+  }
+  to {
+    stroke-dashoffset: var(--ring-length);
+  }
+}

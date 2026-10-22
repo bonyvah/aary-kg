@@ -45,6 +45,10 @@ for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/
 for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc"])
   check(`an admin may open ${path}`, redirectFor("admin", path) === null);
 check("a teacher is sent away from /admin and below", redirectFor("teacher", "/admin") === "/dashboard" && redirectFor("teacher", "/admin/games/abc") === "/dashboard");
+check("students land on /student", homePath("student") === "/student");
+check("a student keeps their own area", ["/student", "/student/exams/abc"].every((path) => redirectFor("student", path) === null));
+check("a student is sent away from every staff screen", ["/dashboard", "/quizzes/new", "/host/abc", "/contests", "/contests/new", "/reports/abc", "/admin", "/students"].every((path) => redirectFor("student", path) === "/student"));
+check("teachers and admins are kept out of /student", redirectFor("teacher", "/student") === "/dashboard" && redirectFor("admin", "/student/exams/abc") === "/admin");
 check("a teacher keeps quizzes, hosting and contests", ["/dashboard", "/quizzes/new", "/host/abc", "/contests/new", "/administration"].every((path) => redirectFor("teacher", path) === null));
 
 // Whole numbers in the edit fields.

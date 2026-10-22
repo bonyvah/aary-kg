@@ -50,7 +50,9 @@
     "admin.moveGroup.submit",
     "admin.moveGroup.cancel",
     "common.apiError.GROUP_REQUIRED",
-    "common.apiError.NOT_A_STUDENT"
+    "common.apiError.NOT_A_STUDENT",
+    "student.home.title",
+    "student.home.empty"
   ],
   "app": {
     "name": "aary kg"
@@ -988,5 +990,11 @@
     },
     "retry": "Кайра аракет кылуу",
     "home": "Башкы бетке"
+  },
+  "student": {
+    "home": {
+      "title": "Экзамендер",
+      "empty": "Азырынча экзамендер жок"
+    }
   }
 }

@@ -91,6 +91,7 @@ class GameEngine:
             total=len(state.order),
             text=q["text"],
             seconds=q["seconds"],
+            read_seconds=q.get("read_seconds", DEFAULT_READ_SECONDS),
             positions=self._positions(q),
             answers=list(q["answers"]) if state.show_answers else None,
         )
@@ -111,6 +112,7 @@ class GameEngine:
             total=len(state.order),
             text=q["text"],
             seconds=q["seconds"],
+            read_seconds=q.get("read_seconds", DEFAULT_READ_SECONDS),
             positions=self._positions(q),
             answers=list(q["answers"]),
         )

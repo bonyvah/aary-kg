@@ -169,6 +169,7 @@ async def test_a_whole_game_over_sockets(room):
         "total": 2,
         "text": "Question 1?",
         "seconds": 20,
+        "readSeconds": 3,
         "positions": [1, 2, 3, 4],
     }
     hq = await host.wait("question.started")

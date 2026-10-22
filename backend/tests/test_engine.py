@@ -228,6 +228,7 @@ async def test_the_correct_answer_is_not_sent_before_the_reveal(env):
         "total": 3,
         "text": "Question 1?",
         "seconds": 20,
+        "readSeconds": 3,
         "positions": [1, 2, 3, 4],
     }
     assert "answers" not in player_q and host_q["answers"] == ["a", "b", "c", "d"]

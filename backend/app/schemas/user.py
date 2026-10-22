@@ -6,7 +6,7 @@ from pydantic import field_serializer
 
 from app.schemas.base import CamelModel
 
-UserRole = Literal["admin", "teacher"]
+UserRole = Literal["admin", "teacher", "student"]
 
 
 class LoginIn(CamelModel):
@@ -23,6 +23,9 @@ class ManagedUser(CamelModel):
     name: str
     login: str
     role: UserRole
+    # Students only.
+    group_id: uuid.UUID | None = None
+    group_name: str | None = None
     active: bool
     created_at: datetime
 
@@ -35,9 +38,15 @@ class CreateUserIn(CamelModel):
     first_name: str = ""
     last_name: str = ""
     login: str = ""
-    # An admin can only create teachers. The first admin comes from the command line
-    # (python -m app.cli create-admin); anything but "teacher" here is refused.
-    role: Literal["teacher"] = "teacher"
+    # An admin creates teachers and students. The first admin comes from the command line
+    # (python -m app.cli create-admin); "admin" here is refused.
+    role: Literal["teacher", "student"] = "teacher"
+    # Required for a student, refused for a teacher.
+    group_id: uuid.UUID | None = None
+
+
+class MoveGroupIn(CamelModel):
+    group_id: uuid.UUID | None = None
 
 
 class UserWithPassword(CamelModel):

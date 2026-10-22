@@ -127,7 +127,7 @@ async def create(session: AsyncSession, owner: User, payload: ContestIn) -> Cont
             len(jury_ids),
         )
     )
-    users = {u.id: u for u in await users_repo.get_many_active(session, jury_ids)}
+    users = {u.id: u for u in await users_repo.get_many_active_teachers(session, jury_ids)}
     if len(users) != len(jury_ids):
         raise ApiError(400, "USER_NOT_FOUND", "jury")
 

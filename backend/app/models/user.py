@@ -4,9 +4,10 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.models.group import Group
 
 
 class User(Base):
@@ -18,11 +19,12 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(60), default="", server_default="")
     login: Mapped[str] = mapped_column(String(32), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[str] = mapped_column(String(10))  # admin | teacher
+    role: Mapped[str] = mapped_column(String(10))  # admin | teacher | student
     # Students only: the one group they are in. A group with students can't be deleted.
     group_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("groups.id", ondelete="RESTRICT"), index=True, default=None
     )
+    group: Mapped[Group | None] = relationship(lazy="joined")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     # Part of every session token. Bumping it (a password reset) signs the user out everywhere.
     token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -37,3 +39,7 @@ class User(Base):
     @classmethod
     def _name_expression(cls):
         return func.trim(cls.first_name + " " + cls.last_name)
+
+    @property
+    def group_name(self) -> str | None:
+        return self.group.name if self.group else None

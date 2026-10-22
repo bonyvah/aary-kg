@@ -1,3 +1,5 @@
+from tests.conftest import make_user
+
 CRITERIA = [
     {"id": "c1", "name": "Voice", "coefficient": 6},
     {"id": "c2", "name": "Stage", "coefficient": 4},
@@ -137,15 +139,16 @@ async def test_visibility_owner_jury_admin_only(as_user):
     assert (await owner.get("/admin/contests")).status_code == 403
 
 
-async def test_directory_lists_active_users_without_roles_or_secrets(as_user):
+async def test_directory_lists_active_teachers_without_roles_or_secrets(as_user):
     c, _ = await as_user("ulan")
     admin, _ = await as_user("root", role="admin")
+    await make_user("aizada", role="student")
     dis = (
         await admin.post("/admin/users", json={"firstName": "Gone", "lastName": "X", "login": "gone"})
     ).json()["user"]["id"]
     await admin.post(f"/admin/users/{dis}/disable")
     rows = (await c.get("/users/directory")).json()
-    assert sorted(r["name"] for r in rows) == ["Root", "Ulan"]
+    assert sorted(r["name"] for r in rows) == ["Ulan"]  # no admins, no students, no disabled teachers
     assert all(set(r) == {"id", "name", "login"} for r in rows)
 
 

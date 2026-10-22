@@ -31,13 +31,18 @@ def add(session: AsyncSession, user: User) -> None:
     session.add(user)
 
 
-async def get_many_active(session: AsyncSession, user_ids: list[uuid.UUID]) -> list[User]:
-    result = await session.execute(select(User).where(User.id.in_(user_ids), User.active.is_(True)))
+async def get_many_active_teachers(session: AsyncSession, user_ids: list[uuid.UUID]) -> list[User]:
+    result = await session.execute(
+        select(User).where(User.id.in_(user_ids), User.active.is_(True), User.role == "teacher")
+    )
     return list(result.scalars())
 
 
-async def list_active(session: AsyncSession) -> list[User]:
+async def list_active_teachers(session: AsyncSession) -> list[User]:
+    """Who can be picked as jury."""
     result = await session.execute(
-        select(User).where(User.active.is_(True)).order_by(User.first_name, User.last_name)
+        select(User)
+        .where(User.active.is_(True), User.role == "teacher")
+        .order_by(User.first_name, User.last_name)
     )
     return list(result.scalars())

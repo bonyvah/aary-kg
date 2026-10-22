@@ -72,7 +72,7 @@ export function GroupModal({ open, group, existing, onClose, onSave }: GroupModa
           <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button type="submit" form={FORM_ID} disabled={busy}>
+          <Button variant="success" type="submit" form={FORM_ID} disabled={busy}>
             {t(group ? "submitRename" : "submitCreate")}
           </Button>
         </>

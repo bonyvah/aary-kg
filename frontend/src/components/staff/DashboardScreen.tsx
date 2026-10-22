@@ -48,11 +48,11 @@ export function DashboardScreen() {
           className="max-w-[360px] flex-1"
         />
         {tab === "quizzes" ? (
-          <ButtonLink href="/quizzes/manage/new" variant="accent">
+          <ButtonLink href="/quizzes/manage/new" variant="success">
             {t("createQuiz")}
           </ButtonLink>
         ) : tab === "contests" ? (
-          <ButtonLink href="/contests/new" variant="accent">
+          <ButtonLink href="/contests/new" variant="success">
             {t("createContest")}
           </ButtonLink>
         ) : null}

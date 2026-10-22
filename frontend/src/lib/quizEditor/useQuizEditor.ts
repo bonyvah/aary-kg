@@ -3,8 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
+import { createExam, updateExam } from "@/lib/api/exams";
 import { createQuiz, updateQuiz } from "@/lib/api/quizzes";
 import { ApiRequestError } from "@/lib/api/client";
+import type { Exam } from "@/types/exam";
 import type { Quiz } from "@/types/quiz";
 import { editorReducer, initialEditorState, NEW_QUIZ_ID, validateQuiz, type EditorDoc, type EditorEvent } from "./reducer";
 
@@ -84,4 +86,12 @@ const QUIZ_API: SaveApi<Quiz> = {
   invalidCode: "QUIZ_INVALID",
 };
 
+const EXAM_API: SaveApi<Exam> = {
+  create: (exam) => createExam({ title: exam.title, minutes: exam.minutes, questions: exam.questions }),
+  update: (exam) => updateExam(exam.id, { title: exam.title, minutes: exam.minutes, questions: exam.questions }),
+  invalidCode: "EXAM_INVALID",
+};
+
 export const useQuizEditor = (quiz: Quiz) => useDocEditor(quiz, QUIZ_API);
+
+export const useExamEditor = (exam: Exam) => useDocEditor(exam, EXAM_API);

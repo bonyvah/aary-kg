@@ -2,14 +2,16 @@
 
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ClockCounterClockwise, Question, Trophy } from "@phosphor-icons/react/ssr";
+import { ClockCounterClockwise, Exam, Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
+import { listExams } from "@/lib/api/exams";
 import { listGames } from "@/lib/api/games";
 import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
+import { ExamCard } from "./ExamCard";
 import { GameCard } from "./GameCard";
 import { ResourceView, useResource } from "./Resource";
 import { useCurrentUser } from "./SessionProvider";
@@ -17,7 +19,7 @@ import { QuizCard } from "./QuizCard";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
-const TABS = ["quizzes", "contests", "games"] as const;
+const TABS = ["quizzes", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function DashboardScreen() {
@@ -26,6 +28,7 @@ export function DashboardScreen() {
   const [tab, setTab] = useState<Tab>("quizzes");
   const idBase = useId();
   const quizzes = useResource(listQuizzes);
+  const exams = useResource(listExams);
   const contests = useResource(listContests);
   const games = useResource(listGames);
 
@@ -45,11 +48,15 @@ export function DashboardScreen() {
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[360px] flex-1"
+          className="max-w-[480px] flex-1"
         />
         {tab === "quizzes" ? (
           <ButtonLink href="/quizzes/manage/new" variant="success">
             {t("createQuiz")}
+          </ButtonLink>
+        ) : tab === "exams" ? (
+          <ButtonLink href="/exams/manage/new" variant="success">
+            {t("createExam")}
           </ButtonLink>
         ) : tab === "contests" ? (
           <ButtonLink href="/contests/new" variant="success">
@@ -73,6 +80,24 @@ export function DashboardScreen() {
                 </ul>
               ) : (
                 <EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />
+              )
+            }
+          </ResourceView>
+        ) : tab === "exams" ? (
+          <ResourceView resource={exams} inline>
+            {(items) =>
+              items.length > 0 ? (
+                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((exam) => (
+                    <li key={exam.id} className="flex">
+                      <div className="flex-1">
+                        <ExamCard exam={exam} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState icon={Exam} title={t("examsEmpty")} />
               )
             }
           </ResourceView>

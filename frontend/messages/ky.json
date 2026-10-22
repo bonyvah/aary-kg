@@ -54,7 +54,18 @@
     "admin.editUser.resetPassword",
     "admin.editUser.submit",
     "admin.editUser.cancel",
-    "admin.editUser.close"
+    "admin.editUser.close",
+    "staff.dashboard.tabs.exams",
+    "staff.dashboard.createExam",
+    "staff.dashboard.examMeta",
+    "staff.examEditor.titleLabel",
+    "staff.examEditor.saved",
+    "staff.examEditor.minutesLabel",
+    "staff.examEditor.minutesOption",
+    "staff.examEditor.customMinutesLabel",
+    "common.apiError.EXAM_NOT_FOUND",
+    "common.apiError.EXAM_INVALID",
+    "staff.dashboard.examsEmpty"
   ],
   "app": {
     "name": "aary kg"
@@ -170,6 +181,7 @@
       "tabsLabel": "Бөлүмдөр",
       "tabs": {
         "quizzes": "Викториналар",
+        "exams": "Экзамендер",
         "contests": "Конкурстар",
         "games": "Оюндар"
       },
@@ -189,7 +201,10 @@
         "title": "Азырынча оюн өткөрүлө элек",
         "description": "Викторина боюнча оюн өткөрүңүз, отчет ушул жерде пайда болот."
       },
-      "gamePlayers": "{count, plural, one {# оюнчу} other {# оюнчу}}"
+      "gamePlayers": "{count, plural, one {# оюнчу} other {# оюнчу}}",
+      "createExam": "Экзамен түзүү",
+      "examMeta": "{count, plural, one {# суроо} other {# суроо}} · {minutes} мүн",
+      "examsEmpty": "Азырынча экзамен жок"
     },
     "quizView": {
       "back": "Артка",
@@ -338,6 +353,13 @@
         "PASSWORD_SAME": "Жаңы сырсөз азыркы менен бирдей.",
         "PASSWORDS_DIFFER": "Сырсөздөр дал келбейт."
       }
+    },
+    "examEditor": {
+      "titleLabel": "Экзамендин аталышы",
+      "saved": "Экзамен сакталды.",
+      "minutesLabel": "Экзамендин убактысы",
+      "minutesOption": "{minutes} мүн",
+      "customMinutesLabel": "Башка убакыт"
     }
   },
   "design": {
@@ -566,7 +588,9 @@
       "GROUP_NOT_EMPTY": "Группада студенттер бар. Адегенде аларды башка группага которуңуз.",
       "GROUP_NAME_TAKEN": "Мындай аталыштагы группа бар.",
       "GROUP_REQUIRED": "Группаны тандаңыз.",
-      "NOT_A_STUDENT": "Группаны студентке гана алмаштырса болот."
+      "NOT_A_STUDENT": "Группаны студентке гана алмаштырса болот.",
+      "EXAM_NOT_FOUND": "Экзамен табылган жок.",
+      "EXAM_INVALID": "Экзамен туура толтурулган жок."
     },
     "toDashboard": "Башкы бетке"
   },

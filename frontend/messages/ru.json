@@ -113,6 +113,7 @@
       "tabsLabel": "Разделы",
       "tabs": {
         "quizzes": "Викторины",
+        "exams": "Экзамены",
         "contests": "Конкурсы",
         "games": "Игры"
       },
@@ -132,7 +133,10 @@
         "title": "Сыгранных игр пока нет",
         "description": "Проведите игру по викторине, и отчёт появится здесь."
       },
-      "gamePlayers": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}"
+      "gamePlayers": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
+      "createExam": "Создать экзамен",
+      "examMeta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}} · {minutes} мин",
+      "examsEmpty": "Пока нет экзаменов"
     },
     "quizView": {
       "back": "Назад",
@@ -281,6 +285,13 @@
         "PASSWORD_SAME": "Новый пароль совпадает с текущим.",
         "PASSWORDS_DIFFER": "Пароли не совпадают."
       }
+    },
+    "examEditor": {
+      "titleLabel": "Название экзамена",
+      "saved": "Экзамен сохранён.",
+      "minutesLabel": "Время на экзамен",
+      "minutesOption": "{minutes} мин",
+      "customMinutesLabel": "Другое время"
     }
   },
   "design": {
@@ -509,7 +520,9 @@
       "GROUP_NOT_EMPTY": "В группе есть студенты. Сначала переведите их в другую группу.",
       "GROUP_NAME_TAKEN": "Группа с таким названием уже есть.",
       "GROUP_REQUIRED": "Выберите группу.",
-      "NOT_A_STUDENT": "Группу можно сменить только у студента."
+      "NOT_A_STUDENT": "Группу можно сменить только у студента.",
+      "EXAM_NOT_FOUND": "Экзамен не найден.",
+      "EXAM_INVALID": "Экзамен заполнен неверно."
     },
     "toDashboard": "На главную"
   },

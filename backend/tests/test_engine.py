@@ -826,3 +826,23 @@ async def test_a_question_without_a_reading_time_reads_for_three_seconds(env, mo
     await env.engine.start(state.id)
     await settle()
     assert of(host, "question.started")[0]["readingMs"] == 30
+
+
+# --- quitting -------------------------------------------------------------------------------
+
+
+async def test_quitting_mid_game_keeps_nothing_and_closes_everyone(env):
+    state, host, (aida, *_), feeds = await new_game(env)
+    await env.engine.start(state.id)
+    await env.engine.answer(state.id, aida.id, 1)
+    await env.engine.quit(state.id)
+    await settle()
+    assert (await env.repo.get_game(state.id)).phase == "ended"
+    assert env.finished == []  # no record, no report
+    assert of(feeds[0], "game.closed") and of(host, "game.closed")
+    with pytest.raises(GameError) as e:
+        await env.engine.joinable(state.pin)
+    assert e.value.code == "GAME_ENDED"
+    with pytest.raises(GameError) as e:
+        await env.engine.quit(state.id)  # already over
+    assert e.value.code == "INVALID_STATE"

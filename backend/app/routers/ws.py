@@ -121,6 +121,8 @@ async def host_socket(ws: WebSocket, game_id: str) -> None:
                         await engine.kick(game_id, message.player_id)
                     case p.End():
                         await engine.end(game_id)
+                    case p.Quit():
+                        await engine.quit(game_id)
                     case p.Rule():
                         await engine.rule(game_id, message.player_id, message.action)
                     case p.Settings():

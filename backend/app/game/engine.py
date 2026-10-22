@@ -384,6 +384,19 @@ class GameEngine:
                 return
             await self._end_locked(state)
 
+    async def quit(self, game_id: str) -> None:
+        """Host: the game stops here and nothing of it is kept, in the lobby or in the middle of a
+        question. Everybody is told it is closed. A finished game is already saved: nothing to quit."""
+        async with self.repo.lock(game_id):
+            state = await self._game(game_id)
+            if state.phase == "ended":
+                raise GameError("INVALID_STATE")
+            state.phase = "ended"
+            state.finished_ms = await self.repo.now_ms()
+            await self.repo.save_game(state)
+            await self.audit(game_id, "game.quit", at=state.finished_ms, round=state.round)
+            await self._emit(game_id, "all", p.Closed())
+
     # --- transitions (the game lock is held) ----------------------------------------------------
 
     async def _begin_question(self, state: GameState, quiz: dict[str, Any], rnd: int) -> None:

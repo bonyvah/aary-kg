@@ -75,6 +75,12 @@ class End(_In):
     type: Literal["end"]
 
 
+class Quit(_In):
+    """Host: stop the game and keep nothing of it (no record, no report)."""
+
+    type: Literal["quit"]
+
+
 class Settings(_In):
     """Host, in the lobby: how this game is played. A field left out keeps its value."""
 
@@ -95,7 +101,7 @@ class Rule(_In):
 
 
 PlayerMessage = Annotated[Hello | Answer | Signal | Pong | SetCharacter, Field(discriminator="type")]
-HostMessage = Annotated[Start | Next | Kick | End | Rule | Settings, Field(discriminator="type")]
+HostMessage = Annotated[Start | Next | Kick | End | Quit | Rule | Settings, Field(discriminator="type")]
 
 _player = TypeAdapter(PlayerMessage)
 _host = TypeAdapter(HostMessage)
@@ -108,7 +114,7 @@ def parse_player(data: Any) -> Hello | Answer | Signal | Pong | SetCharacter | N
         return None
 
 
-def parse_host(data: Any) -> Start | Next | Kick | End | Rule | Settings | None:
+def parse_host(data: Any) -> Start | Next | Kick | End | Quit | Rule | Settings | None:
     try:
         return _host.validate_python(data)
     except ValidationError:
@@ -310,7 +316,7 @@ class NextGame(_Out):
 
 
 class Closed(_Out):
-    """The host ended the game before it started."""
+    """The host ended the game before it started, or quit it: there is nothing more to show."""
 
     type: Literal["game.closed"] = "game.closed"
 

@@ -19,7 +19,7 @@ async def test_create_user_returns_password_once_and_it_works(client):
     await admin_client(client)
     r = await client.post(
         "/admin/users",
-        json={"firstName": " Ulan ", "lastName": " Kasymov ", "login": " Ulan.K ", "role": "user"},
+        json={"firstName": " Ulan ", "lastName": " Kasymov ", "login": " Ulan.K ", "role": "teacher"},
     )
     assert r.status_code == 201
     body = r.json()

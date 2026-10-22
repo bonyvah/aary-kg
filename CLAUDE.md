@@ -22,8 +22,8 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 ## Product
 
 ### Roles
-- **admin**: few of them. Manages the platform, does not use it: creates/disables users (role `user` only, never another admin; other admins are listed without actions, the acting admin is not listed), sees all contests and games and can correct a finished game's data (scores, answers, nicknames, flags; every edit is audited, hosts see it read-only). Admins never create quizzes, contests or host games. No self-registration anywhere.
-- **user**: created by admin. Creates quizzes, hosts live games, creates contests, can be a jury member.
+- **admin**: few of them. Manages the platform, does not use it: creates/disables teachers (role `teacher` only, never another admin; other admins are listed without actions, the acting admin is not listed), sees all contests and games and can correct a finished game's data (scores, answers, nicknames, flags; every edit is audited, hosts see it read-only). Admins never create quizzes, contests or host games. No self-registration anywhere.
+- **teacher**: created by admin. Creates quizzes, hosts live games, creates contests, can be a jury member.
 - **player**: no account, no auth. Joins a live game with a game PIN + nickname.
 
 ### Features
@@ -40,7 +40,7 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - Live game state: Redis (game state, PINs with TTL, rate limiting, pub/sub for broadcasting WebSocket events across instances). When a game ends, persist results to PostgreSQL. Redis is for live state only, never the source of truth for history.
 - i18n: next-intl, Kyrgyz (ky) and Russian (ru) ONLY. See the i18n section.
 - Icons: Phosphor (bold/fill weights) plus custom SVGs. NOT lucide.
-- Auth: JWT for admin/user; players get a short-lived game-scoped token
+- Auth: JWT for admin/teacher; players get a short-lived game-scoped token
 - One backend service, one frontend, one Postgres. No microservices.
 
 ### Next.js usage rules
@@ -83,7 +83,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - After the nickname the player gets a random character and can change shape, color and face (or shuffle) in the lobby until the game starts.
 - Build one `Avatar` React component that draws the parts as inline SVG. Never load them as image files. Colors come from the `avatar-*` tokens.
 - Store only the three ids per player (Redis game state) and validate them against the fixed lists on the server. Faces repeat in a game, so the nickname is what identifies a player.
-- NO photo uploads, camera input or custom images, ever. Avatars exist only for players: staff lists (admins, users, juries) show plain names, no avatar or initial circle.
+- NO photo uploads, camera input or custom images, ever. Avatars exist only for players: staff lists (admins, teachers, juries) show plain names, no avatar or initial circle.
 
 ### Style rules
 - Buttons are chunky with a solid darker bottom edge (about 4px) and a press-down effect. Not soft shadows.
@@ -107,8 +107,8 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 
 1. **Foundation**: generate the Tailwind theme and CSS variables from `design-system/tokens.json` (both themes), set up Montserrat, and port the components from `design-system/` to React + Tailwind: Button, Input, Card, Badge, AnswerTile, TimerBar, Avatar (8 characters), LeaderboardRow, Podium, lobby chip. Then add the ones the design system lacks (Modal, Toast, Table, empty and loading states) in the same style, plus the Icon wrapper and SVG set. Build a `/design` kitchen-sink route showing every component in every state in both themes, with long Kyrgyz and Russian strings. STOP and wait for my visual review.
 2. **Player flow** (mock data): join (PIN) -> nickname -> lobby -> question -> answered/wait -> result -> leaderboard -> podium.
-3. **Host + user screens** (mock data): login, dashboard, quiz editor, host lobby, host live view (question, answer counts, leaderboard), game report.
-4. **Admin + contest screens** (mock data): user management, contest create, jury scoring screen, contest results.
+3. **Host + teacher screens** (mock data): login, dashboard, quiz editor, host lobby, host live view (question, answer counts, leaderboard), game report.
+4. **Admin + contest screens** (mock data): teacher management, contest create, jury scoring screen, contest results.
 5. **Backend**: DB schema + migrations, auth, REST CRUD, WebSocket game engine, anti-cheat, then wire the screens to real data.
 6. **Hardening**: rate limits, tests, deploy.
 

@@ -33,7 +33,7 @@ check("empty title, no criteria, no entries, no jury", codes({ title: " ", crite
 check("blank criterion and entry names are FIELD_REQUIRED", validateContest({ ...base, criteria: [{ id: "a", name: "", coefficient: 1 }], entries: [{ id: "e", name: " ", description: "" }] }).map((i) => i.field).join(",") === "criterion:a:name,entry:e:name");
 
 const school = getMockContest("school-concert")!;
-check("the owner and an admin manage a contest, another user does not", canManage(school, { id: "u-aizhan", role: "user" }) && canManage(school, { id: "x", role: "admin" }) && !canManage(school, { id: "u-ulan", role: "user" }));
+check("the owner and an admin manage a contest, another teacher does not", canManage(school, { id: "u-aizhan", role: "teacher" }) && canManage(school, { id: "x", role: "admin" }) && !canManage(school, { id: "u-ulan", role: "teacher" }));
 check("a jury member scores only while it is open", canScore(photo, "u-omur") && !canScore(singers, "u-omur") && !canScore(school, "u-ulan") && !canScore(photo, "u-aizhan"));
 check("contestRole tells owner, jury and neither", contestRole(photo, "u-aizhan") === "owner" && contestRole(english, "u-aizhan") === "jury" && contestRole(english, "u-gulzat") === null);
 check("scoredEntryCount counts fully scored entries", scoredEntryCount(photo, "u-ulan") === 3 && scoredEntryCount(photo, "u-omur") === 0 && scoredEntryCount(singers, "u-gulzat") === 5);

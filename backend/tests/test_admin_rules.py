@@ -15,11 +15,11 @@ async def test_the_users_list_leaves_out_the_admin_asking_but_shows_other_admins
     assert str(other_admin.id) in {r["id"] for r in rows}
 
 
-async def test_an_admin_can_only_create_regular_users(as_user):
+async def test_an_admin_can_only_create_teachers(as_user):
     admin, _ = await as_user("root", role="admin")
     ok = await admin.post("/admin/users", json={"firstName": "Ulan", "lastName": "X", "login": "ulan"})
-    assert ok.status_code == 201 and ok.json()["user"]["role"] == "user"  # the default
-    for role in ("admin", "root", ""):
+    assert ok.status_code == 201 and ok.json()["user"]["role"] == "teacher"  # the default
+    for role in ("admin", "user", "root", ""):
         r = await admin.post(
             "/admin/users",
             json={"firstName": "X", "lastName": "X", "login": f"x{len(role)}abc", "role": role},

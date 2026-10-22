@@ -38,13 +38,13 @@ check("a Cyrillic word without a digit needs one", passwordProblem("абвгде
 check("a 129 character password is too long", passwordProblem("a1" + "x".repeat(127)) === "PASSWORD_TOO_LONG");
 
 // Where each role may go.
-check("admins land on /admin, users on /dashboard", homePath("admin") === "/admin" && homePath("user") === "/dashboard");
+check("admins land on /admin, teachers on /dashboard", homePath("admin") === "/admin" && homePath("teacher") === "/dashboard");
 for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/host/abc", "/contests/new"])
   check(`an admin is sent away from ${path}`, redirectFor("admin", path) === "/admin");
 for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc"])
   check(`an admin may open ${path}`, redirectFor("admin", path) === null);
-check("a user is sent away from /admin and below", redirectFor("user", "/admin") === "/dashboard" && redirectFor("user", "/admin/games/abc") === "/dashboard");
-check("a user keeps quizzes, hosting and contests", ["/dashboard", "/quizzes/new", "/host/abc", "/contests/new", "/administration"].every((path) => redirectFor("user", path) === null));
+check("a teacher is sent away from /admin and below", redirectFor("teacher", "/admin") === "/dashboard" && redirectFor("teacher", "/admin/games/abc") === "/dashboard");
+check("a teacher keeps quizzes, hosting and contests", ["/dashboard", "/quizzes/new", "/host/abc", "/contests/new", "/administration"].every((path) => redirectFor("teacher", path) === null));
 
 // Whole numbers in the edit fields.
 check("whole numbers parse", parseWhole("12") === 12 && parseWhole(" -50 ") === -50 && parseWhole("+3") === 3 && parseWhole("0") === 0);

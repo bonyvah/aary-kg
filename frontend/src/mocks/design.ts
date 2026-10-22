@@ -17,6 +17,6 @@ export const mockLobbyPlayers: readonly Player[] = [
 
 export const mockStaff: readonly StaffUser[] = [
   { id: "u1", name: "Асель Мамбетова", role: "admin", active: true },
-  { id: "u2", name: "Улан Эсенов", role: "user", active: true },
+  { id: "u2", name: "Улан Эсенов", role: "teacher", active: true },
   { id: "u3", name: "Ө. Күмөш кызы", role: "jury", active: false },
 ];

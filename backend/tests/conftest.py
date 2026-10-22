@@ -60,7 +60,7 @@ async def client():
         yield c
 
 
-async def make_user(login: str, role: str = "user", password: str = "pw-12345", active=True):
+async def make_user(login: str, role: str = "teacher", password: str = "pw-12345", active=True):
     async with SessionLocal() as s:
         user = User(
             first_name=login.title(),
@@ -85,7 +85,7 @@ async def as_user():
     """as_user("ulan", role="admin") -> (client logged in as that user, user). Separate cookie jars."""
     clients: list[AsyncClient] = []
 
-    async def make(login: str, role: str = "user"):
+    async def make(login: str, role: str = "teacher"):
         user = await make_user(login, role=role)
         c = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
         clients.append(c)

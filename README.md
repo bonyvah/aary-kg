@@ -1,6 +1,6 @@
 # aary kg
 
-A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based contest mode. Built for a small community: a handful of admins, a limited number of users, and players who just join with a PIN.
+A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based contest mode. Built for a small community: a handful of admins, a limited number of teachers, and players who just join with a PIN.
 
 > Status: all six build phases are done. What is left is yours to decide (hosting, branding, the final Kyrgyz wording) and a first real run of the container images, see `docs/deploy.md`.
 
@@ -9,13 +9,13 @@ A Kahoot-inspired live quiz platform with stricter anti-cheat, plus a jury-based
 The interface is available in Kyrgyz and Russian.
 
 ### Live quiz games
-- A user creates a quiz and hosts a live game.
+- A teacher creates a quiz and hosts a live game.
 - Players join with a game PIN and a nickname. No account needed.
 - Questions are pushed in real time, answers are scored by speed and correctness, and the game ends with a leaderboard and podium.
 - Individual play only. No teams.
 
 ### Contests
-- A user creates a contest and invites juries (other users).
+- A teacher creates a contest and invites juries (other teachers).
 - Each jury member gives points to entries.
 - The final result is the aggregate of all jury scores.
 
@@ -23,8 +23,8 @@ The interface is available in Kyrgyz and Russian.
 
 | Role   | How they get in               | What they can do                                                  |
 |--------|-------------------------------|-------------------------------------------------------------------|
-| Admin  | Seeded with the CLI           | Create and disable users (never other admins), see all contests and games and correct a finished game's data. Does not create quizzes or contests or host games |
-| User   | Created by an admin           | Create quizzes, host games, create contests, act as jury          |
+| Admin  | Seeded with the CLI           | Create and disable teachers (never other admins), see all contests and games and correct a finished game's data. Does not create quizzes or contests or host games |
+| Teacher| Created by an admin           | Create quizzes, host games, create contests, act as jury          |
 | Player | No auth, joins with a PIN     | Join and play live games                                          |
 
 There is no public registration. Accounts are created by admins.
@@ -52,7 +52,7 @@ The server is authoritative. The client is never trusted.
 | Database       | PostgreSQL, SQLAlchemy 2.0 (async), Alembic         |
 | Live state     | Redis (game state, PIN TTL, pub/sub, rate limits)  |
 | i18n           | next-intl, Kyrgyz and Russian only                  |
-| Auth           | JWT for admin/user, game-scoped token for players   |
+| Auth           | JWT for admin/teacher, game-scoped token for players|
 | Font / icons   | Montserrat (latin + cyrillic), Phosphor + custom SVG |
 
 ## Design
@@ -68,7 +68,7 @@ make up                                          # Postgres + Redis, migrations,
 make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova # first time: prints a password once
 ```
 
-The admin only manages: sign in at `/login`, create a user (Admin area, Users tab), then sign in as that user to build quizzes and host games.
+The admin only manages: sign in at `/login`, create a teacher (Admin area, Users tab), then sign in as that teacher to build quizzes and host games.
 
 Then open http://localhost:3000. `make help` lists the rest: `make logs`, `make status`, `make down`,
 `make test`, `make check`, `make e2e`. Without Docker, start your own Postgres and Redis (the URLs
@@ -126,7 +126,7 @@ GitHub Actions runs the first two groups on every push to `main`.
 
 1. Design foundation and component kitchen sink (`/design`): done
 2. Player flow screens: done
-3. Host and user screens: done
+3. Host and teacher screens: done
 4. Admin and contest screens: done
 5. Backend: DB, auth, REST, WebSocket game engine, anti-cheat: done
 6. Hardening, tests, containers, CI: done

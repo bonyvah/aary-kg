@@ -103,7 +103,7 @@ export function finishedCount(contest: Pick<Contest, "jury">): number {
   return contest.jury.filter((member) => member.finished).length;
 }
 
-type Viewer = { id: string; role: "admin" | "user" };
+type Viewer = { id: string; role: "admin" | "teacher" };
 
 /** Owner and admins manage a contest: open scoring, close it. */
 export function canManage(contest: Pick<Contest, "ownerId">, viewer: Viewer): boolean {

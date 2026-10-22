@@ -129,7 +129,7 @@ export function AdminScreen() {
         />
         {tab === "users" ? (
           <Button variant="accent" onClick={() => setCreating(true)}>
-            {t("createUser")}
+            {t("createTeacher")}
           </Button>
         ) : null}
       </div>

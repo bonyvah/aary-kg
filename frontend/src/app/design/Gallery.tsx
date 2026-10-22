@@ -37,7 +37,7 @@ import { TabsDemo } from "./TabsDemo";
 import { ToastDemo } from "./ToastDemo";
 
 const CARD_COUNTS = [1, 2, 5, 21] as const;
-const roleBadge: Record<StaffRole, "brand" | "neutral"> = { admin: "brand", jury: "brand", user: "neutral" };
+const roleBadge: Record<StaffRole, "brand" | "neutral"> = { admin: "brand", jury: "brand", teacher: "neutral" };
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (

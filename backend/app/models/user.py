@@ -18,7 +18,7 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(60), default="", server_default="")
     login: Mapped[str] = mapped_column(String(32), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[str] = mapped_column(String(10))  # admin | user
+    role: Mapped[str] = mapped_column(String(10))  # admin | teacher
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     # Part of every session token. Bumping it (a password reset) signs the user out everywhere.
     token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

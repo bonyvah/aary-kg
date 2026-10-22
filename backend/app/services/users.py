@@ -65,7 +65,7 @@ async def set_active(session: AsyncSession, actor: User, user_id: uuid.UUID, act
 
 
 def _not_an_admin(user: User) -> None:
-    """Admins manage regular users. Another admin can't be disabled or have a password reset from here."""
+    """Admins manage teachers. Another admin can't be disabled or have a password reset from here."""
     if user.role == "admin":
         raise ApiError(403, "CANNOT_MANAGE_ADMIN")
 

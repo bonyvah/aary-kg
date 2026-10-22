@@ -10,7 +10,7 @@ export type Player = {
   character: Character;
 };
 
-export type StaffRole = "admin" | "user" | "jury";
+export type StaffRole = "admin" | "teacher" | "jury";
 
 export type StaffUser = {
   id: string;

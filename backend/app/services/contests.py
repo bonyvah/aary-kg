@@ -116,7 +116,7 @@ async def to_out(session: AsyncSession, contests: Sequence[Contest], viewer: Use
 
 
 async def create(session: AsyncSession, owner: User, payload: ContestIn) -> Contest:
-    if owner.role == "admin":
+    if owner.role != "teacher":
         raise ApiError(403, "FORBIDDEN")  # admins manage contests, they don't run their own
     jury_ids = list(dict.fromkeys(payload.jury_ids))  # no duplicates, keeps the picked order
     _raise_if(

@@ -28,5 +28,21 @@ async def require_admin(user: Annotated[User, Depends(current_user)]) -> User:
     return user
 
 
+async def require_staff(user: Annotated[User, Depends(current_user)]) -> User:
+    """Admins and teachers: the staff screens. Anyone else (a student) is refused."""
+    if user.role not in ("admin", "teacher"):
+        raise ApiError(403, "FORBIDDEN")
+    return user
+
+
+async def require_teacher(user: Annotated[User, Depends(current_user)]) -> User:
+    """Quizzes, hosting and running contests are a teacher's own. Admins only manage."""
+    if user.role != "teacher":
+        raise ApiError(403, "FORBIDDEN")
+    return user
+
+
 CurrentUser = Annotated[User, Depends(current_user)]
 AdminUser = Annotated[User, Depends(require_admin)]
+StaffUser = Annotated[User, Depends(require_staff)]
+TeacherUser = Annotated[User, Depends(require_teacher)]

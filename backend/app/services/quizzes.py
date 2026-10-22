@@ -42,8 +42,8 @@ def _check(payload: QuizIn) -> None:
 
 
 async def create(session: AsyncSession, owner: User, payload: QuizIn) -> Quiz:
-    if owner.role == "admin":
-        raise ApiError(403, "FORBIDDEN")  # admins manage the platform; quizzes are the users' own
+    if owner.role != "teacher":
+        raise ApiError(403, "FORBIDDEN")  # admins manage the platform; quizzes are the teachers' own
     _check(payload)
     quiz = Quiz(
         owner_id=owner.id,

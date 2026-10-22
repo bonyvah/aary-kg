@@ -39,20 +39,22 @@
     "admin.createStudent",
     "admin.roles.student",
     "admin.columns.group",
-    "admin.actions.moveGroup",
     "admin.toast.moved",
     "admin.create.studentTitle",
     "admin.create.group",
     "admin.create.groupPick",
     "admin.errors.GROUP_REQUIRED",
-    "admin.moveGroup.title",
-    "admin.moveGroup.group",
-    "admin.moveGroup.submit",
-    "admin.moveGroup.cancel",
     "common.apiError.GROUP_REQUIRED",
     "common.apiError.NOT_A_STUDENT",
     "student.home.title",
-    "student.home.empty"
+    "student.home.empty",
+    "admin.actions.edit",
+    "admin.editUser.title",
+    "admin.editUser.group",
+    "admin.editUser.resetPassword",
+    "admin.editUser.submit",
+    "admin.editUser.cancel",
+    "admin.editUser.close"
   ],
   "app": {
     "name": "aary kg"
@@ -658,8 +660,7 @@
     "actions": {
       "disable": "Өчүрүү",
       "enable": "Иштетүү",
-      "resetPassword": "Сырсөздү алмаштыруу",
-      "moveGroup": "Группасын алмаштыруу"
+      "edit": "Өзгөртүү"
     },
     "create": {
       "title": "Жаңы мугалим",
@@ -690,11 +691,6 @@
       "title": "Мугалимди өчүрөсүзбү?",
       "body": "{name} системага кире албай калат. Аны кайра иштетүүгө болот.",
       "confirm": "Өчүрүү"
-    },
-    "confirmReset": {
-      "title": "Сырсөздү алмаштырасызбы?",
-      "body": "{name} үчүн эски сырсөз иштебей калат. Жаңысы бир жолу көрсөтүлөт.",
-      "confirm": "Алмаштыруу"
     },
     "toast": {
       "created": "Мугалим кошулду.",
@@ -841,11 +837,13 @@
         "deleted": "Группа өчүрүлдү."
       }
     },
-    "moveGroup": {
-      "title": "Группа: {name}",
+    "editUser": {
+      "title": "{name}",
       "group": "Группа",
+      "resetPassword": "Сырсөздү алмаштыруу",
       "submit": "Сактоо",
-      "cancel": "Жокко чыгаруу"
+      "cancel": "Жокко чыгаруу",
+      "close": "Жабуу"
     }
   },
   "contest": {

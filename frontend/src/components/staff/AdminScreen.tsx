@@ -18,7 +18,7 @@ import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { ArrowsLeftRight, CheckCircle, Password, Prohibit, WarningCircle } from "@phosphor-icons/react";
+import { CheckCircle, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminGamesTable } from "./AdminGamesTable";
@@ -26,16 +26,13 @@ import { AdminGroups } from "./AdminGroups";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
-import { MoveGroupModal } from "./MoveGroupModal";
+import { EditUserModal } from "./EditUserModal";
 import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
-type Pending =
-  | { kind: "disable"; user: ManagedUser }
-  | { kind: "reset"; user: ManagedUser }
-  | null;
+type Pending = { kind: "disable"; user: ManagedUser } | null;
 
 const TABS = ["users", "groups", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
@@ -52,7 +49,7 @@ export function AdminScreen() {
   const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
   const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
   const [creating, setCreating] = useState<NewUser["role"] | null>(null);
-  const [moving, setMoving] = useState<ManagedUser | null>(null);
+  const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [groups, setGroups] = useState<readonly Group[]>([]);
   const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
@@ -106,24 +103,23 @@ export function AdminScreen() {
   }
 
   async function moveToGroup(groupId: string) {
-    if (!moving) return;
-    const updated = await api.moveToGroup(moving.id, groupId);
+    if (!editing) return;
+    const updated = await api.moveToGroup(editing.id, groupId);
     setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
-    setMoving(null);
+    setEditing(null);
     show("success", t("toast.moved"));
+  }
+
+  async function resetPassword() {
+    if (!editing) return;
+    const { password } = await api.resetPassword(editing.id);
+    setRevealed({ name: editing.name, password });
   }
 
   async function confirmPending() {
     if (!pending) return;
-    const { kind, user } = pending;
     setPending(null);
-    if (kind === "disable") return setActive(user, false);
-    try {
-      const { password } = await api.resetPassword(user.id);
-      setRevealed({ name: user.name, password });
-    } catch (error) {
-      fail(error);
-    }
+    return setActive(pending.user, false);
   }
 
   async function copyPassword() {
@@ -156,15 +152,15 @@ export function AdminScreen() {
         />
         {tab === "users" ? (
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="accent" onClick={() => setCreating("teacher")}>
+            <Button variant="success" onClick={() => setCreating("teacher")}>
               {t("createTeacher")}
             </Button>
-            <Button variant="accent" onClick={() => void withGroups(() => setCreating("student"))}>
+            <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
               {t("createStudent")}
             </Button>
           </div>
         ) : tab === "groups" ? (
-          <Button variant="accent" onClick={() => setAddingGroup(true)}>
+          <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
         ) : null}
@@ -248,22 +244,12 @@ export function AdminScreen() {
                         )}
                         <Button
                           variant="secondary"
-                          aria-label={`${t("actions.resetPassword")}: ${user.name}`}
-                          title={`${t("actions.resetPassword")}: ${user.name}`}
-                          onClick={() => setPending({ kind: "reset", user })}
+                          aria-label={`${t("actions.edit")}: ${user.name}`}
+                          title={`${t("actions.edit")}: ${user.name}`}
+                          onClick={() => void (user.role === "student" ? withGroups(() => setEditing(user)) : setEditing(user))}
                         >
-                          <Icon icon={Password} weight="bold" />
+                          <Icon icon={PencilSimple} weight="bold" />
                         </Button>
-                        {user.role === "student" ? (
-                          <Button
-                            variant="secondary"
-                            aria-label={`${t("actions.moveGroup")}: ${user.name}`}
-                            title={`${t("actions.moveGroup")}: ${user.name}`}
-                            onClick={() => void withGroups(() => setMoving(user))}
-                          >
-                            <Icon icon={ArrowsLeftRight} weight="bold" />
-                          </Button>
-                        ) : null}
                       </div>
                     )}
                   </Td>
@@ -276,12 +262,18 @@ export function AdminScreen() {
       </div>
 
       <CreateUserModal role={creating} existing={users ?? []} groups={groups} onClose={() => setCreating(null)} onCreate={createUser} />
-      <MoveGroupModal student={moving} groups={groups} onClose={() => setMoving(null)} onMove={moveToGroup} />
+      <EditUserModal
+        user={editing}
+        groups={groups}
+        onClose={() => setEditing(null)}
+        onMove={moveToGroup}
+        onResetPassword={resetPassword}
+      />
       <ConfirmModal
         open={pending !== null}
-        title={t(pending?.kind === "reset" ? "confirmReset.title" : "confirmDisable.title")}
-        body={t(pending?.kind === "reset" ? "confirmReset.body" : "confirmDisable.body", { name: pending?.user.name ?? "" })}
-        confirmLabel={t(pending?.kind === "reset" ? "confirmReset.confirm" : "confirmDisable.confirm")}
+        title={t("confirmDisable.title")}
+        body={t("confirmDisable.body", { name: pending?.user.name ?? "" })}
+        confirmLabel={t("confirmDisable.confirm")}
         cancelLabel={t("cancel")}
         onConfirm={() => void confirmPending()}
         onClose={() => setPending(null)}
@@ -291,7 +283,10 @@ export function AdminScreen() {
         name={revealed?.name ?? ""}
         password={revealed?.password ?? ""}
         onCopy={() => void copyPassword()}
-        onClose={() => setRevealed(null)}
+        onClose={() => {
+          setRevealed(null);
+          setEditing(null);
+        }}
       />
       {toast}
     </StaffShell>

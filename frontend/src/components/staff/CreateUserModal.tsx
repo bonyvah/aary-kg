@@ -89,7 +89,7 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
           <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button type="submit" form={FORM_ID} disabled={busy}>
+          <Button variant="success" type="submit" form={FORM_ID} disabled={busy}>
             {t("submit")}
           </Button>
         </>

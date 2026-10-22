@@ -63,6 +63,8 @@ check("a right answer line names its number", JSON.stringify(line("edit_answer",
 check("a wrong answer line", line("edit_answer", { question: "q1", after: { correct: false, points: 0 } }).key === "edit_answer_wrong");
 check("rename line has both names", JSON.stringify(line("rename_player", { before: "a", after: "b" }).values) === '{"before":"a","after":"b"}');
 check("remove and clear lines", line("remove_player", {}).key === "remove_player" && line("clear_flag", { kind: "PASTE" }).values.kind === "PASTE");
+check("a student without a group is GROUP_REQUIRED", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", groupId: "", student: true }, existing)) === '{"groupId":"GROUP_REQUIRED"}');
+check("a teacher needs no group", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", groupId: "" }, existing)) === "{}");
 
 const groups = [{ id: "g1", name: "10-А" }, { id: "g2", name: "9-Б" }];
 check("a new group name passes", validateGroupName(" 11-В ", groups) === null);

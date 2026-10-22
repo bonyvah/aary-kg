@@ -1,3 +1,4 @@
+import type { UserRole } from "@/types/user";
 import type {
   Contest,
   Criterion,
@@ -103,7 +104,7 @@ export function finishedCount(contest: Pick<Contest, "jury">): number {
   return contest.jury.filter((member) => member.finished).length;
 }
 
-type Viewer = { id: string; role: "admin" | "teacher" };
+type Viewer = { id: string; role: UserRole };
 
 /** Owner and admins manage a contest: open scoring, close it. */
 export function canManage(contest: Pick<Contest, "ownerId">, viewer: Viewer): boolean {

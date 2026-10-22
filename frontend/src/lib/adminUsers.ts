@@ -1,16 +1,16 @@
 import type { ManagedUser } from "@/types/user";
 
 /** Stable codes of a failed «create user». The frontend turns them into translated text. */
-export type AdminErrorCode = "FIELD_REQUIRED" | "LOGIN_INVALID" | "LOGIN_TAKEN";
+export type AdminErrorCode = "FIELD_REQUIRED" | "LOGIN_INVALID" | "LOGIN_TAKEN" | "GROUP_REQUIRED";
 
 /** The rule for a login, here and when changing it in the account settings. Same as the server's. */
 export const LOGIN_PATTERN = /^[a-z0-9][a-z0-9._-]{2,31}$/;
 
-export type NewUserField = "firstName" | "lastName" | "login";
+export type NewUserField = "firstName" | "lastName" | "login" | "groupId";
 
-/** What the server checks on «create user». Returns the first error per field. */
+/** What the server checks on «create user». Returns the first error per field. A student needs a group. */
 export function validateNewUser(
-  input: { firstName: string; lastName: string; login: string },
+  input: { firstName: string; lastName: string; login: string; groupId?: string | null; student?: boolean },
   existing: readonly Pick<ManagedUser, "login">[],
 ): Partial<Record<NewUserField, AdminErrorCode>> {
   const errors: Partial<Record<NewUserField, AdminErrorCode>> = {};
@@ -20,6 +20,7 @@ export function validateNewUser(
   if (login === "") errors.login = "FIELD_REQUIRED";
   else if (!LOGIN_PATTERN.test(login)) errors.login = "LOGIN_INVALID";
   else if (existing.some((user) => user.login.toLowerCase() === login)) errors.login = "LOGIN_TAKEN";
+  if (input.student && !input.groupId) errors.groupId = "GROUP_REQUIRED";
   return errors;
 }
 

@@ -35,7 +35,22 @@
     "admin.groups.toast.deleted",
     "common.apiError.GROUP_NOT_FOUND",
     "common.apiError.GROUP_NOT_EMPTY",
-    "common.apiError.GROUP_NAME_TAKEN"
+    "common.apiError.GROUP_NAME_TAKEN",
+    "admin.createStudent",
+    "admin.roles.student",
+    "admin.columns.group",
+    "admin.actions.moveGroup",
+    "admin.toast.moved",
+    "admin.create.studentTitle",
+    "admin.create.group",
+    "admin.create.groupPick",
+    "admin.errors.GROUP_REQUIRED",
+    "admin.moveGroup.title",
+    "admin.moveGroup.group",
+    "admin.moveGroup.submit",
+    "admin.moveGroup.cancel",
+    "common.apiError.GROUP_REQUIRED",
+    "common.apiError.NOT_A_STUDENT"
   ],
   "app": {
     "name": "aary kg"
@@ -545,7 +560,9 @@
       "NOTHING_TO_CHANGE": "Өзгөртүүгө эч нерсе жок.",
       "GROUP_NOT_FOUND": "Группа табылган жок.",
       "GROUP_NOT_EMPTY": "Группада студенттер бар. Адегенде аларды башка группага которуңуз.",
-      "GROUP_NAME_TAKEN": "Мындай аталыштагы группа бар."
+      "GROUP_NAME_TAKEN": "Мындай аталыштагы группа бар.",
+      "GROUP_REQUIRED": "Группаны тандаңыз.",
+      "NOT_A_STUDENT": "Группаны студентке гана алмаштырса болот."
     },
     "toDashboard": "Башкы бетке"
   },
@@ -616,18 +633,21 @@
   "admin": {
     "title": "Башкаруу",
     "createTeacher": "Мугалим кошуу",
+    "createStudent": "Студент кошуу",
     "cancel": "Жокко чыгаруу",
     "columns": {
       "name": "Аты-жөнү",
       "login": "Логин",
       "role": "Ролу",
+      "group": "Группа",
       "status": "Абалы",
       "created": "Түзүлгөн",
       "actions": "Аракеттер"
     },
     "roles": {
       "admin": "Админ",
-      "teacher": "Мугалим"
+      "teacher": "Мугалим",
+      "student": "Студент"
     },
     "status": {
       "active": "Активдүү",
@@ -636,7 +656,8 @@
     "actions": {
       "disable": "Өчүрүү",
       "enable": "Иштетүү",
-      "resetPassword": "Сырсөздү алмаштыруу"
+      "resetPassword": "Сырсөздү алмаштыруу",
+      "moveGroup": "Группасын алмаштыруу"
     },
     "create": {
       "title": "Жаңы мугалим",
@@ -645,12 +666,16 @@
       "submit": "Түзүү",
       "cancel": "Жокко чыгаруу",
       "firstName": "Аты",
-      "lastName": "Фамилиясы"
+      "lastName": "Фамилиясы",
+      "studentTitle": "Жаңы студент",
+      "group": "Группа",
+      "groupPick": "Группаны тандаңыз"
     },
     "errors": {
       "FIELD_REQUIRED": "Талааны толтуруңуз.",
       "LOGIN_INVALID": "Логин 3–32 белгиден турат: латын тамгалары, цифралар, чекит, сызыкча.",
-      "LOGIN_TAKEN": "Бул логин ээленген."
+      "LOGIN_TAKEN": "Бул логин ээленген.",
+      "GROUP_REQUIRED": "Группаны тандаңыз."
     },
     "password": {
       "title": "Сырсөз даяр",
@@ -674,7 +699,8 @@
       "enabled": "Мугалим иштетилди.",
       "disabled": "Мугалим өчүрүлдү.",
       "copied": "Сырсөз көчүрүлдү.",
-      "copyFailed": "Көчүрүү мүмкүн болбоду. Сырсөздү кол менен белгилеп алыңыз."
+      "copyFailed": "Көчүрүү мүмкүн болбоду. Сырсөздү кол менен белгилеп алыңыз.",
+      "moved": "Студент башка группага которулду."
     },
     "tabsLabel": "Бөлүмдөр",
     "tabs": {
@@ -812,6 +838,12 @@
         "renamed": "Группанын аты өзгөртүлдү.",
         "deleted": "Группа өчүрүлдү."
       }
+    },
+    "moveGroup": {
+      "title": "Группа: {name}",
+      "group": "Группа",
+      "submit": "Сактоо",
+      "cancel": "Жокко чыгаруу"
     }
   },
   "contest": {

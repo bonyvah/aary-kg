@@ -11,17 +11,21 @@ import { Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/useToast";
 import * as api from "@/lib/api/adminUsers";
+import type { NewUser } from "@/lib/api/adminUsers";
+import { listGroups } from "@/lib/api/groups";
 import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
 import { WarningCircle } from "@phosphor-icons/react";
+import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminGamesTable } from "./AdminGamesTable";
 import { AdminGroups } from "./AdminGroups";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
+import { MoveGroupModal } from "./MoveGroupModal";
 import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
@@ -46,7 +50,9 @@ export function AdminScreen() {
   const { toast, show } = useToast();
   const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
   const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<NewUser["role"] | null>(null);
+  const [moving, setMoving] = useState<ManagedUser | null>(null);
+  const [groups, setGroups] = useState<readonly Group[]>([]);
   const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
   // The password lives here only until the modal closes: it is never stored on the user.
@@ -70,10 +76,20 @@ export function AdminScreen() {
     show("danger", tc(`apiError.${toKnownCode(error)}`));
   }
 
-  async function createUser(input: { firstName: string; lastName: string; login: string }) {
+  // Groups are read fresh each time a student is added or moved: they change on the groups tab.
+  async function withGroups(open: () => void) {
+    try {
+      setGroups(await listGroups());
+      open();
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function createUser(input: NewUser) {
     const created = await api.createUser(input);
     setUsers((current) => [...(current ?? []), created.user]);
-    setCreating(false);
+    setCreating(null);
     setRevealed({ name: created.user.name, password: created.password });
     show("success", t("toast.created"));
   }
@@ -86,6 +102,14 @@ export function AdminScreen() {
     } catch (error) {
       fail(error);
     }
+  }
+
+  async function moveToGroup(groupId: string) {
+    if (!moving) return;
+    const updated = await api.moveToGroup(moving.id, groupId);
+    setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
+    setMoving(null);
+    show("success", t("toast.moved"));
   }
 
   async function confirmPending() {
@@ -130,9 +154,14 @@ export function AdminScreen() {
           className="max-w-[680px] flex-1"
         />
         {tab === "users" ? (
-          <Button variant="accent" onClick={() => setCreating(true)}>
-            {t("createTeacher")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="accent" onClick={() => setCreating("teacher")}>
+              {t("createTeacher")}
+            </Button>
+            <Button variant="accent" onClick={() => void withGroups(() => setCreating("student"))}>
+              {t("createStudent")}
+            </Button>
+          </div>
         ) : tab === "groups" ? (
           <Button variant="accent" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
@@ -162,12 +191,13 @@ export function AdminScreen() {
             <Spinner label={tc("loading")} />
           </div>
         ) : (
-        <Table className="min-w-[860px]">
+        <Table className="min-w-[960px]">
           <thead>
             <tr>
               <Th>{t("columns.name")}</Th>
               <Th>{t("columns.login")}</Th>
               <Th>{t("columns.role")}</Th>
+              <Th>{t("columns.group")}</Th>
               <Th>{t("columns.status")}</Th>
               <Th>{t("columns.created")}</Th>
               <Th>{t("columns.actions")}</Th>
@@ -186,6 +216,7 @@ export function AdminScreen() {
                   <Td>
                     <Badge variant={user.role === "admin" ? "brand" : "neutral"}>{t(`roles.${user.role}`)}</Badge>
                   </Td>
+                  <Td>{user.groupName ?? ""}</Td>
                   <Td>
                     <Badge variant={user.active ? "success" : "neutral"}>{t(user.active ? "status.active" : "status.disabled")}</Badge>
                   </Td>
@@ -207,6 +238,11 @@ export function AdminScreen() {
                         <Button variant="secondary" onClick={() => setPending({ kind: "reset", user })}>
                           {t("actions.resetPassword")}
                         </Button>
+                        {user.role === "student" ? (
+                          <Button variant="secondary" onClick={() => void withGroups(() => setMoving(user))}>
+                            {t("actions.moveGroup")}
+                          </Button>
+                        ) : null}
                       </div>
                     )}
                   </Td>
@@ -218,7 +254,8 @@ export function AdminScreen() {
         )}
       </div>
 
-      <CreateUserModal open={creating} existing={users ?? []} onClose={() => setCreating(false)} onCreate={createUser} />
+      <CreateUserModal role={creating} existing={users ?? []} groups={groups} onClose={() => setCreating(null)} onCreate={createUser} />
+      <MoveGroupModal student={moving} groups={groups} onClose={() => setMoving(null)} onMove={moveToGroup} />
       <ConfirmModal
         open={pending !== null}
         title={t(pending?.kind === "reset" ? "confirmReset.title" : "confirmDisable.title")}

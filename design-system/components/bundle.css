@@ -20,8 +20,9 @@
 .ak-btn--accent { --edge-c: var(--accent-edge); background: var(--accent); color: var(--on-accent); box-shadow: var(--edge-accent); }
 .ak-btn--danger { --edge-c: var(--danger-edge); background: var(--danger); color: var(--on-danger); box-shadow: var(--edge-danger); }
 .ak-btn--success { --edge-c: var(--success-edge); background: var(--success); color: var(--on-success); box-shadow: var(--edge-success); }
-.ak-btn--neutral { --edge-c: var(--border-control); background: var(--surface-raised); color: var(--ink); box-shadow: var(--edge-neutral); }
-.ak-btn--accent:disabled, .ak-btn--danger:disabled, .ak-btn--success:disabled, .ak-btn--neutral:disabled { background: var(--disabled); color: var(--on-disabled); box-shadow: none; }
+.ak-btn--secondary { --edge-c: var(--secondary-edge); background: var(--secondary); color: var(--on-secondary); box-shadow: var(--edge-secondary); }
+.ak-btn--neutral { --edge-c: var(--neutral-edge); background: var(--neutral); color: var(--on-neutral); box-shadow: var(--edge-neutral); }
+.ak-btn--accent:disabled, .ak-btn--danger:disabled, .ak-btn--success:disabled, .ak-btn--secondary:disabled, .ak-btn--neutral:disabled { background: var(--disabled); color: var(--on-disabled); box-shadow: none; }
 .ak-btn--lg { min-height: 56px; padding: var(--space-4) var(--space-8); font: 900 20px/28px var(--font-sans); }
 .ak-btn--block { display: flex; width: 100%; }
 

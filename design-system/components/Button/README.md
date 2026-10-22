@@ -2,16 +2,19 @@ Chunky action button with a hard bottom edge that lifts on hover and drops onto 
 
 ## Consumer provides
 - A translated label as children. Verb first, sentence case: «Оюнду баштоо», «Сактоо».
-- `variant`: primary (default), accent, success, danger or neutral. `size`: default or lg. Optional `block` for full width, and `disabled`.
+- `variant`: primary (default), accent, success, danger, secondary or neutral. `size`: default or lg. Optional `block` for full width, and `disabled`.
 - An `aria-label` when a button holds only an icon.
 
 ## Use
 - One primary or accent action per screen section. Accent (yellow) is for starting a game; danger only for destructive actions, with a confirm dialog.
+- Secondary (teal) is for actions that are not the main one: edit, rename, add, copy, view the report.
+- Neutral (light purple) is for leaving or moving: cancel, close, back, previous, next. A cancel is always neutral, so the main action next to it stands out.
 - In the `game` theme the primary button is white with purple text; build it the same way, the tokens switch it.
 - Let the label wrap. Never set a fixed width: Russian and Kyrgyz run 20–30% longer than English.
 - Minimum height 44px; the large size is 56px.
 
 ## Don't
+- No blue buttons: blue is answer tile 2.
 - No soft shadows, gradients or outlines instead of the edge.
 - No white text on accent or warning fills: use `on-accent`.
 - No disabled button without a reason shown nearby.

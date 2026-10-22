@@ -19,6 +19,12 @@
   --primary: #1368ce;
   --primary-edge: #0d4a96;
   --on-primary: #ffffff;
+  --secondary: #14b8a6;
+  --secondary-edge: #0d7a6e;
+  --on-secondary: #1a1a1a;
+  --neutral: #ffffff;
+  --neutral-edge: #858585;
+  --on-neutral: #333333;
   --accent: #ffc00a;
   --accent-edge: #c78f00;
   --on-accent: #333333;
@@ -67,6 +73,7 @@
   --edge-accent: 0 4px 0 0 #c78f00;
   --edge-danger: 0 4px 0 0 #a8122c;
   --edge-success: 0 4px 0 0 #1a6107;
+  --edge-secondary: 0 4px 0 0 #0d7a6e;
   --edge-neutral: 0 4px 0 0 #858585;
   --space-1: 4px;
   --space-2: 8px;
@@ -104,6 +111,12 @@
   --primary: #ffffff;
   --primary-edge: #b9a3d9;
   --on-primary: #25076b;
+  --secondary: #14b8a6;
+  --secondary-edge: #0d7a6e;
+  --on-secondary: #1a1a1a;
+  --neutral: #864cbf;
+  --neutral-edge: #14033d;
+  --on-neutral: #ffffff;
   --accent: #ffc00a;
   --accent-edge: #c78f00;
   --on-accent: #333333;
@@ -152,6 +165,7 @@
   --edge-accent: 0 4px 0 0 #c78f00;
   --edge-danger: 0 4px 0 0 #a8122c;
   --edge-success: 0 4px 0 0 #1a6107;
+  --edge-secondary: 0 4px 0 0 #0d7a6e;
   --edge-neutral: 0 4px 0 0 #14033d;
 }
 
@@ -174,6 +188,12 @@
   --color-primary: var(--primary);
   --color-primary-edge: var(--primary-edge);
   --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-edge: var(--secondary-edge);
+  --color-on-secondary: var(--on-secondary);
+  --color-neutral: var(--neutral);
+  --color-neutral-edge: var(--neutral-edge);
+  --color-on-neutral: var(--on-neutral);
   --color-accent: var(--accent);
   --color-accent-edge: var(--accent-edge);
   --color-on-accent: var(--on-accent);
@@ -242,6 +262,7 @@
   --shadow-edge-accent: var(--edge-accent);
   --shadow-edge-danger: var(--edge-danger);
   --shadow-edge-success: var(--edge-success);
+  --shadow-edge-secondary: var(--edge-secondary);
   --shadow-edge-neutral: var(--edge-neutral);
   --font-sans: var(--font-montserrat-latin), var(--font-montserrat-cyrillic), var(--font-montserrat-cyrillic-ext), Arial, sans-serif;
   --text-*: initial;

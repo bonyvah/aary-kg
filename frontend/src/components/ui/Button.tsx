@@ -15,8 +15,8 @@ const variants: Record<ButtonVariant, string> = {
   accent: "bg-accent text-on-accent shadow-edge-accent [--edge-c:var(--accent-edge)]",
   success: "bg-success text-on-success shadow-edge-success [--edge-c:var(--success-edge)]",
   danger: "bg-danger text-on-danger shadow-edge-danger [--edge-c:var(--danger-edge)]",
-  secondary: "bg-tile-blue text-on-tile shadow-[0_4px_0_0_var(--tile-blue-edge)] [--edge-c:var(--tile-blue-edge)]",
-  neutral: "bg-surface-raised text-ink shadow-edge-neutral [--edge-c:var(--border-control)]",
+  secondary: "bg-secondary text-on-secondary shadow-edge-secondary [--edge-c:var(--secondary-edge)]",
+  neutral: "bg-neutral text-on-neutral shadow-edge-neutral [--edge-c:var(--neutral-edge)]",
 };
 
 const sizes: Record<ButtonSize, string> = {

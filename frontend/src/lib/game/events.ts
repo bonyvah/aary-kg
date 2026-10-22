@@ -76,6 +76,8 @@ export type HostEvent =
   | { type: "cheaters"; cheaters: Cheater[] }
   | { type: "settings"; settings: GameSettings }
   | { type: "game.ended"; gameId: string; standings: ServerStanding[]; cheaters: Cheater[] }
+  /** The host quit the game: nothing of it was kept. */
+  | { type: "game.closed" }
   | { type: "replaced" }
   | { type: "error"; code: string };
 
@@ -91,6 +93,7 @@ export type HostMessage =
   /** `fromPhase`: the screen it was pressed on. The server ignores a press that is out of date. */
   | { type: "next"; fromPhase: "question" | "counts" | "leaderboard" }
   | { type: "end" }
+  | { type: "quit" }
   | { type: "kick"; playerId: string }
   /** On the podium: what to do about a suspected cheater. */
   | { type: "rule"; playerId: string; action: Ruling };

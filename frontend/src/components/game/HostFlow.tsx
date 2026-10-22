@@ -7,6 +7,7 @@ import { SettingsModal } from "@/components/staff/SettingsModal";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/useToast";
 import { knownCode } from "@/lib/api/client";
@@ -29,6 +30,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
   const { state, refused, clearRefused } = flow;
   const [soundOn, setSoundOn] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [quitting, setQuitting] = useState(false);
   const { toast, show } = useToast();
 
   // A command the server refused (nobody has joined yet, the game is not in that phase...).
@@ -133,6 +135,7 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
         soundOn={soundOn}
         onToggleSound={() => setSoundOn((on) => !on)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onQuit={state.phase === "podium" ? undefined : () => setQuitting(true)}
       />
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 p-6">
         {screen()}
@@ -147,6 +150,27 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
         ) : null}
       </main>
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Modal
+        open={quitting}
+        onClose={() => setQuitting(false)}
+        title={t("quitTitle")}
+        actions={
+          <>
+            <Button variant="neutral" onClick={() => setQuitting(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                setQuitting(false);
+                flow.quit();
+              }}
+            >
+              {t("quit")}
+            </Button>
+          </>
+        }
+      />
       {toast}
     </div>
   );

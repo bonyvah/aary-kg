@@ -47,6 +47,11 @@ export function useHostFlow(quiz: Quiz) {
           heard = true;
           dispatch({ type: "SERVER", event });
           if (event.type === "error") setRefused(event.code);
+          if (event.type === "game.closed") {
+            // Quit: nothing was kept, so there is no podium or report to stay for.
+            remember(null);
+            router.replace("/dashboard");
+          }
         },
         onClosed: (code) => {
           socket.current = null;
@@ -86,7 +91,7 @@ export function useHostFlow(quiz: Quiz) {
       socket.current?.close();
       socket.current = null;
     };
-  }, [quiz.id, quiz.questions.length, attempt]);
+  }, [quiz.id, quiz.questions.length, attempt, router]);
 
   // The clock only draws what the server said: one tick per second while a question is open.
   const { phase } = state;
@@ -116,6 +121,8 @@ export function useHostFlow(quiz: Quiz) {
       if (phase === "question" || phase === "counts" || phase === "leaderboard") send({ type: "next", fromPhase: phase });
     }, [send, phase]),
     kick: useCallback((playerId: string) => send({ type: "kick", playerId }), [send]),
+    /** Stops the game and keeps nothing of it. */
+    quit: useCallback(() => send({ type: "quit" }), [send]),
     rule: useCallback((playerId: string, action: Ruling) => send({ type: "rule", playerId, action }), [send]),
     /** From the podium: the players still connected go on to a lobby for `quizId`, on the same PIN. */
     nextGame: useCallback(

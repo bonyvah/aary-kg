@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowsIn, ArrowsOut, Gear, SpeakerHigh, SpeakerSlash, User } from "@phosphor-icons/react/ssr";
+import { ArrowsIn, ArrowsOut, Gear, SignOut, SpeakerHigh, SpeakerSlash, User } from "@phosphor-icons/react/ssr";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Logo } from "@/components/ui/Logo";
@@ -14,10 +14,12 @@ type HostTopBarProps = {
   soundOn: boolean;
   onToggleSound: () => void;
   onOpenSettings: () => void;
+  /** Quit the game without saving it. Not offered once it is over (it is saved by then). */
+  onQuit?: () => void;
 };
 
 /** Top bar of every host screen: the PIN and QR button on the left, the logo in the middle, player count, sound, settings and fullscreen on the right. */
-export function HostTopBar({ pin, playerCount, soundOn, onToggleSound, onOpenSettings }: HostTopBarProps) {
+export function HostTopBar({ pin, playerCount, soundOn, onToggleSound, onOpenSettings, onQuit }: HostTopBarProps) {
   const t = useTranslations("host.bar");
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -55,6 +57,11 @@ export function HostTopBar({ pin, playerCount, soundOn, onToggleSound, onOpenSet
           <IconButton label={fullscreen ? t("exitFullscreen") : t("fullscreen")} onClick={toggleFullscreen}>
             <Icon icon={fullscreen ? ArrowsIn : ArrowsOut} weight="bold" />
           </IconButton>
+          {onQuit ? (
+            <IconButton label={t("quit")} aria-haspopup="dialog" onClick={onQuit}>
+              <Icon icon={SignOut} weight="bold" />
+            </IconButton>
+          ) : null}
         </div>
       </div>
     </header>

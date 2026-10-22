@@ -122,6 +122,8 @@ function applyServerEvent(state: HostState, event: HostEvent): HostState {
       return { ...state, phase: "podium", gameId: event.gameId, standings: toStandings(event.standings), cheaters: event.cheaters };
     case "replaced":
       return { ...state, replaced: true };
+    case "game.closed": // the hook leaves for the dashboard
+      return state;
     case "error":
       return state;
   }

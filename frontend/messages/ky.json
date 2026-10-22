@@ -9,7 +9,33 @@
     "admin.toast.enabled",
     "admin.toast.disabled",
     "admin.games.empty.description",
-    "contest.form.jury.hint"
+    "contest.form.jury.hint",
+    "admin.tabs.groups",
+    "admin.groups.add",
+    "admin.groups.columns.name",
+    "admin.groups.columns.students",
+    "admin.groups.columns.created",
+    "admin.groups.columns.actions",
+    "admin.groups.rename",
+    "admin.groups.delete",
+    "admin.groups.empty",
+    "admin.groups.modal.createTitle",
+    "admin.groups.modal.renameTitle",
+    "admin.groups.modal.name",
+    "admin.groups.modal.submitCreate",
+    "admin.groups.modal.submitRename",
+    "admin.groups.modal.cancel",
+    "admin.groups.errors.FIELD_REQUIRED",
+    "admin.groups.errors.GROUP_NAME_TAKEN",
+    "admin.groups.confirmDelete.title",
+    "admin.groups.confirmDelete.body",
+    "admin.groups.confirmDelete.confirm",
+    "admin.groups.toast.created",
+    "admin.groups.toast.renamed",
+    "admin.groups.toast.deleted",
+    "common.apiError.GROUP_NOT_FOUND",
+    "common.apiError.GROUP_NOT_EMPTY",
+    "common.apiError.GROUP_NAME_TAKEN"
   ],
   "app": {
     "name": "aary kg"
@@ -516,7 +542,10 @@
       "NICKNAME_TAKEN": "Бул оюнда мындай ник бар.",
       "SCORE_NEGATIVE": "Упай нөлдөн аз болушу мүмкүн эмес.",
       "ANSWER_INCONSISTENT": "Туура эмес жооп 0 упай, туура жооп 1ден 1000ге чейин.",
-      "NOTHING_TO_CHANGE": "Өзгөртүүгө эч нерсе жок."
+      "NOTHING_TO_CHANGE": "Өзгөртүүгө эч нерсе жок.",
+      "GROUP_NOT_FOUND": "Топ табылган жок.",
+      "GROUP_NOT_EMPTY": "Топто студенттер бар. Адегенде аларды башка топко которуңуз.",
+      "GROUP_NAME_TAKEN": "Мындай аталыштагы топ бар."
     },
     "toDashboard": "Башкы бетке"
   },
@@ -650,6 +679,7 @@
     "tabsLabel": "Бөлүмдөр",
     "tabs": {
       "users": "Колдонуучулар",
+      "groups": "Топтор",
       "contests": "Конкурстар",
       "games": "Оюндар"
     },
@@ -748,6 +778,40 @@
         "removed": "Оюнчу оюндан чыгарылды."
       },
       "editPlayer": "Өзгөртүү"
+    },
+    "groups": {
+      "add": "Топ кошуу",
+      "columns": {
+        "name": "Аталышы",
+        "students": "Студенттер",
+        "created": "Түзүлгөн",
+        "actions": "Аракеттер"
+      },
+      "rename": "Атын өзгөртүү",
+      "delete": "Өчүрүү",
+      "empty": "Азырынча топтор жок",
+      "modal": {
+        "createTitle": "Жаңы топ",
+        "renameTitle": "Топтун атын өзгөртүү",
+        "name": "Аталышы",
+        "submitCreate": "Түзүү",
+        "submitRename": "Сактоо",
+        "cancel": "Жокко чыгаруу"
+      },
+      "errors": {
+        "FIELD_REQUIRED": "Талааны толтуруңуз.",
+        "GROUP_NAME_TAKEN": "Мындай аталыштагы топ бар."
+      },
+      "confirmDelete": {
+        "title": "Топту өчүрөсүзбү?",
+        "body": "«{name}» тобу өчүрүлөт.",
+        "confirm": "Өчүрүү"
+      },
+      "toast": {
+        "created": "Топ түзүлдү.",
+        "renamed": "Топтун аты өзгөртүлдү.",
+        "deleted": "Топ өчүрүлдү."
+      }
     }
   },
   "contest": {

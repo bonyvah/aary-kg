@@ -4,6 +4,7 @@ import { passwordProblem } from "../src/lib/account.ts";
 import { describeEdit, parseWhole } from "../src/lib/adminGame.ts";
 import { homePath, redirectFor } from "../src/lib/staffRoutes.ts";
 import { generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
+import { validateGroupName } from "../src/lib/groups.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -62,6 +63,13 @@ check("a right answer line names its number", JSON.stringify(line("edit_answer",
 check("a wrong answer line", line("edit_answer", { question: "q1", after: { correct: false, points: 0 } }).key === "edit_answer_wrong");
 check("rename line has both names", JSON.stringify(line("rename_player", { before: "a", after: "b" }).values) === '{"before":"a","after":"b"}');
 check("remove and clear lines", line("remove_player", {}).key === "remove_player" && line("clear_flag", { kind: "PASTE" }).values.kind === "PASTE");
+
+const groups = [{ id: "g1", name: "10-А" }, { id: "g2", name: "9-Б" }];
+check("a new group name passes", validateGroupName(" 11-В ", groups) === null);
+check("a blank group name is FIELD_REQUIRED", validateGroupName("   ", groups) === "FIELD_REQUIRED");
+check("a taken group name is GROUP_NAME_TAKEN, case does not matter", validateGroupName("10-а", groups) === "GROUP_NAME_TAKEN");
+check("a group keeps its own name on rename", validateGroupName("10-а", groups, "g1") === null);
+check("another group's name is taken on rename", validateGroupName("9-Б", groups, "g1") === "GROUP_NAME_TAKEN");
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

@@ -18,6 +18,7 @@ import type { KnownApiCode } from "@/lib/api/client";
 import { WarningCircle } from "@phosphor-icons/react";
 import type { ManagedUser } from "@/types/user";
 import { AdminGamesTable } from "./AdminGamesTable";
+import { AdminGroups } from "./AdminGroups";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
@@ -31,7 +32,7 @@ type Pending =
   | { kind: "reset"; user: ManagedUser }
   | null;
 
-const TABS = ["users", "contests", "games"] as const;
+const TABS = ["users", "groups", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminScreen() {
@@ -46,6 +47,7 @@ export function AdminScreen() {
   const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
   const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
   const [creating, setCreating] = useState(false);
+  const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
@@ -125,17 +127,23 @@ export function AdminScreen() {
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[520px] flex-1"
+          className="max-w-[680px] flex-1"
         />
         {tab === "users" ? (
           <Button variant="accent" onClick={() => setCreating(true)}>
             {t("createTeacher")}
           </Button>
+        ) : tab === "groups" ? (
+          <Button variant="accent" onClick={() => setAddingGroup(true)}>
+            {t("groups.add")}
+          </Button>
         ) : null}
       </div>
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
-        {tab === "games" ? (
+        {tab === "groups" ? (
+          <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} />
+        ) : tab === "games" ? (
           <ResourceView resource={allGames} inline>
             {(items) => <AdminGamesTable games={items} />}
           </ResourceView>

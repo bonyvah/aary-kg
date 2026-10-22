@@ -41,23 +41,23 @@ check("all or nothing: one bad question fails the import", !parseQuizJson(JSON.s
 // Adding the read questions to the editor.
 const imported = { type: "QUESTIONS_IMPORTED", title: "Math", questions: [{ ...question, correct: 2 as const, answers: ["3", "4", "5", "6"] as [string, string, string, string] }] } as const;
 const fresh = editorReducer(initialEditorState(blankQuiz()), imported);
-check("a new quiz: the blank starter question is replaced, the title filled", fresh.quiz.questions.length === 1 && fresh.quiz.questions[0]?.text === "2 + 2?" && fresh.quiz.title === "Math");
-check("the first imported question is selected", fresh.selectedId === fresh.quiz.questions[0]?.id);
+check("a new quiz: the blank starter question is replaced, the title filled", fresh.doc.questions.length === 1 && fresh.doc.questions[0]?.text === "2 + 2?" && fresh.doc.title === "Math");
+check("the first imported question is selected", fresh.selectedId === fresh.doc.questions[0]?.id);
 const twice = editorReducer(fresh, { ...imported, title: "Other" });
-check("importing again appends and keeps the title", twice.quiz.questions.length === 2 && twice.quiz.title === "Math" && twice.selectedId === twice.quiz.questions[1]?.id);
-check("ids stay unique", new Set(twice.quiz.questions.map((q) => q.id)).size === 2);
+check("importing again appends and keeps the title", twice.doc.questions.length === 2 && twice.doc.title === "Math" && twice.selectedId === twice.doc.questions[1]?.id);
+check("ids stay unique", new Set(twice.doc.questions.map((q) => q.id)).size === 2);
 const loaded = initialEditorState({ id: "q1", title: "", status: "draft", questions: [{ id: "question-2", text: "A", answers: ["a", "b", "", ""], correct: 1, seconds: 20 }] });
 const afterLoaded = editorReducer(loaded, imported);
-check("a saved question is kept in front, its id not reused", afterLoaded.quiz.questions[0]?.id === "question-2" && afterLoaded.quiz.questions[1]?.id !== "question-2");
+check("a saved question is kept in front, its id not reused", afterLoaded.doc.questions[0]?.id === "question-2" && afterLoaded.doc.questions[1]?.id !== "question-2");
 check("nothing to import changes nothing", editorReducer(fresh, { ...imported, questions: [] }) === fresh);
 
 // A new question takes the times of the one before it.
 const filled = editorReducer(
   editorReducer(editorReducer(editorReducer(initialEditorState(blankQuiz()), { type: "QUESTION_TEXT_CHANGED", text: "Q" }), { type: "ANSWER_TEXT_CHANGED", position: 1, text: "a" }), { type: "ANSWER_TEXT_CHANGED", position: 2, text: "b" }),
-  { type: "READ_SECONDS_CHANGED", seconds: 7 },
+  { type: "QUESTION_CHANGED", change: { readSeconds: 7 } },
 );
 const added = editorReducer(filled, { type: "QUESTION_ADDED" });
-check("a new question starts with the reading time of the one before", added.quiz.questions.length === 2 && added.quiz.questions[1]?.readSeconds === 7);
+check("a new question starts with the reading time of the one before", added.doc.questions.length === 2 && added.doc.questions[1]?.readSeconds === 7);
 check("a new quiz reads for 3 seconds", blankQuiz().questions[0]?.readSeconds === 3);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);

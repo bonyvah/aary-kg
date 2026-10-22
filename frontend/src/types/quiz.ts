@@ -5,12 +5,15 @@ export type QuizStatus = "draft" | "ready";
 /** Four answers, in the order of the answer shapes: triangle, diamond, circle, square. */
 export type AnswerTexts = [string, string, string, string];
 
-/** Written by the quiz author, so it is not translated. */
-export type QuizQuestion = {
+/** Written by the author of a quiz or an exam, so it is not translated. */
+export type BaseQuestion = {
   id: string;
   text: string;
   answers: AnswerTexts;
   correct: AnswerPosition;
+};
+
+export type QuizQuestion = BaseQuestion & {
   /** Time to answer, in seconds. */
   seconds: number;
   /** Time to read the question and its answers before they open, in seconds (3 to 10). */

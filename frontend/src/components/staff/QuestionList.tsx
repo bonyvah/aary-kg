@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { cx } from "@/lib/cx";
-import type { QuizQuestion } from "@/types/quiz";
+import type { BaseQuestion } from "@/types/quiz";
 
 type QuestionListProps = {
-  questions: readonly QuizQuestion[];
+  questions: readonly BaseQuestion[];
   selectedId: string;
   /** Ids of the questions with a field that failed the last save. */
   invalidIds: ReadonlySet<string>;

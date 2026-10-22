@@ -5,27 +5,37 @@ import { useCallback, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
 import { createQuiz, updateQuiz } from "@/lib/api/quizzes";
 import { ApiRequestError } from "@/lib/api/client";
-import type { Quiz, QuizQuestion } from "@/types/quiz";
-import { editorReducer, initialEditorState, NEW_QUIZ_ID, validateQuiz } from "./reducer";
+import type { Quiz } from "@/types/quiz";
+import { editorReducer, initialEditorState, NEW_QUIZ_ID, validateQuiz, type EditorDoc, type EditorEvent } from "./reducer";
 
-/** State of the quiz editor. «Save» checks the fields here first, then sends the quiz to the API. */
-export function useQuizEditor(quiz: Quiz) {
-  const [state, dispatch] = useReducer(editorReducer, quiz, initialEditorState);
+type SaveApi<D extends EditorDoc> = {
+  create: (doc: D) => Promise<D>;
+  update: (doc: D) => Promise<D>;
+  /** The code the server answers with when it finds blank fields. */
+  invalidCode: string;
+};
+
+/** State of the editor. «Save» checks the fields here first, then sends the document to the API. */
+export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
+  const [state, dispatch] = useReducer(
+    (current: ReturnType<typeof initialEditorState<D>>, event: EditorEvent<D>) => editorReducer(current, event),
+    doc,
+    initialEditorState<D>,
+  );
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   const save = useCallback(async () => {
     dispatch({ type: "VALIDATED" });
-    if (validateQuiz(state.quiz).length > 0) return;
-    const input = { title: state.quiz.title, questions: state.quiz.questions };
-    const isNew = state.quiz.id === NEW_QUIZ_ID;
+    if (validateQuiz(state.doc).length > 0) return;
+    const isNew = state.doc.id === NEW_QUIZ_ID;
     setSaving(true);
     try {
-      const saved = isNew ? await createQuiz(input) : await updateQuiz(state.quiz.id, input);
-      dispatch({ type: "SAVE_SUCCEEDED", quiz: saved });
+      const saved = isNew ? await api.create(state.doc) : await api.update(state.doc);
+      dispatch({ type: "SAVE_SUCCEEDED", doc: saved });
       router.push("/dashboard");
     } catch (error) {
-      if (error instanceof ApiRequestError && error.code === "QUIZ_INVALID") {
+      if (error instanceof ApiRequestError && error.code === api.invalidCode) {
         dispatch({ type: "SAVE_REJECTED", keys: error.issues.map((issue) => issue.field) });
       } else {
         dispatch({ type: "SAVE_FAILED", code: error instanceof ApiRequestError ? error.code : "UNKNOWN" });
@@ -33,12 +43,17 @@ export function useQuizEditor(quiz: Quiz) {
     } finally {
       setSaving(false);
     }
-  }, [state.quiz, router]);
+  }, [state.doc, router, api]);
 
+  type Question = D["questions"][number];
   return {
     state,
     saving,
     setTitle: useCallback((title: string) => dispatch({ type: "TITLE_CHANGED", title }), []),
+    changeDoc: useCallback(
+      (change: Partial<Omit<D, "id" | "title" | "questions">>) => dispatch({ type: "DOC_CHANGED", change }),
+      [],
+    ),
     select: useCallback((id: string) => dispatch({ type: "QUESTION_SELECTED", id }), []),
     setQuestionText: useCallback((text: string) => dispatch({ type: "QUESTION_TEXT_CHANGED", text }), []),
     setAnswerText: useCallback(
@@ -46,15 +61,27 @@ export function useQuizEditor(quiz: Quiz) {
       [],
     ),
     setCorrect: useCallback((position: AnswerPosition) => dispatch({ type: "CORRECT_CHANGED", position }), []),
-    setSeconds: useCallback((seconds: number) => dispatch({ type: "SECONDS_CHANGED", seconds }), []),
-    setReadSeconds: useCallback((seconds: number) => dispatch({ type: "READ_SECONDS_CHANGED", seconds }), []),
+    changeQuestion: useCallback(
+      (change: Partial<Omit<Question, "id" | "text" | "answers">>) => dispatch({ type: "QUESTION_CHANGED", change }),
+      [],
+    ),
     addQuestion: useCallback(() => dispatch({ type: "QUESTION_ADDED" }), []),
     removeQuestion: useCallback((id: string) => dispatch({ type: "QUESTION_REMOVED", id }), []),
     importQuestions: useCallback(
-      (title: string | null, questions: Omit<QuizQuestion, "id">[]) => dispatch({ type: "QUESTIONS_IMPORTED", title, questions }),
+      (title: string | null, questions: Omit<Question, "id">[]) => dispatch({ type: "QUESTIONS_IMPORTED", title, questions }),
       [],
     ),
     save,
     clearSaveResult: useCallback(() => dispatch({ type: "SAVE_RESULT_SEEN" }), []),
   };
 }
+
+export type DocEditor<D extends EditorDoc> = ReturnType<typeof useDocEditor<D>>;
+
+const QUIZ_API: SaveApi<Quiz> = {
+  create: (quiz) => createQuiz({ title: quiz.title, questions: quiz.questions }),
+  update: (quiz) => updateQuiz(quiz.id, { title: quiz.title, questions: quiz.questions }),
+  invalidCode: "QUIZ_INVALID",
+};
+
+export const useQuizEditor = (quiz: Quiz) => useDocEditor(quiz, QUIZ_API);

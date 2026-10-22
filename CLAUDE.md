@@ -71,7 +71,7 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 
 ### Source of truth: `design-system/` (read it before building any UI)
 - `design-system/README.md`: the brand book (content rules, visual foundations, where things live). Read it first.
-- `design-system/tokens.json`: every token. Colors come in two themes: `game` (purple ground, set `data-theme="game"` on the screen root) is used by ALL screens, player, host and staff (login, dashboard, editor, report, admin, contests), as in the screen designs; `light` is kept for later and is not used by any screen yet. Generate the Tailwind theme and CSS variables from this file; never retype values and never hardcode hex in components.
+- `design-system/tokens.json`: every token. Colors come in two themes: `game` (purple ground, set `data-theme="game"` on the screen root) is used by ALL screens, player, host and staff (login, dashboard, editor, report, admin, contests); `light` is kept for later and is not used by any screen yet. Generate the Tailwind theme and CSS variables from this file; never retype values and never hardcode hex in components.
 - `design-system/components/bundle.css`: the styles of every component (`ak-btn`, `ak-input`, `ak-tile`, `ak-timer`, `ak-badge`, `ak-card`, `ak-row`, `ak-podium`, `ak-avatar`, `ak-chip`), reading only tokens. Port them to Tailwind + React components with the same look, states and sizes.
 - `design-system/components/<Name>/preview.html` has the exact markup and states of each component, and `<Name>/README.md` has its rules. Components: Button, Input, AnswerTile, TimerBar, Badge, Card, LeaderboardRow, Podium, Avatar.
 - Not in the design system yet: Modal, Toast, Table, empty and loading states. Build them from the same tokens and the same flat, hard-edge style, show them on `/design`, and ask me before inventing anything visual.
@@ -102,9 +102,6 @@ Take the feel: loud, playful, chunky, high contrast. Do NOT copy Kahoot's logo, 
 - Player screens: portrait phone layout first. Host screen: landscape, projector-friendly, very large type.
 - Every interactive element needs hover, active, focus-visible and disabled states.
 
-### Reference screenshots
-`design-refs/` holds my screen designs (PDF/images, made in Claude Design from `design-system/`). They define which screens exist, their layout and flow. For colors, sizes, spacing, radii and component markup, `design-system/` is the authority, not the pictures. If a PDF is long, read it in chunks of at most 20 pages. Kahoot screenshots, if any, are mood only. Never copy Kahoot assets or text.
-- Placeholder content in the designs (names, scores, quiz titles) is sample data. Real text goes through next-intl in `ky` and `ru`. Sample Kyrgyz strings in the designs are unreviewed drafts.
 
 ## Build phases
 
@@ -156,7 +153,6 @@ aary-kg/
   CLAUDE.md
   README.md
   design-system/ # tokens, component styles and markup, avatars (source of truth for UI)
-  design-refs/   # my screen designs (layout and flow)
   frontend/      # Next.js app
   backend/       # FastAPI app
   docs/          # decisions, protocol spec

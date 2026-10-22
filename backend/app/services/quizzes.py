@@ -6,12 +6,13 @@ from app.errors import ApiError
 from app.models.quiz import Quiz
 from app.models.user import User
 from app.repositories import quizzes as repo
+from app.schemas.exam import ExamIn
 from app.schemas.quiz import QuizIn
 
 MIN_FILLED_ANSWERS = 2
 
 
-def find_issues(payload: QuizIn) -> list[dict[str, str]]:
+def find_issues(payload: QuizIn | ExamIn) -> list[dict[str, str]]:
     """Blank fields, reported with the same keys the editor uses: title, <id>:text, <id>:answer:<n>.
 
     A question needs its text and at least two answers with text; the correct one must be among them.

@@ -10,7 +10,7 @@ from app.db import engine
 from app.errors import register_error_handlers
 from app.middleware import BodyLimitMiddleware, SecurityHeadersMiddleware
 from app.redis import get_redis
-from app.routers import admin_games, admin_users, auth, contests, games, groups, quizzes, users, ws
+from app.routers import admin_games, admin_users, auth, contests, exams, games, groups, quizzes, users, ws
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.include_router(admin_users.router)
 app.include_router(admin_games.router)
 app.include_router(groups.router)
 app.include_router(quizzes.router)
+app.include_router(exams.router)
 app.include_router(contests.router)
 app.include_router(users.router)
 app.include_router(games.router)

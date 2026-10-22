@@ -57,6 +57,8 @@ export type PlayerQuestion = {
   total: number;
   text: string;
   seconds: number;
+  /** How long it is read before its answers open: the length of the reading countdown. */
+  readSeconds: number;
   /** The shapes that have an answer: a question can have two or three, and the rest are not shown. */
   positions: AnswerPosition[];
   /** The answer texts, only when the host shows them on the players' screens. */

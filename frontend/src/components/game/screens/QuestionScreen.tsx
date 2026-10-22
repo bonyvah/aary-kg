@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { cx } from "@/lib/cx";
 import type { PlayerQuestion } from "@/types/game";
 import { AnswerTile, lastTileSpan, type AnswerPosition } from "../AnswerTile";
+import { CountdownRing } from "../CountdownRing";
 import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
 import { WaitingForOthers } from "./WaitingForOthers";
@@ -26,8 +27,9 @@ type QuestionScreenProps = {
 };
 
 /**
- * Open question and, once an answer is locked, the waiting state. Shapes only, the answers are read on
- * the host screen, unless the host shows them on the players' screens too.
+ * Open question and, once an answer is locked, the waiting state. While it is being read: only the
+ * question and the reading countdown. Shapes only, the answers are read on the host screen, unless the
+ * host shows them on the players' screens too.
  */
 export function QuestionScreen({ question, secondsLeft, readingLeft, selected, onAnswer, onLeave }: QuestionScreenProps) {
   const t = useTranslations("player.question");
@@ -43,24 +45,25 @@ export function QuestionScreen({ question, secondsLeft, readingLeft, selected, o
     >
       {locked ? (
         <WaitingForOthers secondsLeft={secondsLeft} total={question.seconds} />
-      ) : reading && !texts ? (
-        // The answers are read on the host screen.
-        <p className="my-auto text-center text-display font-black">{t("getReady")}</p>
+      ) : reading ? (
+        <>
+          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
+          <CountdownRing
+            key={question.index}
+            className="m-auto"
+            remaining={readingLeft}
+            total={question.readSeconds}
+            unit={t("unit")}
+          />
+        </>
       ) : (
         <>
-          <TimerBar remaining={reading ? question.seconds : secondsLeft} total={question.seconds} unit={t("unit")} />
+          <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
           <div className={cx("mt-auto grid gap-4 pb-2", texts ? "grid-cols-1" : "grid-cols-2")}>
             {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) =>
               texts ? (
-                <AnswerTile
-                  key={position}
-                  position={position}
-                  // While it is read, the tiles are shown but can't be tapped yet.
-                  disabled={reading}
-                  className={reading ? "pointer-events-none" : undefined}
-                  onClick={() => onAnswer(position)}
-                >
+                <AnswerTile key={position} position={position} onClick={() => onAnswer(position)}>
                   {texts[position - 1]}
                 </AnswerTile>
               ) : (

@@ -6,6 +6,7 @@ import { useDateTime } from "@/lib/useDateTime";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
@@ -17,7 +18,7 @@ import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { WarningCircle } from "@phosphor-icons/react";
+import { Key, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminGamesTable } from "./AdminGamesTable";
@@ -235,8 +236,12 @@ export function AdminScreen() {
                             {t("actions.enable")}
                           </Button>
                         )}
-                        <Button variant="secondary" onClick={() => setPending({ kind: "reset", user })}>
-                          {t("actions.resetPassword")}
+                        <Button
+                          variant="secondary"
+                          aria-label={`${t("actions.resetPassword")}: ${user.name}`}
+                          onClick={() => setPending({ kind: "reset", user })}
+                        >
+                          <Icon icon={Key} weight="bold" />
                         </Button>
                         {user.role === "student" ? (
                           <Button variant="secondary" onClick={() => void withGroups(() => setMoving(user))}>

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { UsersThree } from "@phosphor-icons/react";
+import { Trash, UsersThree } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import { Table, Td, Th } from "@/components/ui/Table";
 import * as api from "@/lib/api/groups";
 import { toKnownCode } from "@/lib/api/client";
@@ -96,8 +97,8 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                         <Button variant="secondary" onClick={() => setRenaming(group)}>
                           {t("rename")}
                         </Button>
-                        <Button variant="danger" onClick={() => setDeleting(group)}>
-                          {t("delete")}
+                        <Button variant="danger" aria-label={`${t("delete")}: ${group.name}`} onClick={() => setDeleting(group)}>
+                          <Icon icon={Trash} weight="bold" />
                         </Button>
                       </div>
                     </Td>

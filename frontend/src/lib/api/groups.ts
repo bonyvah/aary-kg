@@ -10,3 +10,6 @@ export const renameGroup = (id: string, name: string) =>
 
 /** Refused with GROUP_NOT_EMPTY while students are in it. */
 export const deleteGroup = (id: string) => apiFetch<void>(`/admin/groups/${id}`, { method: "DELETE" });
+
+/** For teachers: the groups to give an exam to. */
+export const listStaffGroups = () => apiFetch<Group[]>("/groups");

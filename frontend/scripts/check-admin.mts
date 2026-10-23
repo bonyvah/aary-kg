@@ -5,6 +5,7 @@ import { describeEdit, parseWhole } from "../src/lib/adminGame.ts";
 import { homePath, redirectFor } from "../src/lib/staffRoutes.ts";
 import { generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
 import { validateGroupName } from "../src/lib/groups.ts";
+import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -40,7 +41,7 @@ check("a 129 character password is too long", passwordProblem("a1" + "x".repeat(
 
 // Where each role may go.
 check("admins land on /admin, teachers on /dashboard", homePath("admin") === "/admin" && homePath("teacher") === "/dashboard");
-for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/exams/manage/new", "/exams/manage/abc", "/host/abc", "/contests/new"])
+for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/exams/manage/new", "/exams/manage/abc", "/exam-sessions/new", "/exam-sessions/abc", "/host/abc", "/contests/new"])
   check(`an admin is sent away from ${path}`, redirectFor("admin", path) === "/admin");
 for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc"])
   check(`an admin may open ${path}`, redirectFor("admin", path) === null);
@@ -76,6 +77,21 @@ check("a blank group name is FIELD_REQUIRED", validateGroupName("   ", groups) =
 check("a taken group name is GROUP_NAME_TAKEN, case does not matter", validateGroupName("10-а", groups) === "GROUP_NAME_TAKEN");
 check("a group keeps its own name on rename", validateGroupName("10-а", groups, "g1") === null);
 check("another group's name is taken on rename", validateGroupName("9-Б", groups, "g1") === "GROUP_NAME_TAKEN");
+
+// Exam sessions: who takes the exam, and the absent / late ticks.
+const pupils = [
+  { id: "s1", name: "Бакыт", groupId: "g1", groupName: "10-А" },
+  { id: "s2", name: "Айзада", groupId: "g1", groupName: "10-А" },
+  { id: "s3", name: "Чолпон", groupId: "g2", groupName: "10-Б" },
+  { id: "s4", name: "Дана", groupId: null, groupName: null },
+];
+const picked = (groups: string[], extras: string[]) => targetStudents(pupils, new Set(groups), new Set(extras), "ru").map((s) => s.id).join(",");
+check("a group gives its students, sorted by name", picked(["g1"], []) === "s2,s1");
+check("single students are added once", picked(["g1"], ["s1", "s3"]) === "s2,s1,s3");
+check("nothing picked, nobody", picked([], []) === "");
+check("late ticks with 5 minutes", JSON.stringify(toggle(PRESENT, "late")) === JSON.stringify({ attendance: "late", lateMinutes: 5 }));
+check("absent replaces late", toggle({ attendance: "late", lateMinutes: 10 }, "absent").attendance === "absent");
+check("unticking goes back to present", toggle({ attendance: "absent", lateMinutes: null }, "absent") === PRESENT);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

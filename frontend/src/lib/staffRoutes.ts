@@ -17,7 +17,7 @@ export function redirectFor(role: UserRole, pathname: string): string | null {
   if (role === "student") return under(pathname, "/student") ? null : "/student";
   if (role === "admin") {
     const blocked =
-      under(pathname, "/dashboard") || under(pathname, "/quizzes") || under(pathname, "/exams") || under(pathname, "/host") || under(pathname, "/student") || pathname === "/contests/new";
+      under(pathname, "/dashboard") || under(pathname, "/quizzes") || under(pathname, "/exams") || under(pathname, "/exam-sessions") || under(pathname, "/host") || under(pathname, "/student") || pathname === "/contests/new";
     return blocked ? "/admin" : null;
   }
   return under(pathname, "/admin") || under(pathname, "/student") ? "/dashboard" : null;

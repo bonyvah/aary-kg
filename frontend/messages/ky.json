@@ -56,7 +56,6 @@
     "admin.editUser.cancel",
     "admin.editUser.close",
     "staff.dashboard.tabs.exams",
-    "staff.dashboard.createExam",
     "staff.dashboard.examMeta",
     "staff.examEditor.titleLabel",
     "staff.examEditor.saved",
@@ -65,7 +64,50 @@
     "staff.examEditor.customMinutesLabel",
     "common.apiError.EXAM_NOT_FOUND",
     "common.apiError.EXAM_INVALID",
-    "staff.dashboard.examsEmpty"
+    "staff.dashboard.examsEmpty",
+    "staff.dashboard.tabs.examSheets",
+    "staff.dashboard.createExamSheet",
+    "staff.dashboard.startExam",
+    "staff.dashboard.examSheetsEmpty",
+    "staff.examSession.status.open",
+    "staff.examSession.status.closed",
+    "staff.examSession.studentCount",
+    "staff.examSession.attendance.student",
+    "staff.examSession.attendance.group",
+    "staff.examSession.attendance.absent",
+    "staff.examSession.attendance.late",
+    "staff.examSession.attendance.absentFor",
+    "staff.examSession.attendance.lateFor",
+    "staff.examSession.attendance.lateMinutesFor",
+    "staff.examSession.attendance.minutesOption",
+    "staff.examSession.attendance.customMinutes",
+    "staff.examSession.setup.back",
+    "staff.examSession.setup.title",
+    "staff.examSession.setup.sheet",
+    "staff.examSession.setup.noSheets",
+    "staff.examSession.setup.group",
+    "staff.examSession.setup.groupPick",
+    "staff.examSession.setup.moreTargets",
+    "staff.examSession.setup.lessTargets",
+    "staff.examSession.setup.groups",
+    "staff.examSession.setup.students",
+    "staff.examSession.setup.search",
+    "staff.examSession.setup.noStudents",
+    "staff.examSession.setup.start",
+    "staff.examSession.page.back",
+    "staff.examSession.page.meta",
+    "staff.examSession.page.close",
+    "staff.examSession.page.closed",
+    "staff.examSession.page.cancel",
+    "staff.examSession.page.addStudent",
+    "staff.examSession.page.addPick",
+    "staff.examSession.page.add",
+    "staff.examSession.page.confirmClose.title",
+    "staff.examSession.page.confirmClose.body",
+    "common.apiError.SESSION_NOT_FOUND",
+    "common.apiError.SESSION_CLOSED",
+    "common.apiError.SESSION_NO_STUDENTS",
+    "common.apiError.STUDENT_NOT_FOUND"
   ],
   "app": {
     "name": "aary kg"
@@ -181,6 +223,7 @@
       "tabsLabel": "Бөлүмдөр",
       "tabs": {
         "quizzes": "Викториналар",
+        "examSheets": "Экзамен барактары",
         "exams": "Экзамендер",
         "contests": "Конкурстар",
         "games": "Оюндар"
@@ -202,9 +245,11 @@
         "description": "Викторина боюнча оюн өткөрүңүз, отчет ушул жерде пайда болот."
       },
       "gamePlayers": "{count, plural, one {# оюнчу} other {# оюнчу}}",
-      "createExam": "Экзамен түзүү",
       "examMeta": "{count, plural, one {# суроо} other {# суроо}} · {minutes} мүн",
-      "examsEmpty": "Азырынча экзамен жок"
+      "examsEmpty": "Азырынча экзамен жок",
+      "createExamSheet": "Экзамен барагын түзүү",
+      "startExam": "Экзамен өткөрүү",
+      "examSheetsEmpty": "Азырынча экзамен барагы жок"
     },
     "quizView": {
       "back": "Артка",
@@ -355,11 +400,58 @@
       }
     },
     "examEditor": {
-      "titleLabel": "Экзамендин аталышы",
-      "saved": "Экзамен сакталды.",
+      "titleLabel": "Экзамен барагынын аталышы",
+      "saved": "Экзамен барагы сакталды.",
       "minutesLabel": "Экзамендин убактысы",
       "minutesOption": "{minutes} мүн",
       "customMinutesLabel": "Башка убакыт"
+    },
+    "examSession": {
+      "status": {
+        "open": "Жүрүп жатат",
+        "closed": "Жабык"
+      },
+      "studentCount": "{count, plural, one {# окуучу} other {# окуучу}}",
+      "attendance": {
+        "student": "Окуучу",
+        "group": "Группа",
+        "absent": "Келген жок",
+        "late": "Кечикти",
+        "absentFor": "{name}: келген жок",
+        "lateFor": "{name}: кечикти",
+        "lateMinutesFor": "{name}: канча мүнөт кечикти",
+        "minutesOption": "{minutes} мүн",
+        "customMinutes": "Башка мүнөт"
+      },
+      "setup": {
+        "back": "Артка",
+        "title": "Экзамен өткөрүү",
+        "sheet": "Экзамен барагы",
+        "noSheets": "Экзамен барагы жок",
+        "group": "Группа",
+        "groupPick": "Группаны тандаңыз",
+        "moreTargets": "Бир нече группа же айрым окуучулар",
+        "lessTargets": "Бир группа",
+        "groups": "Группалар",
+        "students": "Айрым окуучулар",
+        "search": "Окуучуну издөө",
+        "noStudents": "Окуучу жок",
+        "start": "Экзаменди баштоо"
+      },
+      "page": {
+        "back": "Артка",
+        "meta": "{count, plural, one {# суроо} other {# суроо}} · {minutes} мүн",
+        "close": "Экзаменди жабуу",
+        "closed": "Экзамен жабылды.",
+        "cancel": "Жокко чыгаруу",
+        "addStudent": "Окуучу кошуу",
+        "addPick": "Окуучуну тандаңыз",
+        "add": "Кошуу",
+        "confirmClose": {
+          "title": "Экзаменди жабасызбы?",
+          "body": "Окуучулар аны мындан ары тапшыра алышпайт. Кайра ачууга болбойт."
+        }
+      }
     }
   },
   "design": {
@@ -589,8 +681,12 @@
       "GROUP_NAME_TAKEN": "Мындай аталыштагы группа бар.",
       "GROUP_REQUIRED": "Группаны тандаңыз.",
       "NOT_A_STUDENT": "Группаны студентке гана алмаштырса болот.",
-      "EXAM_NOT_FOUND": "Экзамен табылган жок.",
-      "EXAM_INVALID": "Экзамен туура толтурулган жок."
+      "EXAM_NOT_FOUND": "Экзамен барагы табылган жок.",
+      "EXAM_INVALID": "Экзамен барагы туура толтурулган жок.",
+      "SESSION_NOT_FOUND": "Экзамен табылган жок.",
+      "SESSION_CLOSED": "Экзамен жабылып калган.",
+      "SESSION_NO_STUDENTS": "Жок дегенде бир окуучуну тандаңыз.",
+      "STUDENT_NOT_FOUND": "Окуучу табылган жок."
     },
     "toDashboard": "Башкы бетке"
   },

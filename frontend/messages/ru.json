@@ -113,6 +113,7 @@
       "tabsLabel": "Разделы",
       "tabs": {
         "quizzes": "Викторины",
+        "examSheets": "Экзаменационные листы",
         "exams": "Экзамены",
         "contests": "Конкурсы",
         "games": "Игры"
@@ -134,9 +135,11 @@
         "description": "Проведите игру по викторине, и отчёт появится здесь."
       },
       "gamePlayers": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
-      "createExam": "Создать экзамен",
       "examMeta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}} · {minutes} мин",
-      "examsEmpty": "Пока нет экзаменов"
+      "examsEmpty": "Пока нет экзаменов",
+      "createExamSheet": "Создать экзаменационный лист",
+      "startExam": "Провести экзамен",
+      "examSheetsEmpty": "Пока нет экзаменационных листов"
     },
     "quizView": {
       "back": "Назад",
@@ -287,11 +290,58 @@
       }
     },
     "examEditor": {
-      "titleLabel": "Название экзамена",
-      "saved": "Экзамен сохранён.",
+      "titleLabel": "Название экзаменационного листа",
+      "saved": "Экзаменационный лист сохранён.",
       "minutesLabel": "Время на экзамен",
       "minutesOption": "{minutes} мин",
       "customMinutesLabel": "Другое время"
+    },
+    "examSession": {
+      "status": {
+        "open": "Идёт",
+        "closed": "Закрыт"
+      },
+      "studentCount": "{count, plural, one {# ученик} few {# ученика} many {# учеников} other {# ученика}}",
+      "attendance": {
+        "student": "Ученик",
+        "group": "Группа",
+        "absent": "Отсутствует",
+        "late": "Опоздал",
+        "absentFor": "{name}: отсутствует",
+        "lateFor": "{name}: опоздал",
+        "lateMinutesFor": "{name}: на сколько минут опоздал",
+        "minutesOption": "{minutes} мин",
+        "customMinutes": "Другое число минут"
+      },
+      "setup": {
+        "back": "Назад",
+        "title": "Провести экзамен",
+        "sheet": "Экзаменационный лист",
+        "noSheets": "Нет экзаменационных листов",
+        "group": "Группа",
+        "groupPick": "Выберите группу",
+        "moreTargets": "Несколько групп или отдельные ученики",
+        "lessTargets": "Одна группа",
+        "groups": "Группы",
+        "students": "Отдельные ученики",
+        "search": "Поиск ученика",
+        "noStudents": "Нет учеников",
+        "start": "Начать экзамен"
+      },
+      "page": {
+        "back": "Назад",
+        "meta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}} · {minutes} мин",
+        "close": "Закрыть экзамен",
+        "closed": "Экзамен закрыт.",
+        "cancel": "Отмена",
+        "addStudent": "Добавить ученика",
+        "addPick": "Выберите ученика",
+        "add": "Добавить",
+        "confirmClose": {
+          "title": "Закрыть экзамен?",
+          "body": "Ученики больше не смогут сдавать его. Открыть снова нельзя."
+        }
+      }
     }
   },
   "design": {
@@ -521,8 +571,12 @@
       "GROUP_NAME_TAKEN": "Группа с таким названием уже есть.",
       "GROUP_REQUIRED": "Выберите группу.",
       "NOT_A_STUDENT": "Группу можно сменить только у студента.",
-      "EXAM_NOT_FOUND": "Экзамен не найден.",
-      "EXAM_INVALID": "Экзамен заполнен неверно."
+      "EXAM_NOT_FOUND": "Экзаменационный лист не найден.",
+      "EXAM_INVALID": "Экзаменационный лист заполнен неверно.",
+      "SESSION_NOT_FOUND": "Экзамен не найден.",
+      "SESSION_CLOSED": "Экзамен уже закрыт.",
+      "SESSION_NO_STUDENTS": "Выберите хотя бы одного ученика.",
+      "STUDENT_NOT_FOUND": "Ученик не найден."
     },
     "toDashboard": "На главную"
   },

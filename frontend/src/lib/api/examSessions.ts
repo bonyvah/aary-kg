@@ -1,0 +1,22 @@
+import type { AttendanceChange, ExamSession, ExamSessionSummary, StudentChoice } from "@/types/examSession";
+import { apiFetch } from "./client";
+
+export type ExamSessionInput = {
+  examId: string;
+  groupIds: string[];
+  students: (AttendanceChange & { studentId: string })[];
+};
+
+export const listExamSessions = () => apiFetch<ExamSessionSummary[]>("/exam-sessions");
+
+export const getExamSession = (id: string) => apiFetch<ExamSession>(`/exam-sessions/${id}`);
+
+export const startExamSession = (input: ExamSessionInput) =>
+  apiFetch<ExamSession>("/exam-sessions", { method: "POST", body: input });
+
+export const setAttendance = (id: string, studentId: string, change: AttendanceChange) =>
+  apiFetch<ExamSession>(`/exam-sessions/${id}/students/${studentId}`, { method: "PUT", body: change });
+
+export const closeExamSession = (id: string) => apiFetch<ExamSession>(`/exam-sessions/${id}/close`, { method: "POST" });
+
+export const listStudents = () => apiFetch<StudentChoice[]>("/users/students");

@@ -311,7 +311,11 @@
         "lateFor": "{name}: опоздал",
         "lateMinutesFor": "{name}: на сколько минут опоздал",
         "minutesOption": "{minutes} мин",
-        "customMinutes": "Другое число минут"
+        "customMinutes": "Другое число минут",
+        "state": "Экзамен",
+        "notStarted": "Не начал",
+        "inProgress": "Пишет",
+        "submitted": "Сдал"
       },
       "setup": {
         "back": "Назад",
@@ -576,7 +580,13 @@
       "SESSION_NOT_FOUND": "Экзамен не найден.",
       "SESSION_CLOSED": "Экзамен уже закрыт.",
       "SESSION_NO_STUDENTS": "Выберите хотя бы одного ученика.",
-      "STUDENT_NOT_FOUND": "Ученик не найден."
+      "STUDENT_NOT_FOUND": "Ученик не найден.",
+      "STUDENT_ABSENT": "Вы отмечены отсутствующим.",
+      "ATTEMPT_EXISTS": "Экзамен уже начат.",
+      "ATTEMPT_NOT_FOUND": "Экзамен не начат.",
+      "ATTEMPT_FINISHED": "Экзамен уже сдан.",
+      "ATTEMPT_STARTED": "Ученик уже начал экзамен.",
+      "QUESTION_NOT_FOUND": "Вопрос не найден."
     },
     "toDashboard": "На главную"
   },
@@ -1003,6 +1013,39 @@
     "home": {
       "title": "Экзамены",
       "empty": "Экзаменов пока нет"
+    },
+    "exam": {
+      "back": "Назад",
+      "meta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}} · {minutes} мин",
+      "start": "Начать",
+      "state": {
+        "open": "Идёт",
+        "closed": "Закрыт",
+        "absent": "Отсутствовал",
+        "inProgress": "Начат",
+        "submitted": "Сдан"
+      },
+      "taking": {
+        "submit": "Сдать",
+        "questions": "Вопросы",
+        "questionAnswered": "Вопрос {number}, есть ответ",
+        "questionOpen": "Вопрос {number}, без ответа",
+        "counter": "Вопрос {current} из {total}",
+        "previous": "Назад",
+        "next": "Дальше",
+        "notSaved": "Ответ не сохранён. Попробуйте ещё раз.",
+        "confirm": {
+          "title": "Сдать экзамен?",
+          "unanswered": "{count, plural, one {# вопрос без ответа} few {# вопроса без ответа} many {# вопросов без ответа} other {# вопроса без ответа}}.",
+          "allAnswered": "На все вопросы есть ответ.",
+          "cancel": "Отмена"
+        }
+      },
+      "fullscreen": {
+        "title": "Вернись в полный экран",
+        "body": "Экзамен идёт только в полноэкранном режиме. Выход из него и переход в другую вкладку или окно видит учитель.",
+        "enter": "Во весь экран"
+      }
     }
   }
 }

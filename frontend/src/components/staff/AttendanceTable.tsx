@@ -5,9 +5,16 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { LATE_OPTIONS, MAX_LATE_MINUTES, MIN_LATE_MINUTES, toggle } from "@/lib/examSessions";
-import type { AttendanceChange } from "@/types/examSession";
+import type { AttemptState, AttendanceChange } from "@/types/examSession";
+import { Badge } from "@/components/ui/Badge";
 
-export type AttendanceRow = AttendanceChange & { studentId: string; name: string; groupName: string | null };
+export type AttendanceRow = AttendanceChange & {
+  studentId: string;
+  name: string;
+  groupName: string | null;
+  /** On a running exam: whether the student started. A started student's attendance stays. */
+  attemptState?: AttemptState;
+};
 
 type AttendanceTableProps = {
   rows: readonly AttendanceRow[];
@@ -18,6 +25,7 @@ type AttendanceTableProps = {
 /** One row per student: absent and late are ticked, everyone else is present. Late takes a number of minutes. */
 export function AttendanceTable({ rows, onChange, disabled = false }: AttendanceTableProps) {
   const t = useTranslations("staff.examSession.attendance");
+  const withState = rows.some((row) => row.attemptState !== undefined);
 
   return (
     <Table>
@@ -27,6 +35,7 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
           <Th>{t("group")}</Th>
           <Th>{t("absent")}</Th>
           <Th>{t("late")}</Th>
+          {withState ? <Th>{t("state")}</Th> : null}
         </tr>
       </thead>
       <tbody>
@@ -36,6 +45,7 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
             .sort((a, b) => a - b)
             .map((value) => ({ value, label: String(value) }));
           const late = (lateMinutes: number) => onChange(row.studentId, { attendance: "late", lateMinutes });
+          const locked = disabled || (row.attemptState !== undefined && row.attemptState !== "none");
           return (
             <tr key={row.studentId}>
               <Td className="font-bold [overflow-wrap:anywhere]">{row.name}</Td>
@@ -45,7 +55,7 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
                   hideLabel
                   label={t("absentFor", { name: row.name })}
                   checked={row.attendance === "absent"}
-                  disabled={disabled}
+                  disabled={locked}
                   onChange={() => onChange(row.studentId, toggle(row, "absent"))}
                 />
               </Td>
@@ -55,10 +65,10 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
                     hideLabel
                     label={t("lateFor", { name: row.name })}
                     checked={row.attendance === "late"}
-                    disabled={disabled}
+                    disabled={locked}
                     onChange={() => onChange(row.studentId, toggle(row, "late"))}
                   />
-                  {row.attendance === "late" && disabled ? (
+                  {row.attendance === "late" && locked ? (
                     <span className="font-bold">{t("minutesOption", { minutes })}</span>
                   ) : row.attendance === "late" ? (
                     <Dropdown
@@ -74,6 +84,17 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
                   ) : null}
                 </div>
               </Td>
+              {withState ? (
+                <Td>
+                  {row.attemptState === "submitted" ? (
+                    <Badge variant="success">{t("submitted")}</Badge>
+                  ) : row.attemptState === "in_progress" ? (
+                    <Badge variant="accent">{t("inProgress")}</Badge>
+                  ) : (
+                    <Badge variant="neutral">{t("notStarted")}</Badge>
+                  )}
+                </Td>
+              ) : null}
             </tr>
           );
         })}

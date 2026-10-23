@@ -107,7 +107,40 @@
     "common.apiError.SESSION_NOT_FOUND",
     "common.apiError.SESSION_CLOSED",
     "common.apiError.SESSION_NO_STUDENTS",
-    "common.apiError.STUDENT_NOT_FOUND"
+    "common.apiError.STUDENT_NOT_FOUND",
+    "student.exam.back",
+    "student.exam.meta",
+    "student.exam.start",
+    "student.exam.state.open",
+    "student.exam.state.closed",
+    "student.exam.state.absent",
+    "student.exam.state.inProgress",
+    "student.exam.state.submitted",
+    "student.exam.taking.submit",
+    "student.exam.taking.questions",
+    "student.exam.taking.questionAnswered",
+    "student.exam.taking.questionOpen",
+    "student.exam.taking.counter",
+    "student.exam.taking.previous",
+    "student.exam.taking.next",
+    "student.exam.taking.notSaved",
+    "student.exam.taking.confirm.title",
+    "student.exam.taking.confirm.unanswered",
+    "student.exam.taking.confirm.allAnswered",
+    "student.exam.taking.confirm.cancel",
+    "student.exam.fullscreen.title",
+    "student.exam.fullscreen.body",
+    "student.exam.fullscreen.enter",
+    "staff.examSession.attendance.state",
+    "staff.examSession.attendance.notStarted",
+    "staff.examSession.attendance.inProgress",
+    "staff.examSession.attendance.submitted",
+    "common.apiError.STUDENT_ABSENT",
+    "common.apiError.ATTEMPT_EXISTS",
+    "common.apiError.ATTEMPT_NOT_FOUND",
+    "common.apiError.ATTEMPT_FINISHED",
+    "common.apiError.ATTEMPT_STARTED",
+    "common.apiError.QUESTION_NOT_FOUND"
   ],
   "app": {
     "name": "aary kg"
@@ -421,7 +454,11 @@
         "lateFor": "{name}: кечикти",
         "lateMinutesFor": "{name}: канча мүнөт кечикти",
         "minutesOption": "{minutes} мүн",
-        "customMinutes": "Башка мүнөт"
+        "customMinutes": "Башка мүнөт",
+        "state": "Экзамен",
+        "notStarted": "Баштай элек",
+        "inProgress": "Жазып жатат",
+        "submitted": "Тапшырды"
       },
       "setup": {
         "back": "Артка",
@@ -686,7 +723,13 @@
       "SESSION_NOT_FOUND": "Экзамен табылган жок.",
       "SESSION_CLOSED": "Экзамен жабылып калган.",
       "SESSION_NO_STUDENTS": "Жок дегенде бир окуучуну тандаңыз.",
-      "STUDENT_NOT_FOUND": "Окуучу табылган жок."
+      "STUDENT_NOT_FOUND": "Окуучу табылган жок.",
+      "STUDENT_ABSENT": "Сиз келген жок деп белгилендиңиз.",
+      "ATTEMPT_EXISTS": "Экзамен башталып калган.",
+      "ATTEMPT_NOT_FOUND": "Экзамен баштала элек.",
+      "ATTEMPT_FINISHED": "Экзамен тапшырылып калган.",
+      "ATTEMPT_STARTED": "Окуучу экзаменди баштап койгон.",
+      "QUESTION_NOT_FOUND": "Суроо табылган жок."
     },
     "toDashboard": "Башкы бетке"
   },
@@ -1113,6 +1156,39 @@
     "home": {
       "title": "Экзамендер",
       "empty": "Азырынча экзамендер жок"
+    },
+    "exam": {
+      "back": "Артка",
+      "meta": "{count, plural, one {# суроо} other {# суроо}} · {minutes} мүн",
+      "start": "Баштоо",
+      "state": {
+        "open": "Жүрүп жатат",
+        "closed": "Жабык",
+        "absent": "Келген жок",
+        "inProgress": "Башталды",
+        "submitted": "Тапшырылды"
+      },
+      "taking": {
+        "submit": "Тапшыруу",
+        "questions": "Суроолор",
+        "questionAnswered": "{number}-суроо, жооп берилди",
+        "questionOpen": "{number}-суроо, жооп жок",
+        "counter": "{current}/{total} суроо",
+        "previous": "Артка",
+        "next": "Кийинки",
+        "notSaved": "Жооп сакталган жок. Кайра аракет кылыңыз.",
+        "confirm": {
+          "title": "Экзаменди тапшырасызбы?",
+          "unanswered": "{count, plural, one {# суроого жооп жок} other {# суроого жооп жок}}.",
+          "allAnswered": "Бардык суроолорго жооп берилди.",
+          "cancel": "Жокко чыгаруу"
+        }
+      },
+      "fullscreen": {
+        "title": "Толук экранга кайт",
+        "body": "Экзамен толук экранда гана өтөт. Андан чыкканыңды, башка өтмөккө же терезеге өткөнүңдү мугалим көрөт.",
+        "enter": "Толук экран"
+      }
     }
   }
 }

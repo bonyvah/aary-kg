@@ -5,10 +5,16 @@ export type Attendance = "present" | "late" | "absent";
 
 export type AttendanceChange = { attendance: Attendance; lateMinutes: number | null };
 
+/** none: not started; in_progress: the clock runs; submitted: ended (handed in, time up or the exam closed). */
+export type AttemptState = "none" | "in_progress" | "submitted";
+
 export type SessionStudent = AttendanceChange & {
   studentId: string;
   name: string;
   groupName: string | null;
+  attemptState: AttemptState;
+  startedAt: string | null;
+  submittedAt: string | null;
 };
 
 /** One run of an exam sheet for chosen students. Title, time limit and questions are copied from the sheet. */

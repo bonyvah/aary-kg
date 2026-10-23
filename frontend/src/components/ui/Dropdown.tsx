@@ -30,10 +30,12 @@ type DropdownProps = {
   placement?: "down" | "up";
   /** Class for the wrapper, e.g. to set a width. */
   wrapperClassName?: string;
+  /** Keep the label for assistive tech only (a compact control with context around it). */
+  hideLabel?: boolean;
 };
 
 /** A listbox of chunky option buttons, with an optional number field for a value that is not listed. */
-export function Dropdown({ label, value, options, onChange, selectedLabel, custom, placement = "down", wrapperClassName }: DropdownProps) {
+export function Dropdown({ label, value, options, onChange, selectedLabel, custom, placement = "down", wrapperClassName, hideLabel = false }: DropdownProps) {
   const baseId = useId();
   const labelId = `${baseId}-label`;
   const listId = `${baseId}-list`;
@@ -122,7 +124,7 @@ export function Dropdown({ label, value, options, onChange, selectedLabel, custo
 
   return (
     <div className={cx("flex flex-col gap-2", wrapperClassName)}>
-      <span id={labelId} className="text-body font-bold text-ink">
+      <span id={labelId} className={hideLabel ? "sr-only" : "text-body font-bold text-ink"}>
         {label}
       </span>
       <div ref={root} className="relative" onKeyDown={onRootKeyDown} onBlur={onRootBlur}>

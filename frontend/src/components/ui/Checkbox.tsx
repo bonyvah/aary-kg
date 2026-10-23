@@ -7,10 +7,12 @@ type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "child
   label: string;
   /** Second line in muted text, e.g. a login. */
   hint?: string;
+  /** Keep the label for assistive tech only (a checkbox in a table column that names it). */
+  hideLabel?: boolean;
 };
 
 /** A real checkbox with a flat white box and a check mark: 44px target, focus ring, disabled state. */
-export function Checkbox({ label, hint, id, className, checked, disabled, ...rest }: CheckboxProps) {
+export function Checkbox({ label, hint, hideLabel = false, id, className, checked, disabled, ...rest }: CheckboxProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
@@ -34,7 +36,7 @@ export function Checkbox({ label, hint, id, className, checked, disabled, ...res
       >
         {checked ? <Check width={18} height={18} /> : null}
       </span>
-      <span className="flex min-w-0 flex-col">
+      <span className={hideLabel ? "sr-only" : "flex min-w-0 flex-col"}>
         <span className="text-body-lg font-bold [overflow-wrap:anywhere]">{label}</span>
         {hint ? <span className="text-caption text-ink-muted">{hint}</span> : null}
       </span>

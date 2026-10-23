@@ -7,15 +7,19 @@ type TimerBarProps = {
   total: number;
   /** Translated unit, e.g. «сек». */
   unit: string;
+  /** Shown instead of the seconds and the unit, e.g. «29:41» on an exam. */
+  display?: string;
+  /** Seconds left from which the bar turns red. */
+  urgentAt?: number;
   className?: string;
 };
 
 const URGENT_SECONDS = 5;
 
 /** Only draws what the server says. It never decides when answers close. */
-export function TimerBar({ remaining, total, unit, className }: TimerBarProps) {
+export function TimerBar({ remaining, total, unit, display, urgentAt = URGENT_SECONDS, className }: TimerBarProps) {
   const pct = total > 0 ? Math.min(100, Math.max(0, (remaining / total) * 100)) : 0;
-  const urgent = remaining <= URGENT_SECONDS;
+  const urgent = remaining <= urgentAt;
   // The fill width is a runtime value, so it travels as a CSS variable (as in the design system preview).
   const fillVars = { "--pct": `${pct}%` } as CSSProperties;
 
@@ -37,8 +41,8 @@ export function TimerBar({ remaining, total, unit, className }: TimerBarProps) {
           )}
         />
       </div>
-      <span className="min-w-12 text-right text-h2 font-black tabular-nums">{remaining}</span>
-      <span className="text-body font-bold text-ink-muted">{unit}</span>
+      <span className="min-w-12 text-right text-h2 font-black tabular-nums">{display ?? remaining}</span>
+      {display === undefined ? <span className="text-body font-bold text-ink-muted">{unit}</span> : null}
     </div>
   );
 }

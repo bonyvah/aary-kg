@@ -4,8 +4,15 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 
 /** Covers the player's screen while they are in a game but not in full screen. */
-export function FullscreenGate({ onEnter }: { onEnter: () => void }) {
-  const t = useTranslations("player.fullscreen");
+export function FullscreenGate({
+  onEnter,
+  namespace = "player.fullscreen",
+}: {
+  onEnter: () => void;
+  /** The texts: a game's, or an exam's. */
+  namespace?: "player.fullscreen" | "student.exam.fullscreen";
+}) {
+  const t = useTranslations(namespace);
   return (
     <div
       role="alertdialog"

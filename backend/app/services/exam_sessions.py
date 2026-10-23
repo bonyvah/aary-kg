@@ -11,6 +11,7 @@ from app.models.user import User
 from app.repositories import exam_sessions as repo
 from app.repositories import users as users_repo
 from app.schemas.exam_session import AttendanceChange, ExamSessionIn
+from app.services import exam_attempts
 from app.services import exams as exams_service
 
 
@@ -67,6 +68,8 @@ async def get_owned(session: AsyncSession, user: User, session_id: uuid.UUID) ->
     exam_session = await repo.get(session, session_id)
     if not exam_session or exam_session.owner_id != user.id:
         raise ApiError(404, "SESSION_NOT_FOUND")
+    if exam_attempts.finish_due(exam_session):
+        await session.commit()
     return exam_session
 
 
@@ -78,9 +81,12 @@ def _open(exam_session: ExamSession) -> None:
 async def set_attendance(
     session: AsyncSession, user: User, session_id: uuid.UUID, student_id: uuid.UUID, change: AttendanceChange
 ) -> ExamSession:
-    """Marks a student present, late or absent while the session is open; adds them if they aren't on it."""
+    """Marks a student present, late or absent while the session is open; adds them if they aren't on it.
+    Once a student has started, their attendance stays."""
     exam_session = await get_owned(session, user, session_id)
     _open(exam_session)
+    if exam_session.attempt_of(student_id):
+        raise ApiError(409, "ATTEMPT_STARTED")
     late = _late_minutes(change)
     row = next((s for s in exam_session.students if s.student_id == student_id), None)
     if row is None:
@@ -99,7 +105,16 @@ async def set_attendance(
 async def close(session: AsyncSession, user: User, session_id: uuid.UUID) -> ExamSession:
     exam_session = await get_owned(session, user, session_id)
     _open(exam_session)
+    closed = datetime.now(UTC)
+    exam_attempts.finish_all(exam_session, closed)
     exam_session.status = "closed"
-    exam_session.closed_at = datetime.now(UTC)
+    exam_session.closed_at = closed
     await session.commit()
     return await get_owned(session, user, session_id)
+
+
+async def list_owned(session: AsyncSession, user: User) -> list[ExamSession]:
+    sessions = await repo.list_for_owner(session, user.id)
+    if any([exam_attempts.finish_due(s) for s in sessions]):
+        await session.commit()
+    return sessions

@@ -7,6 +7,8 @@ from pydantic import Field, model_validator
 from app.schemas.base import CamelModel
 
 Attendance = Literal["present", "late", "absent"]
+# none: not started; in_progress: the clock runs; submitted: ended (by the student, the time or the close).
+AttemptState = Literal["none", "in_progress", "submitted"]
 MIN_LATE_MINUTES = 1
 MAX_LATE_MINUTES = 180
 
@@ -45,6 +47,9 @@ class SessionStudentOut(CamelModel):
     group_name: str | None
     attendance: Attendance
     late_minutes: int | None
+    attempt_state: AttemptState
+    started_at: datetime | None
+    submitted_at: datetime | None
 
 
 class ExamSessionOut(CamelModel):
@@ -76,3 +81,44 @@ class StudentOut(CamelModel):
     name: str
     group_id: uuid.UUID | None
     group_name: str | None
+
+
+class StudentQuestionOut(CamelModel):
+    """A question as the student gets it: never the correct answer."""
+
+    id: str
+    text: str
+    answers: list[str]
+
+
+class StudentAttemptOut(CamelModel):
+    state: Literal["in_progress", "submitted"]
+    started_at: datetime
+    deadline_at: datetime
+    submitted_at: datetime | None
+    # From the server's clock; the screen counts down from it.
+    seconds_left: int
+    answers: dict[str, int]
+
+
+class StudentExamOut(CamelModel):
+    id: uuid.UUID
+    title: str
+    minutes: int
+    question_count: int
+    status: Literal["open", "closed"]
+    opened_at: datetime
+    closed_at: datetime | None
+    attendance: Attendance
+    attempt: StudentAttemptOut | None
+    # Only while the attempt runs.
+    questions: list[StudentQuestionOut] | None
+
+
+class AnswerIn(CamelModel):
+    answer: Literal[1, 2, 3, 4] | None
+
+
+class SignalIn(CamelModel):
+    kind: str = Field(max_length=20)
+    question_id: str | None = Field(default=None, max_length=64)

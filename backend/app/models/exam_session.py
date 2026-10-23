@@ -2,7 +2,18 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Identity,
+    Integer,
+    String,
+    Table,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,6 +48,11 @@ class ExamSession(Base):
     students: Mapped[list["ExamSessionStudent"]] = relationship(
         lazy="selectin", cascade="all, delete-orphan", back_populates="session"
     )
+    attempts: Mapped[list["ExamAttempt"]] = relationship(lazy="selectin", cascade="all, delete-orphan")
+
+    def attempt_of(self, student_id: uuid.UUID) -> "ExamAttempt | None":
+        """The attempt that counts: the student's active one."""
+        return next((a for a in self.attempts if a.student_id == student_id and a.active), None)
 
 
 class ExamSessionStudent(Base):
@@ -52,3 +68,36 @@ class ExamSessionStudent(Base):
 
     session: Mapped[ExamSession] = relationship(back_populates="students")
     student: Mapped[User] = relationship(lazy="selectin")
+
+
+class ExamAttempt(Base):
+    __tablename__ = "exam_attempts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("exam_sessions.id", ondelete="CASCADE"))
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    # A second attempt (granted later) makes this one inactive: kept and shown, but not counted.
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # Server time. Answers after it are refused; the attempt ends by itself.
+    deadline_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    submit_reason: Mapped[str | None] = mapped_column(String(10), default=None)  # manual | timeout | closed
+    # question id -> chosen position 1-4
+    answers: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    # Correct answers, counted when the attempt ends.
+    score: Mapped[int | None] = mapped_column(Integer, default=None)
+
+
+class ExamAttemptEvent(Base):
+    """A screen signal during an attempt (left the tab, another window, left full screen, paste)."""
+
+    __tablename__ = "exam_attempt_events"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    attempt_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("exam_attempts.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(20))
+    question_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

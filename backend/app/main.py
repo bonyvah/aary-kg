@@ -20,6 +20,7 @@ from app.routers import (
     games,
     groups,
     quizzes,
+    student_exams,
     users,
     ws,
 )
@@ -44,6 +45,7 @@ app.include_router(groups.router)
 app.include_router(quizzes.router)
 app.include_router(exams.router)
 app.include_router(exam_sessions.router)
+app.include_router(student_exams.router)
 app.include_router(contests.router)
 app.include_router(users.router)
 app.include_router(games.router)

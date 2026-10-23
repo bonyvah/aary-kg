@@ -42,7 +42,15 @@ async def require_teacher(user: Annotated[User, Depends(current_user)]) -> User:
     return user
 
 
+async def require_student(user: Annotated[User, Depends(current_user)]) -> User:
+    """A student's own screens: their exams."""
+    if user.role != "student":
+        raise ApiError(403, "FORBIDDEN")
+    return user
+
+
 CurrentUser = Annotated[User, Depends(current_user)]
 AdminUser = Annotated[User, Depends(require_admin)]
 StaffUser = Annotated[User, Depends(require_staff)]
 TeacherUser = Annotated[User, Depends(require_teacher)]
+StudentUser = Annotated[User, Depends(require_student)]

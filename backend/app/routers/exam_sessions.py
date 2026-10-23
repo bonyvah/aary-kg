@@ -3,9 +3,9 @@ import uuid
 from fastapi import APIRouter
 
 from app.deps import Session, StaffUser, TeacherUser
-from app.models.exam_session import ExamSession
-from app.repositories import exam_sessions as repo
+from app.models.exam_session import ExamAttempt, ExamSession, ExamSessionStudent
 from app.schemas.exam_session import (
+    AttemptState,
     AttendanceChange,
     ExamSessionIn,
     ExamSessionOut,
@@ -16,6 +16,26 @@ from app.schemas.exam_session import (
 from app.services import exam_sessions as service
 
 router = APIRouter(prefix="/exam-sessions", tags=["exam-sessions"])
+
+
+def _state(attempt: ExamAttempt | None) -> AttemptState:
+    if attempt is None:
+        return "none"
+    return "in_progress" if attempt.submitted_at is None else "submitted"
+
+
+def _student(s: ExamSession, row: ExamSessionStudent) -> SessionStudentOut:
+    attempt = s.attempt_of(row.student_id)
+    return SessionStudentOut(
+        student_id=row.student_id,
+        name=row.student.name,
+        group_name=row.student.group_name,
+        attendance=row.attendance,  # type: ignore[arg-type]
+        late_minutes=row.late_minutes,
+        attempt_state=_state(attempt),
+        started_at=attempt.started_at if attempt else None,
+        submitted_at=attempt.submitted_at if attempt else None,
+    )
 
 
 def _out(s: ExamSession) -> ExamSessionOut:
@@ -32,16 +52,7 @@ def _out(s: ExamSession) -> ExamSessionOut:
         groups=[
             SessionGroupOut(id=g.id, name=g.name) for g in sorted(s.groups, key=lambda g: g.name.lower())
         ],
-        students=[
-            SessionStudentOut(
-                student_id=row.student_id,
-                name=row.student.name,
-                group_name=row.student.group_name,
-                attendance=row.attendance,  # type: ignore[arg-type]
-                late_minutes=row.late_minutes,
-            )
-            for row in students
-        ],
+        students=[_student(s, row) for row in students],
     )
 
 
@@ -60,7 +71,7 @@ def _summary(s: ExamSession) -> ExamSessionSummary:
 
 @router.get("", response_model=list[ExamSessionSummary], response_model_by_alias=True)
 async def list_sessions(user: StaffUser, session: Session) -> list[ExamSessionSummary]:
-    return [_summary(s) for s in await repo.list_for_owner(session, user.id)]
+    return [_summary(s) for s in await service.list_owned(session, user)]
 
 
 @router.post("", status_code=201, response_model=ExamSessionOut, response_model_by_alias=True)

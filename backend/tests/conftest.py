@@ -34,7 +34,9 @@ def migrated() -> None:
 async def clean_db(migrated: None):
     yield
     async with engine.begin() as conn:
-        await conn.execute(text("TRUNCATE users, groups, quizzes, exams, contests, games CASCADE"))
+        await conn.execute(
+            text("TRUNCATE users, groups, quizzes, exams, exam_sessions, contests, games CASCADE")
+        )
 
 
 @pytest.fixture(autouse=True)

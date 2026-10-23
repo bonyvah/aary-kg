@@ -46,3 +46,20 @@ async def list_active_teachers(session: AsyncSession) -> list[User]:
         .order_by(User.first_name, User.last_name)
     )
     return list(result.scalars())
+
+
+async def get_many_active_students(session: AsyncSession, user_ids: list[uuid.UUID]) -> list[User]:
+    result = await session.execute(
+        select(User).where(User.id.in_(user_ids), User.active.is_(True), User.role == "student")
+    )
+    return list(result.scalars())
+
+
+async def list_active_students(session: AsyncSession) -> list[User]:
+    """Who can be given an exam."""
+    result = await session.execute(
+        select(User)
+        .where(User.active.is_(True), User.role == "student")
+        .order_by(User.first_name, User.last_name)
+    )
+    return list(result.scalars())

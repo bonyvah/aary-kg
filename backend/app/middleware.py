@@ -9,9 +9,22 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 # The biggest legitimate request is a quiz of 100 questions: well under this.
 MAX_BODY_BYTES = 256 * 1024
+# Except an uploaded teaching material (10 MB, plus the form around it).
+LARGE_BODY_PATHS = {"/ai/questions": 11 * 1024 * 1024}
 
 # Responses under these paths hold private data: no browser or proxy cache may keep them.
-PRIVATE_PREFIXES = ("/auth", "/admin", "/games", "/quizzes", "/contests", "/users")
+PRIVATE_PREFIXES = (
+    "/auth",
+    "/admin",
+    "/games",
+    "/quizzes",
+    "/contests",
+    "/users",
+    "/exams",
+    "/exam-sessions",
+    "/student",
+    "/ai",
+)
 
 
 class BodyLimitMiddleware:
@@ -28,8 +41,9 @@ class BodyLimitMiddleware:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
+        max_bytes = LARGE_BODY_PATHS.get(scope["path"], self.max_bytes)
         declared = dict(scope["headers"]).get(b"content-length", b"")
-        if declared.isdigit() and int(declared) > self.max_bytes:
+        if declared.isdigit() and int(declared) > max_bytes:
             return await self._reject(send)  # refused before reading a byte
 
         received = 0
@@ -39,7 +53,7 @@ class BodyLimitMiddleware:
             message = await receive()
             if message["type"] == "http.request":
                 received += len(message.get("body", b""))
-                if received > self.max_bytes:  # no Content-Length, or it lied
+                if received > max_bytes:  # no Content-Length, or it lied
                     # FastAPI passes an HTTPException through; any other error becomes a 400.
                     raise HTTPException(413)
             return message

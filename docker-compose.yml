@@ -25,6 +25,11 @@ services:
   # The backend image is the production one; only the command and the mounted code differ.
   backend:
     build: ./backend
+    # OPENAI_API_KEY (questions from teaching material) and any other local setting. The values under
+    # `environment` below win over this file.
+    env_file:
+      - path: ./backend/.env
+        required: false
     depends_on:
       postgres:
         condition: service_healthy

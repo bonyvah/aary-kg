@@ -13,6 +13,7 @@ from app.redis import get_redis
 from app.routers import (
     admin_games,
     admin_users,
+    ai,
     auth,
     contests,
     exam_sessions,
@@ -43,6 +44,7 @@ app.include_router(admin_users.router)
 app.include_router(admin_games.router)
 app.include_router(groups.router)
 app.include_router(quizzes.router)
+app.include_router(ai.router)
 app.include_router(exams.router)
 app.include_router(exam_sessions.router)
 app.include_router(exam_sessions.admin_router)

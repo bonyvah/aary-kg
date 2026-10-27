@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     # Extra browser origins allowed to open the game WebSockets, comma separated
     # (the site's own host is always allowed).
     allowed_origins: str = ""
+    # Questions from teaching material. The key is read as OPENAI_API_KEY too, its usual name.
+    # Empty: the feature answers AI_NOT_CONFIGURED.
+    openai_api_key: str = Field(
+        default="", validation_alias=AliasChoices("AARY_OPENAI_API_KEY", "OPENAI_API_KEY")
+    )
+    openai_model: str = "gpt-5.4-mini"
+    # Generations per teacher per day.
+    ai_daily_limit: int = Field(default=20, ge=0, le=1000)
 
     @field_validator("database_url")
     @classmethod

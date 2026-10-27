@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { MAX_MINUTES, MIN_MINUTES, MINUTES_OPTIONS } from "@/lib/examEditor";
+import { useToast } from "@/components/ui/useToast";
+import { fromQuiz, MAX_MINUTES, MIN_MINUTES, MINUTES_OPTIONS } from "@/lib/examEditor";
+import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useExamEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Exam } from "@/types/exam";
 import { DocEditorScreen } from "./DocEditorScreen";
+import { ImportFromQuizModal } from "./ImportFromQuizModal";
 
 export function ExamEditorScreen({ exam }: { exam: Exam }) {
   const t = useTranslations("staff.examEditor");
@@ -16,6 +21,10 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
     .sort((a, b) => a - b)
     .map((value) => ({ value, label: String(value) }));
   const choose = (value: number) => editor.changeDoc({ minutes: value });
+  const [importing, setImporting] = useState(false);
+  const importToast = useToast();
+  // The blank question a new exam starts with is replaced by an import, so it takes no room.
+  const filled = editor.state.doc.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
 
   return (
     <DocEditorScreen
@@ -33,6 +42,24 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
           custom={{ label: t("customMinutesLabel"), min: MIN_MINUTES, max: MAX_MINUTES, onCommit: choose }}
         />
       }
-    />
+      toolbarEnd={
+        <Button variant="secondary" onClick={() => setImporting(true)}>
+          {t("fromQuiz.open")}
+        </Button>
+      }
+      toast={importToast.toast}
+    >
+      {importing ? (
+        <ImportFromQuizModal
+          room={MAX_QUESTIONS - filled.length}
+          onClose={() => setImporting(false)}
+          onImport={(quiz, picked) => {
+            editor.importQuestions(quiz.title, fromQuiz(picked));
+            setImporting(false);
+            importToast.show("success", t("fromQuiz.imported", { count: picked.length }));
+          }}
+        />
+      ) : null}
+    </DocEditorScreen>
   );
 }

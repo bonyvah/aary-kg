@@ -1,5 +1,6 @@
 import { NEW_QUIZ_ID } from "@/lib/quizEditor/reducer";
-import type { Exam } from "@/types/exam";
+import type { Exam, ExamQuestion } from "@/types/exam";
+import type { QuizQuestion } from "@/types/quiz";
 
 /** The server's limits (backend/app/schemas/exam.py). */
 export const MINUTES_OPTIONS = [15, 30, 45, 60] as const;
@@ -15,4 +16,9 @@ export function blankExam(): Exam {
     minutes: DEFAULT_MINUTES,
     questions: [{ id: "question-1", text: "", answers: ["", "", "", ""], correct: 1 }],
   };
+}
+
+/** Quiz questions as exam questions: a copy without the quiz-only times, and without the ids (the editor gives new ones). */
+export function fromQuiz(questions: readonly QuizQuestion[]): Omit<ExamQuestion, "id">[] {
+  return questions.map(({ text, answers, correct }) => ({ text, answers: [...answers] as ExamQuestion["answers"], correct }));
 }

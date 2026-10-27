@@ -26,6 +26,8 @@ type DocEditorScreenProps<D extends EditorDoc> = {
   savedMessage: string;
   /** Next to the title, before «save»: the quiz's import, the exam's time limit. */
   toolbar: ReactNode;
+  /** After the toolbar, before «save». */
+  toolbarEnd?: ReactNode;
   /** Under the answers, before «remove question»: the quiz question's times. */
   questionSettings?: (question: D["questions"][number]) => ReactNode;
   /** Shown when there is no save result to show. */
@@ -39,6 +41,7 @@ export function DocEditorScreen<D extends EditorDoc>({
   titleLabel,
   savedMessage,
   toolbar,
+  toolbarEnd,
   questionSettings,
   toast,
   children,
@@ -88,6 +91,7 @@ export function DocEditorScreen<D extends EditorDoc>({
           />
         </div>
         {toolbar}
+        {toolbarEnd}
         <Button variant="success" disabled={editor.saving} onClick={() => void editor.save()}>
           {t("save")}
         </Button>

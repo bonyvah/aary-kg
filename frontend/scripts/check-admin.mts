@@ -8,6 +8,7 @@ import { validateGroupName } from "../src/lib/groups.ts";
 import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
 import { matches } from "../src/lib/search.ts";
+import { fromQuiz } from "../src/lib/examEditor.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -113,6 +114,12 @@ const found = (query: string, role: "all" | "teacher" | "student" | "admin", gro
 check("search by name or login", found("айз", "all") === "aizada" && found("BAK", "all") === "bakyt");
 check("filter by role", found("", "student") === "aizada,bakyt" && found("", "teacher") === "aibek");
 check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "all", "g2") === "aibek,aizada,bakyt");
+
+// Quiz questions copied into an exam.
+const quizQuestion = { id: "q7", text: "2 + 2?", answers: ["3", "4", "", ""] as [string, string, string, string], correct: 2 as const, seconds: 20, readSeconds: 5 };
+const copied = fromQuiz([quizQuestion]);
+check("a quiz question loses its times and id", JSON.stringify(copied) === JSON.stringify([{ text: "2 + 2?", answers: ["3", "4", "", ""], correct: 2 }]));
+check("the answers are a copy", copied[0]?.answers !== quizQuestion.answers);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

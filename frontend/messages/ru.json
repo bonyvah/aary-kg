@@ -296,7 +296,21 @@
       "saved": "Экзаменационный лист сохранён.",
       "minutesLabel": "Время на экзамен",
       "minutesOption": "{minutes} мин",
-      "customMinutesLabel": "Другое время"
+      "customMinutesLabel": "Другое время",
+      "fromQuiz": {
+        "open": "Из викторины",
+        "title": "Вопросы из викторины",
+        "cancel": "Отмена",
+        "back": "Назад",
+        "search": "Поиск викторины",
+        "questionCount": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+        "nothingFound": "Ничего не найдено",
+        "noQuizzes": "У вас пока нет викторин",
+        "all": "Все вопросы",
+        "tooMany": "{room, plural, one {Можно добавить ещё # вопрос} few {Можно добавить ещё # вопроса} many {Можно добавить ещё # вопросов} other {Можно добавить ещё # вопроса}}.",
+        "import": "{count, plural, one {Добавить # вопрос} few {Добавить # вопроса} many {Добавить # вопросов} other {Добавить # вопроса}}",
+        "imported": "{count, plural, one {Добавлен # вопрос} few {Добавлено # вопроса} many {Добавлено # вопросов} other {Добавлено # вопроса}}."
+      }
     },
     "examSession": {
       "status": {

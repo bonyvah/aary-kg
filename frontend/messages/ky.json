@@ -219,7 +219,19 @@
     "admin.filter.admins",
     "admin.filter.group",
     "admin.filter.allGroups",
-    "admin.filter.nothingFound"
+    "admin.filter.nothingFound",
+    "staff.examEditor.fromQuiz.open",
+    "staff.examEditor.fromQuiz.title",
+    "staff.examEditor.fromQuiz.cancel",
+    "staff.examEditor.fromQuiz.back",
+    "staff.examEditor.fromQuiz.search",
+    "staff.examEditor.fromQuiz.questionCount",
+    "staff.examEditor.fromQuiz.nothingFound",
+    "staff.examEditor.fromQuiz.noQuizzes",
+    "staff.examEditor.fromQuiz.all",
+    "staff.examEditor.fromQuiz.tooMany",
+    "staff.examEditor.fromQuiz.import",
+    "staff.examEditor.fromQuiz.imported"
   ],
   "app": {
     "name": "aary kg"
@@ -518,7 +530,21 @@
       "saved": "Экзамен барагы сакталды.",
       "minutesLabel": "Экзамендин убактысы",
       "minutesOption": "{minutes} мүн",
-      "customMinutesLabel": "Башка убакыт"
+      "customMinutesLabel": "Башка убакыт",
+      "fromQuiz": {
+        "open": "Викторинадан",
+        "title": "Викторинадан суроолор",
+        "cancel": "Жокко чыгаруу",
+        "back": "Артка",
+        "search": "Викторинаны издөө",
+        "questionCount": "{count, plural, one {# суроо} other {# суроо}}",
+        "nothingFound": "Эч нерсе табылган жок",
+        "noQuizzes": "Сизде азырынча викторина жок",
+        "all": "Бардык суроолор",
+        "tooMany": "{room, plural, one {Дагы # суроо кошууга болот} other {Дагы # суроо кошууга болот}}.",
+        "import": "{count, plural, one {# суроо кошуу} other {# суроо кошуу}}",
+        "imported": "{count, plural, one {# суроо кошулду} other {# суроо кошулду}}."
+      }
     },
     "examSession": {
       "status": {

@@ -249,7 +249,14 @@ async def test_the_teacher_sees_scores_reasons_signals_and_answers(as_user, clie
     assert (row["attemptState"], row["submitReason"], row["score"]) == ("submitted", "timeout", 1)
 
     detail = (await teacher.get(f"/exam-sessions/{sid}/students/{student_id}")).json()
-    assert (detail["score"], detail["total"], detail["submitReason"]) == (1, 3, "timeout")
+    assert detail["total"] == 3
+    detail = detail["attempts"][0]
+    assert (detail["score"], detail["submitReason"], detail["counts"], detail["number"]) == (
+        1,
+        "timeout",
+        True,
+        1,
+    )
     assert [(q["id"], q["chosen"], q["correct"]) for q in detail["questions"]] == [
         ("q1", 2, 2),
         ("q2", None, 1),
@@ -261,7 +268,9 @@ async def test_the_teacher_sees_scores_reasons_signals_and_answers(as_user, clie
         ("PASTE", "q2"),
     ]
     admin, _ = await as_user("root2", role="admin")
-    assert (await admin.get(f"/exam-sessions/{sid}/students/{student_id}")).json()["score"] == 1
+    assert (await admin.get(f"/exam-sessions/{sid}/students/{student_id}")).json()["attempts"][0][
+        "score"
+    ] == 1
     other, _ = await as_user("omur")
     assert (await other.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 404
     assert (await student.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 403
@@ -325,3 +334,56 @@ async def test_only_suspects_get_rulings_and_only_from_the_owner(as_user, client
     assert (await admin.put(url, json={"decision": "zero"})).status_code == 404
     bad = await teacher.put(url, json={"decision": "individual", "questions": {"nope": "skip"}})
     assert bad.status_code in (404, 409)
+
+
+async def test_a_second_attempt_is_granted_logged_and_counts(as_user, client_factory, clock):
+    teacher, student, sid, student_id = await _setup(as_user, client_factory)
+    grant = f"/exam-sessions/{sid}/students/{student_id}/grant"
+    assert (await teacher.post(grant)).json()["code"] == "CANNOT_GRANT"  # nothing taken yet
+    await student.post(f"/student/exams/{sid}/start")
+    assert (await teacher.post(grant)).json()["code"] == "CANNOT_GRANT"  # still writing
+    await student.put(f"/student/exams/{sid}/answers/q1", json={"answer": 2})
+    await student.post(f"/student/exams/{sid}/submit")
+    assert (await student.get(f"/student/exams/{sid}")).json()["canStart"] is False
+
+    row = (await teacher.post(grant)).json()["students"][0]
+    assert (row["attemptCount"], row["canGrant"]) == (1, False)
+    assert (await teacher.post(grant)).json()["code"] == "CANNOT_GRANT"  # one waiting already
+    assert (await student.get(f"/student/exams/{sid}")).json()["canStart"] is True
+
+    clock.move(minutes=1)
+    second = (await student.post(f"/student/exams/{sid}/start")).json()
+    assert second["attempt"]["state"] == "in_progress" and second["attempt"]["answers"] == {}
+    await student.put(f"/student/exams/{sid}/answers/q1", json={"answer": 2})
+    await student.put(f"/student/exams/{sid}/answers/q3", json={"answer": 3})
+    await student.post(f"/student/exams/{sid}/submit")
+
+    row = (await teacher.get(f"/exam-sessions/{sid}")).json()["students"][0]
+    assert (row["attemptCount"], row["score"], row["canGrant"]) == (2, 2, True)
+    detail = (await teacher.get(f"/exam-sessions/{sid}/students/{student_id}")).json()
+    assert [(a["number"], a["score"], a["counts"], a["active"]) for a in detail["attempts"]] == [
+        (1, 1, False, True),
+        (2, 2, True, True),
+    ]
+    assert [(h["action"], h["before"], h["after"]) for h in detail["history"]] == [
+        ("grant", {"attempts": 1}, {"attempts": 2})
+    ]
+
+    # Only an admin inactivates; the latest active one then counts.
+    second_id = detail["attempts"][1]["id"]
+    assert (await teacher.post(f"/admin/exam-attempts/{second_id}/inactivate")).status_code == 403
+    admin, _ = await as_user("root2", role="admin")
+    row = (await admin.post(f"/admin/exam-attempts/{second_id}/inactivate")).json()["students"][0]
+    assert row["score"] == 1
+    again = await admin.post(f"/admin/exam-attempts/{second_id}/inactivate")
+    assert (again.status_code, again.json()["code"]) == (409, "ATTEMPT_INACTIVE")
+    detail = (await teacher.get(f"/exam-sessions/{sid}/students/{student_id}")).json()
+    assert [(a["counts"], a["active"]) for a in detail["attempts"]] == [(True, True), (False, False)]
+    assert [(h["action"], h["actorName"]) for h in detail["history"]] == [
+        ("grant", "Ulan"),
+        ("inactivate", "Root2"),
+    ]
+
+    await teacher.post(f"/exam-sessions/{sid}/close")
+    assert (await student.get(f"/student/exams/{sid}")).json()["result"]["score"] == 1
+    assert (await teacher.post(grant)).json()["code"] == "SESSION_CLOSED"

@@ -157,21 +157,87 @@ async def decide(
 
 async def attempt_detail(
     session: AsyncSession, user: User, session_id: uuid.UUID, student_id: uuid.UUID
-) -> tuple[ExamSession, ExamSessionStudent, ExamAttempt | None, list[ExamAttemptEvent]]:
+) -> tuple[ExamSession, ExamSessionStudent, dict[uuid.UUID, list[ExamAttemptEvent]]]:
+    """The student's row, and the signals of each of their attempts (inactive ones too)."""
     exam_session = await get_viewable(session, user, session_id)
-    row = next((s for s in exam_session.students if s.student_id == student_id), None)
+    row = exam_session.row_of(student_id)
     if row is None:
         raise ApiError(404, "STUDENT_NOT_FOUND")
-    attempt = exam_session.attempt_of(student_id)
-    events: list[ExamAttemptEvent] = []
-    if attempt is not None:
+    ids = [a.id for a in exam_session.attempts_of(student_id)]
+    events: dict[uuid.UUID, list[ExamAttemptEvent]] = {i: [] for i in ids}
+    if ids:
         result = await session.execute(
-            select(ExamAttemptEvent)
-            .where(ExamAttemptEvent.attempt_id == attempt.id)
-            .order_by(ExamAttemptEvent.id)
+            select(ExamAttemptEvent).where(ExamAttemptEvent.attempt_id.in_(ids)).order_by(ExamAttemptEvent.id)
         )
-        events = list(result.scalars())
-    return exam_session, row, attempt, events
+        for event in result.scalars():
+            events[event.attempt_id].append(event)
+    return exam_session, row, events
+
+
+def can_grant(exam_session: ExamSession, student_id: uuid.UUID) -> bool:
+    """Open, the student's attempts all ended, and no granted attempt is waiting to be used."""
+    row = exam_session.row_of(student_id)
+    attempts = exam_session.attempts_of(student_id)
+    return (
+        exam_session.status == "open"
+        and row is not None
+        and bool(attempts)
+        and all(a.submitted_at is not None for a in attempts)
+        and len(attempts) >= 1 + row.extra_attempts
+    )
+
+
+async def grant(
+    session: AsyncSession, user: User, session_id: uuid.UUID, student_id: uuid.UUID
+) -> ExamSession:
+    """One more attempt for a student whose attempt has ended. Logged."""
+    exam_session = await get_owned(session, user, session_id)
+    _open(exam_session)
+    row = exam_session.row_of(student_id)
+    if row is None:
+        raise ApiError(404, "STUDENT_NOT_FOUND")
+    if not can_grant(exam_session, student_id):
+        raise ApiError(409, "CANNOT_GRANT")
+    # How many attempts the student may take in all, before and after.
+    before = {"attempts": 1 + row.extra_attempts}
+    row.extra_attempts += 1
+    session.add(
+        ExamAudit(
+            session_id=exam_session.id,
+            student_id=student_id,
+            actor_id=user.id,
+            action="grant",
+            before=before,
+            after={"attempts": 1 + row.extra_attempts},
+        )
+    )
+    await session.commit()
+    return await get_owned(session, user, session_id)
+
+
+async def inactivate(session: AsyncSession, admin: User, attempt_id: uuid.UUID) -> ExamSession:
+    """Admins only: the attempt is kept and shown, but doesn't count any more. Logged."""
+    attempt = await session.get(ExamAttempt, attempt_id)
+    if attempt is None:
+        raise ApiError(404, "ATTEMPT_NOT_FOUND")
+    if attempt.submitted_at is None:
+        raise ApiError(409, "ATTEMPT_RUNNING")
+    if not attempt.active:
+        raise ApiError(409, "ATTEMPT_INACTIVE")
+    attempt.active = False
+    session.add(
+        ExamAudit(
+            session_id=attempt.session_id,
+            student_id=attempt.student_id,
+            attempt_id=attempt.id,
+            actor_id=admin.id,
+            action="inactivate",
+            before={"active": True},
+            after={"active": False},
+        )
+    )
+    await session.commit()
+    return await get_viewable(session, admin, attempt.session_id)
 
 
 def _open(exam_session: ExamSession) -> None:
@@ -186,7 +252,7 @@ async def set_attendance(
     Once a student has started, their attendance stays."""
     exam_session = await get_owned(session, user, session_id)
     _open(exam_session)
-    if exam_session.attempt_of(student_id):
+    if exam_session.attempts_of(student_id):
         raise ApiError(409, "ATTEMPT_STARTED")
     late = _late_minutes(change)
     row = next((s for s in exam_session.students if s.student_id == student_id), None)

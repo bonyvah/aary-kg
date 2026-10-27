@@ -97,7 +97,7 @@ async def start(session: AsyncSession, student: User, session_id: uuid.UUID) -> 
         raise ApiError(409, "SESSION_CLOSED")
     if attendance_of(exam_session, student.id) == "absent":
         raise ApiError(403, "STUDENT_ABSENT")
-    if exam_session.attempt_of(student.id):
+    if not exam_session.can_start(student.id):
         raise ApiError(409, "ATTEMPT_EXISTS")
     started = now()
     exam_session.attempts.append(

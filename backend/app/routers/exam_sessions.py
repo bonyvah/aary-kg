@@ -7,6 +7,7 @@ from app.deps import AdminUser, Session, StaffUser, TeacherUser
 from app.models.exam_session import ExamAttempt, ExamSession, ExamSessionStudent
 from app.schemas.exam_session import (
     AttemptDetailOut,
+    AttemptOut,
     AttemptState,
     AttendanceChange,
     AuditOut,
@@ -60,6 +61,8 @@ def _student(s: ExamSession, row: ExamSessionStudent, counts: dict) -> SessionSt
         decision=attempt.decision if attempt else None,  # type: ignore[arg-type]
         suspect=_suspect(mine),
         signals=_signals(mine),
+        attempt_count=len(s.attempts_of(row.student_id)),
+        can_grant=service.can_grant(s, row.student_id),
     )
 
 
@@ -126,49 +129,70 @@ async def close_session(session_id: uuid.UUID, user: StaffUser, session: Session
     return await _out(session, await service.close(session, user, session_id))
 
 
-@router.get(
-    "/{session_id}/students/{student_id}", response_model=AttemptDetailOut, response_model_by_alias=True
-)
-async def attempt_detail(
-    session_id: uuid.UUID, student_id: uuid.UUID, user: StaffUser, session: Session
-) -> AttemptDetailOut:
-    """One student's answers and screen signals, for the teacher who started the exam or an admin."""
-    s, row, attempt, events = await service.attempt_detail(session, user, session_id, student_id)
-    answers = attempt.answers if attempt else {}
+def _attempt(s: ExamSession, attempt: ExamAttempt, number: int, events: list) -> AttemptOut:
     counts: dict[str, int] = {}
     for e in events:
         counts[e.kind] = counts.get(e.kind, 0) + 1
-    audit = await service.history(session, session_id, student_id)
-    return AttemptDetailOut(
-        student_id=row.student_id,
-        name=row.student.name,
+    current = s.attempt_of(attempt.student_id)
+    return AttemptOut(
+        id=attempt.id,
+        number=number,
+        active=attempt.active,
+        counts=current is not None and current.id == attempt.id,
         attempt_state=_state(attempt),
-        started_at=attempt.started_at if attempt else None,
-        submitted_at=attempt.submitted_at if attempt else None,
-        submit_reason=attempt.submit_reason if attempt else None,  # type: ignore[arg-type]
-        score=exam_attempts.final_score(s, attempt) if attempt else None,
-        raw_score=attempt.score if attempt else None,
-        decision=attempt.decision if attempt else None,  # type: ignore[arg-type]
-        question_decisions=attempt.question_decisions if attempt else {},  # type: ignore[arg-type]
+        started_at=attempt.started_at,
+        submitted_at=attempt.submitted_at,
+        submit_reason=attempt.submit_reason,  # type: ignore[arg-type]
+        score=exam_attempts.final_score(s, attempt),
+        raw_score=attempt.score,
+        decision=attempt.decision,  # type: ignore[arg-type]
+        question_decisions=attempt.question_decisions,  # type: ignore[arg-type]
         suspect=_suspect(counts),
-        total=len(s.questions),
         questions=[
             ResultQuestionOut(
                 id=q["id"],
                 text=q["text"],
                 answers=q["answers"],
                 correct=q["correct"],
-                chosen=answers.get(q["id"]),
-                counted=exam_attempts.counted(attempt, q["id"]) if attempt else True,
+                chosen=attempt.answers.get(q["id"]),
+                counted=exam_attempts.counted(attempt, q["id"]),
             )
             for q in s.questions
         ],
         signals=[SignalOut(kind=e.kind, question_id=e.question_id, at=e.at) for e in events],
+    )
+
+
+@router.get(
+    "/{session_id}/students/{student_id}", response_model=AttemptDetailOut, response_model_by_alias=True
+)
+async def attempt_detail(
+    session_id: uuid.UUID, student_id: uuid.UUID, user: StaffUser, session: Session
+) -> AttemptDetailOut:
+    """One student's attempts, answers and screen signals: for the exam's teacher or an admin."""
+    s, row, events = await service.attempt_detail(session, user, session_id, student_id)
+    audit = await service.history(session, session_id, student_id)
+    attempts = s.attempts_of(student_id)
+    return AttemptDetailOut(
+        student_id=row.student_id,
+        name=row.student.name,
+        total=len(s.questions),
+        attempts=[_attempt(s, a, i + 1, events[a.id]) for i, a in enumerate(attempts)],
         history=[
             AuditOut(actor_name=a.actor.name, at=a.at, action=a.action, before=a.before, after=a.after)
             for a in audit
         ],
     )
+
+
+@router.post(
+    "/{session_id}/students/{student_id}/grant", response_model=ExamSessionOut, response_model_by_alias=True
+)
+async def grant(
+    session_id: uuid.UUID, student_id: uuid.UUID, user: StaffUser, session: Session
+) -> ExamSessionOut:
+    """One more attempt for the student. Logged."""
+    return await _out(session, await service.grant(session, user, session_id, student_id))
 
 
 @router.put(
@@ -187,3 +211,14 @@ async def decide(
 async def admin_list(_: AdminUser, session: Session) -> list[ExamSessionSummary]:
     """Every exam, read-only: admins don't run exams."""
     return [_summary(s) for s in await service.list_all(session)]
+
+
+attempts_admin_router = APIRouter(prefix="/admin/exam-attempts", tags=["admin"])
+
+
+@attempts_admin_router.post(
+    "/{attempt_id}/inactivate", response_model=ExamSessionOut, response_model_by_alias=True
+)
+async def inactivate(attempt_id: uuid.UUID, admin: AdminUser, session: Session) -> ExamSessionOut:
+    """Admins only: the attempt is kept and shown, but no longer counts. Logged."""
+    return await _out(session, await service.inactivate(session, admin, attempt_id))

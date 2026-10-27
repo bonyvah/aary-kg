@@ -51,9 +51,29 @@ class ExamSession(Base):
     )
     attempts: Mapped[list["ExamAttempt"]] = relationship(lazy="selectin", cascade="all, delete-orphan")
 
+    def attempts_of(self, student_id: uuid.UUID) -> list["ExamAttempt"]:
+        """Every attempt of the student, the first one first, inactive ones too."""
+        return sorted((a for a in self.attempts if a.student_id == student_id), key=lambda a: a.started_at)
+
     def attempt_of(self, student_id: uuid.UUID) -> "ExamAttempt | None":
-        """The attempt that counts: the student's active one."""
-        return next((a for a in self.attempts if a.student_id == student_id and a.active), None)
+        """The attempt that counts: the student's latest active one."""
+        active = [a for a in self.attempts_of(student_id) if a.active]
+        return active[-1] if active else None
+
+    def row_of(self, student_id: uuid.UUID) -> "ExamSessionStudent | None":
+        return next((s for s in self.students if s.student_id == student_id), None)
+
+    def can_start(self, student_id: uuid.UUID) -> bool:
+        """Open, not absent, nothing running, and an attempt left (one, plus every grant)."""
+        row = self.row_of(student_id)
+        attempts = self.attempts_of(student_id)
+        return (
+            self.status == "open"
+            and row is not None
+            and row.attendance != "absent"
+            and all(a.submitted_at is not None for a in attempts)
+            and len(attempts) < 1 + row.extra_attempts
+        )
 
 
 class ExamSessionStudent(Base):
@@ -66,6 +86,8 @@ class ExamSessionStudent(Base):
     attendance: Mapped[str] = mapped_column(String(10))  # present | late | absent
     # Late only: how late, recorded and shown. The time limit stays the same.
     late_minutes: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Attempts granted by the teacher on top of the first one.
+    extra_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     session: Mapped[ExamSession] = relationship(back_populates="students")
     student: Mapped[User] = relationship(lazy="selectin")
@@ -120,7 +142,7 @@ class ExamAudit(Base):
         ForeignKey("exam_attempts.id", ondelete="CASCADE"), default=None
     )
     actor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
-    action: Mapped[str] = mapped_column(String(20))  # decision
+    action: Mapped[str] = mapped_column(String(20))  # decision | grant | inactivate
     before: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
     after: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

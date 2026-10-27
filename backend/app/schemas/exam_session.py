@@ -67,6 +67,9 @@ class SessionStudentOut(CamelModel):
     suspect: bool
     # Screen signals during the attempt, only the kinds seen.
     signals: list[SignalCount]
+    # Every attempt taken, inactive ones too; and whether the teacher may give one more.
+    attempt_count: int
+    can_grant: bool
 
 
 class ExamSessionOut(CamelModel):
@@ -149,6 +152,8 @@ class StudentExamOut(CamelModel):
     closed_at: datetime | None
     attendance: Attendance
     attempt: StudentAttemptOut | None
+    # Open, not absent, nothing running and an attempt left (the first, or one the teacher granted).
+    can_start: bool
     # Only while the attempt runs.
     questions: list[StudentQuestionOut] | None
     # Only once the exam is closed, for a student who took it.
@@ -170,11 +175,14 @@ class SignalOut(CamelModel):
     at: datetime
 
 
-class AttemptDetailOut(CamelModel):
-    """One student's attempt for the teacher (and admins): every answer and every signal."""
+class AttemptOut(CamelModel):
+    """One attempt for the teacher (and admins): every answer and every signal."""
 
-    student_id: uuid.UUID
-    name: str
+    id: uuid.UUID
+    number: int
+    active: bool
+    # The latest active attempt: the one whose score counts.
+    counts: bool
     attempt_state: AttemptState
     started_at: datetime | None
     submitted_at: datetime | None
@@ -184,9 +192,18 @@ class AttemptDetailOut(CamelModel):
     decision: Decision | None
     question_decisions: dict[str, QuestionDecision]
     suspect: bool
-    total: int
     questions: list[ResultQuestionOut]
     signals: list[SignalOut]
+
+
+class AttemptDetailOut(CamelModel):
+    """One student on an exam: all their attempts, the first one first, and the log of rulings,
+    grants and inactivations."""
+
+    student_id: uuid.UUID
+    name: str
+    total: int
+    attempts: list[AttemptOut]
     history: list["AuditOut"]
 
 

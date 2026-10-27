@@ -65,6 +65,7 @@ def _out(s: ExamSession, student: User, *, with_questions: bool) -> StudentExamO
         closed_at=s.closed_at,
         attendance=service.attendance_of(s, student.id),  # type: ignore[arg-type]
         attempt=attempt_out,
+        can_start=s.can_start(student.id),
         questions=[StudentQuestionOut(id=q["id"], text=q["text"], answers=q["answers"]) for q in s.questions]
         if running and with_questions
         else None,

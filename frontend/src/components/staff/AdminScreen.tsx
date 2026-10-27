@@ -164,16 +164,7 @@ export function AdminScreen() {
           onChange={setTab}
           className="max-w-[820px] flex-1"
         />
-        {tab === "users" ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="success" onClick={() => setCreating("teacher")}>
-              {t("createTeacher")}
-            </Button>
-            <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
-              {t("createStudent")}
-            </Button>
-          </div>
-        ) : tab === "groups" ? (
+        {tab === "groups" ? (
           <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
@@ -245,6 +236,14 @@ export function AdminScreen() {
               ))}
             </Select>
           ) : null}
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            <Button variant="success" onClick={() => setCreating("teacher")}>
+              {t("createTeacher")}
+            </Button>
+            <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
+              {t("createStudent")}
+            </Button>
+          </div>
         </div>
         {shown.length === 0 ? (
           <EmptyState icon={MagnifyingGlass} title={t("filter.nothingFound")} />

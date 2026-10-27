@@ -16,7 +16,12 @@ export type StudentAttempt = {
 };
 
 /** Once the exam is closed: a question with its correct answer and the student's pick (null: none). */
-export type ResultQuestion = StudentQuestion & { correct: AnswerPosition; chosen: AnswerPosition | null };
+export type ResultQuestion = StudentQuestion & {
+  correct: AnswerPosition;
+  chosen: AnswerPosition | null;
+  /** False when the teacher's ruling took the question out. */
+  counted: boolean;
+};
 
 export type StudentResult = {
   score: number;

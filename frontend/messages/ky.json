@@ -165,7 +165,31 @@
     "staff.examSession.attempt.right",
     "staff.examSession.attempt.wrong",
     "staff.examSession.attempt.correct",
-    "staff.examSession.attempt.otherSignals"
+    "staff.examSession.attempt.otherSignals",
+    "staff.examSession.suspects.title",
+    "staff.examSession.suspects.unruled",
+    "staff.examSession.suspects.score",
+    "staff.examSession.suspects.cancel",
+    "staff.examSession.suspects.ruling.mercy",
+    "staff.examSession.suspects.ruling.zero",
+    "staff.examSession.suspects.ruling.individual",
+    "staff.examSession.suspects.actions.mercy",
+    "staff.examSession.suspects.actions.zero",
+    "staff.examSession.suspects.actions.individual",
+    "staff.examSession.suspects.confirm.mercy",
+    "staff.examSession.suspects.confirm.zero",
+    "staff.examSession.individual.title",
+    "staff.examSession.individual.cancel",
+    "staff.examSession.individual.save",
+    "staff.examSession.individual.choice",
+    "staff.examSession.individual.mercy",
+    "staff.examSession.individual.skip",
+    "staff.examSession.page.ruled",
+    "staff.examSession.attempt.notCounted",
+    "staff.examSession.attempt.history",
+    "student.exam.result.notCounted",
+    "common.apiError.ATTEMPT_RUNNING",
+    "common.apiError.NOT_A_SUSPECT"
   ],
   "app": {
     "name": "aary kg"
@@ -520,7 +544,8 @@
           "title": "Экзаменди жабасызбы?",
           "body": "Окуучулар аны мындан ары тапшыра алышпайт. Кайра ачууга болбойт."
         },
-        "teacher": "Мугалим: {name}"
+        "teacher": "Мугалим: {name}",
+        "ruled": "Чечим сакталды."
       },
       "attempt": {
         "close": "Жабуу",
@@ -529,7 +554,37 @@
         "right": "Туура",
         "wrong": "Туура эмес",
         "correct": "Туура жооп: {answer}",
-        "otherSignals": "Башка белгилер"
+        "otherSignals": "Башка белгилер",
+        "notCounted": "Эсептелген жок",
+        "history": "Чечимдердин тарыхы"
+      },
+      "suspects": {
+        "title": "Шектүүлөр",
+        "unruled": "Чечим жок",
+        "score": "{score} (чечимсиз {raw})",
+        "cancel": "Жокко чыгаруу",
+        "ruling": {
+          "mercy": "Кечирилди",
+          "zero": "Нөлгө түшүрүлдү",
+          "individual": "Суроолор боюнча"
+        },
+        "actions": {
+          "mercy": "Кечирүү",
+          "zero": "Упайды нөлгө түшүрүү",
+          "individual": "Суроолор боюнча чечүү"
+        },
+        "confirm": {
+          "mercy": "{name} упайы өзгөрбөйт.",
+          "zero": "{name} 0 упай алат."
+        }
+      },
+      "individual": {
+        "title": "{name}: суроолор боюнча",
+        "cancel": "Жокко чыгаруу",
+        "save": "Сактоо",
+        "choice": "{number}-суроо",
+        "mercy": "Кечирүү",
+        "skip": "Эсептебөө"
       }
     }
   },
@@ -771,7 +826,9 @@
       "ATTEMPT_NOT_FOUND": "Экзамен баштала элек.",
       "ATTEMPT_FINISHED": "Экзамен тапшырылып калган.",
       "ATTEMPT_STARTED": "Окуучу экзаменди баштап койгон.",
-      "QUESTION_NOT_FOUND": "Суроо табылган жок."
+      "QUESTION_NOT_FOUND": "Суроо табылган жок.",
+      "ATTEMPT_RUNNING": "Окуучу экзаменди дагы жазып жатат.",
+      "NOT_A_SUSPECT": "Окуучу экрандан чыккан жок."
     },
     "toDashboard": "Башкы бетке"
   },
@@ -1246,7 +1303,8 @@
         "counter": "{current}/{total} суроо",
         "unanswered": "Жооп берилген жок",
         "correct": "Туура жооп",
-        "wrong": "Сиздин жообуңуз, туура эмес"
+        "wrong": "Сиздин жообуңуз, туура эмес",
+        "notCounted": "Эсептелген жок"
       }
     }
   }

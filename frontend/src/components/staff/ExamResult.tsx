@@ -19,6 +19,7 @@ export function ExamResult({ result }: { result: StudentResult }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{t("counter", { current: index + 1, total: result.total })}</Badge>
               {question.chosen === null ? <Badge variant="neutral">{t("unanswered")}</Badge> : null}
+              {question.counted ? null : <Badge variant="danger">{t("notCounted")}</Badge>}
             </div>
             <h2 className="text-h2 font-black [overflow-wrap:anywhere]">{question.text}</h2>
             <div className="grid gap-4 sm:grid-cols-2">

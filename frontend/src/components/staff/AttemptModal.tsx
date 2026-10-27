@@ -45,6 +45,7 @@ export function AttemptModal({ sessionId, studentId, name, onClose }: AttemptMod
 function AttemptBody({ detail }: { detail: AttemptDetail }) {
   const t = useTranslations("staff.examSession.attempt");
   const tf = useTranslations("admin.game.flagNames");
+  const tr = useTranslations("staff.examSession.suspects");
   const dateTime = useDateTime();
   const time = (iso: string) => dateTime(new Date(iso));
   const loose = detail.signals.filter((s) => !detail.questions.some((q) => q.id === s.questionId));
@@ -56,6 +57,7 @@ function AttemptBody({ detail }: { detail: AttemptDetail }) {
         {detail.score !== null ? (
           <span className="text-h2 font-black tabular-nums">{t("score", { score: detail.score, total: detail.total })}</span>
         ) : null}
+        {detail.decision ? <Badge variant="neutral">{tr(`ruling.${detail.decision}`)}</Badge> : null}
         {detail.startedAt ? (
           <span className="text-body text-ink-muted">
             {time(detail.startedAt)}
@@ -74,6 +76,11 @@ function AttemptBody({ detail }: { detail: AttemptDetail }) {
                 <span className="tabular-nums">{index + 1}. </span>
                 {question.text}
               </p>
+              {question.counted ? null : (
+                <div>
+                  <Badge variant="danger">{t("notCounted")}</Badge>
+                </div>
+              )}
               {chosen === null ? (
                 <p className="text-ink-muted">{t("unanswered")}</p>
               ) : (
@@ -102,6 +109,22 @@ function AttemptBody({ detail }: { detail: AttemptDetail }) {
           );
         })}
       </ol>
+      {detail.history.length > 0 ? (
+        <section className="flex flex-col gap-2" aria-labelledby="ruling-history">
+          <h3 id="ruling-history" className="text-h3 font-bold">
+            {t("history")}
+          </h3>
+          <ul className="flex flex-col gap-1">
+            {detail.history.map((entry, i) => (
+              <li key={i} className="text-body">
+                {time(entry.at)} · {entry.actorName}:{" "}
+                {entry.before?.decision ? tr(`ruling.${entry.before.decision}`) : tr("unruled")} →{" "}
+                {entry.after?.decision ? tr(`ruling.${entry.after.decision}`) : tr("unruled")}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {loose.length > 0 ? (
         <ul className="flex flex-wrap gap-2" aria-label={t("otherSignals")}>
           {loose.map((signal, i) => (

@@ -10,11 +10,13 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
-import { closeExamSession, setAttendance } from "@/lib/api/examSessions";
+import { closeExamSession, decide, setAttendance } from "@/lib/api/examSessions";
 import { PRESENT } from "@/lib/examSessions";
 import { useDateTime } from "@/lib/useDateTime";
-import type { AttendanceChange, ExamSession, StudentChoice } from "@/types/examSession";
+import type { AttendanceChange, DecisionInput, ExamSession, StudentChoice } from "@/types/examSession";
 import { AttemptModal } from "./AttemptModal";
+import { IndividualRulingModal } from "./IndividualRulingModal";
+import { SuspectsPanel } from "./SuspectsPanel";
 import { AttendanceTable } from "./AttendanceTable";
 import { ConfirmModal } from "./ConfirmModal";
 import { ExamSessionStatusBadge } from "./ExamSessionStatusBadge";
@@ -38,6 +40,7 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
   const home = useHomePath();
   const readOnly = useCurrentUser().role === "admin";
   const [viewing, setViewing] = useState<{ studentId: string; name: string } | null>(null);
+  const [ruling, setRuling] = useState<{ studentId: string; name: string } | null>(null);
   const tc = useTranslations("common");
   const dateTime = useDateTime();
   const { toast, show } = useToast();
@@ -56,6 +59,19 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
       setSession(await setAttendance(session.id, studentId, attendance));
     } catch (error) {
       show("danger", tc(`apiError.${toKnownCode(error)}`));
+    }
+  }
+
+  async function rule(studentId: string, input: DecisionInput) {
+    setBusy(true);
+    try {
+      setSession(await decide(session.id, studentId, input));
+      setRuling(null);
+      show("success", t("ruled"));
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -104,6 +120,13 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
           </Button>
         ) : null}
       </div>
+
+      <SuspectsPanel
+        students={session.students}
+        readOnly={readOnly}
+        onDecide={(student, decision) => void rule(student.studentId, { decision })}
+        onIndividual={(student) => setRuling(student)}
+      />
 
       <AttendanceTable
         rows={session.students}
@@ -165,6 +188,16 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
         </div>
       ) : null}
 
+      {ruling ? (
+        <IndividualRulingModal
+          sessionId={session.id}
+          studentId={ruling.studentId}
+          name={ruling.name}
+          busy={busy}
+          onSave={(questions) => void rule(ruling.studentId, { decision: "individual", questions })}
+          onClose={() => setRuling(null)}
+        />
+      ) : null}
       {viewing ? (
         <AttemptModal sessionId={session.id} studentId={viewing.studentId} name={viewing.name} onClose={() => setViewing(null)} />
       ) : null}

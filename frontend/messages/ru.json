@@ -315,7 +315,14 @@
         "state": "Экзамен",
         "notStarted": "Не начал",
         "inProgress": "Пишет",
-        "submitted": "Сдал"
+        "submitted": "Сдал",
+        "score": "Баллы",
+        "scoreValue": "{score} / {total}",
+        "signals": "Сигналы",
+        "answers": "Ответы",
+        "answersFor": "Ответы: {name}",
+        "timeUp": "Время вышло",
+        "endedByClose": "Закрыт учителем"
       },
       "setup": {
         "back": "Назад",
@@ -344,7 +351,17 @@
         "confirmClose": {
           "title": "Закрыть экзамен?",
           "body": "Ученики больше не смогут сдавать его. Открыть снова нельзя."
-        }
+        },
+        "teacher": "Учитель: {name}"
+      },
+      "attempt": {
+        "close": "Закрыть",
+        "score": "{score} / {total}",
+        "unanswered": "Без ответа",
+        "right": "Правильно",
+        "wrong": "Неправильно",
+        "correct": "Правильный ответ: {answer}",
+        "otherSignals": "Другие сигналы"
       }
     }
   },
@@ -724,6 +741,7 @@
     "tabs": {
       "users": "Пользователи",
       "groups": "Группы",
+      "exams": "Экзамены",
       "contests": "Конкурсы",
       "games": "Игры"
     },
@@ -864,6 +882,15 @@
       "submit": "Сохранить",
       "cancel": "Отмена",
       "close": "Закрыть"
+    },
+    "exams": {
+      "empty": "Экзаменов пока нет",
+      "title": "Экзамен",
+      "teacher": "Учитель",
+      "groups": "Группы",
+      "opened": "Начат",
+      "status": "Статус",
+      "students": "Ученики"
     }
   },
   "contest": {

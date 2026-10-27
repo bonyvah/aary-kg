@@ -1,12 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { LATE_OPTIONS, MAX_LATE_MINUTES, MIN_LATE_MINUTES, toggle } from "@/lib/examSessions";
 import type { AttemptState, AttendanceChange } from "@/types/examSession";
-import { Badge } from "@/components/ui/Badge";
 
 export type AttendanceRow = AttendanceChange & {
   studentId: string;
@@ -20,12 +20,13 @@ type AttendanceTableProps = {
   rows: readonly AttendanceRow[];
   onChange: (studentId: string, change: AttendanceChange) => void;
   disabled?: boolean;
+  /** More columns after attendance: their headers, and the cells of one row. */
+  extra?: { headers: readonly string[]; cells: (studentId: string) => ReactNode[] };
 };
 
 /** One row per student: absent and late are ticked, everyone else is present. Late takes a number of minutes. */
-export function AttendanceTable({ rows, onChange, disabled = false }: AttendanceTableProps) {
+export function AttendanceTable({ rows, onChange, disabled = false, extra }: AttendanceTableProps) {
   const t = useTranslations("staff.examSession.attendance");
-  const withState = rows.some((row) => row.attemptState !== undefined);
 
   return (
     <Table>
@@ -35,7 +36,7 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
           <Th>{t("group")}</Th>
           <Th>{t("absent")}</Th>
           <Th>{t("late")}</Th>
-          {withState ? <Th>{t("state")}</Th> : null}
+          {extra?.headers.map((header) => <Th key={header}>{header}</Th>)}
         </tr>
       </thead>
       <tbody>
@@ -84,17 +85,7 @@ export function AttendanceTable({ rows, onChange, disabled = false }: Attendance
                   ) : null}
                 </div>
               </Td>
-              {withState ? (
-                <Td>
-                  {row.attemptState === "submitted" ? (
-                    <Badge variant="success">{t("submitted")}</Badge>
-                  ) : row.attemptState === "in_progress" ? (
-                    <Badge variant="accent">{t("inProgress")}</Badge>
-                  ) : (
-                    <Badge variant="neutral">{t("notStarted")}</Badge>
-                  )}
-                </Td>
-              ) : null}
+              {extra?.cells(row.studentId).map((cell, index) => <Td key={index}>{cell}</Td>)}
             </tr>
           );
         })}

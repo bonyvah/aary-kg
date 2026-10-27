@@ -144,7 +144,28 @@
     "student.exam.result.counter",
     "student.exam.result.unanswered",
     "student.exam.result.correct",
-    "student.exam.result.wrong"
+    "student.exam.result.wrong",
+    "admin.tabs.exams",
+    "admin.exams.empty",
+    "admin.exams.title",
+    "admin.exams.teacher",
+    "admin.exams.groups",
+    "admin.exams.opened",
+    "admin.exams.status",
+    "admin.exams.students",
+    "staff.examSession.attendance.score",
+    "staff.examSession.attendance.signals",
+    "staff.examSession.attendance.answers",
+    "staff.examSession.attendance.answersFor",
+    "staff.examSession.attendance.timeUp",
+    "staff.examSession.attendance.endedByClose",
+    "staff.examSession.page.teacher",
+    "staff.examSession.attempt.close",
+    "staff.examSession.attempt.unanswered",
+    "staff.examSession.attempt.right",
+    "staff.examSession.attempt.wrong",
+    "staff.examSession.attempt.correct",
+    "staff.examSession.attempt.otherSignals"
   ],
   "app": {
     "name": "aary kg"
@@ -462,7 +483,14 @@
         "state": "Экзамен",
         "notStarted": "Баштай элек",
         "inProgress": "Жазып жатат",
-        "submitted": "Тапшырды"
+        "submitted": "Тапшырды",
+        "score": "Упай",
+        "scoreValue": "{score} / {total}",
+        "signals": "Белгилер",
+        "answers": "Жооптор",
+        "answersFor": "Жооптор: {name}",
+        "timeUp": "Убакыт бүттү",
+        "endedByClose": "Мугалим жапты"
       },
       "setup": {
         "back": "Артка",
@@ -491,7 +519,17 @@
         "confirmClose": {
           "title": "Экзаменди жабасызбы?",
           "body": "Окуучулар аны мындан ары тапшыра алышпайт. Кайра ачууга болбойт."
-        }
+        },
+        "teacher": "Мугалим: {name}"
+      },
+      "attempt": {
+        "close": "Жабуу",
+        "score": "{score} / {total}",
+        "unanswered": "Жооп берилген жок",
+        "right": "Туура",
+        "wrong": "Туура эмес",
+        "correct": "Туура жооп: {answer}",
+        "otherSignals": "Башка белгилер"
       }
     }
   },
@@ -871,6 +909,7 @@
     "tabs": {
       "users": "Колдонуучулар",
       "groups": "Группалар",
+      "exams": "Экзамендер",
       "contests": "Конкурстар",
       "games": "Оюндар"
     },
@@ -1011,6 +1050,15 @@
       "submit": "Сактоо",
       "cancel": "Жокко чыгаруу",
       "close": "Жабуу"
+    },
+    "exams": {
+      "empty": "Азырынча экзамен жок",
+      "title": "Экзамен",
+      "teacher": "Мугалим",
+      "groups": "Группалар",
+      "opened": "Башталды",
+      "status": "Абалы",
+      "students": "Окуучулар"
     }
   },
   "contest": {

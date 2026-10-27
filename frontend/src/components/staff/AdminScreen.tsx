@@ -16,11 +16,13 @@ import type { NewUser } from "@/lib/api/adminUsers";
 import { listGroups } from "@/lib/api/groups";
 import { listAllGames } from "@/lib/api/adminGames";
 import { listAllContests } from "@/lib/api/contests";
+import { listAllExamSessions } from "@/lib/api/examSessions";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
 import { CheckCircle, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
+import { AdminExamsTable } from "./AdminExamsTable";
 import { AdminGamesTable } from "./AdminGamesTable";
 import { AdminGroups } from "./AdminGroups";
 import { ConfirmModal } from "./ConfirmModal";
@@ -34,7 +36,7 @@ import { StaffShell } from "./StaffShell";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
 
-const TABS = ["users", "groups", "contests", "games"] as const;
+const TABS = ["users", "groups", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminScreen() {
@@ -43,6 +45,7 @@ export function AdminScreen() {
   const [tab, setTab] = useState<Tab>("users");
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
+  const allExams = useResource(listAllExamSessions);
   const idBase = useId();
   const dateTime = useDateTime();
   const { toast, show } = useToast();
@@ -148,7 +151,7 @@ export function AdminScreen() {
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[680px] flex-1"
+          className="max-w-[820px] flex-1"
         />
         {tab === "users" ? (
           <div className="flex flex-wrap items-center gap-3">
@@ -172,6 +175,10 @@ export function AdminScreen() {
         ) : tab === "games" ? (
           <ResourceView resource={allGames} inline>
             {(items) => <AdminGamesTable games={items} />}
+          </ResourceView>
+        ) : tab === "exams" ? (
+          <ResourceView resource={allExams} inline>
+            {(items) => <AdminExamsTable exams={items} />}
           </ResourceView>
         ) : tab === "contests" ? (
           <ResourceView resource={allContests} inline>

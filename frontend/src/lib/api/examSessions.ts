@@ -1,4 +1,4 @@
-import type { AttendanceChange, ExamSession, ExamSessionSummary, StudentChoice } from "@/types/examSession";
+import type { AttemptDetail, AttendanceChange, ExamSession, ExamSessionSummary, StudentChoice } from "@/types/examSession";
 import { apiFetch } from "./client";
 
 export type ExamSessionInput = {
@@ -20,3 +20,9 @@ export const setAttendance = (id: string, studentId: string, change: AttendanceC
 export const closeExamSession = (id: string) => apiFetch<ExamSession>(`/exam-sessions/${id}/close`, { method: "POST" });
 
 export const listStudents = () => apiFetch<StudentChoice[]>("/users/students");
+
+export const getAttemptDetail = (id: string, studentId: string) =>
+  apiFetch<AttemptDetail>(`/exam-sessions/${id}/students/${studentId}`);
+
+/** For admins: every exam. */
+export const listAllExamSessions = () => apiFetch<ExamSessionSummary[]>("/admin/exam-sessions");

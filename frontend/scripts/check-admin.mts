@@ -42,9 +42,9 @@ check("a 129 character password is too long", passwordProblem("a1" + "x".repeat(
 
 // Where each role may go.
 check("admins land on /admin, teachers on /dashboard", homePath("admin") === "/admin" && homePath("teacher") === "/dashboard");
-for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/exams/manage/new", "/exams/manage/abc", "/exam-sessions/new", "/exam-sessions/abc", "/host/abc", "/contests/new"])
+for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/exams/manage/new", "/exams/manage/abc", "/exam-sessions/new", "/host/abc", "/contests/new"])
   check(`an admin is sent away from ${path}`, redirectFor("admin", path) === "/admin");
-for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc"])
+for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc", "/exam-sessions/abc"])
   check(`an admin may open ${path}`, redirectFor("admin", path) === null);
 check("a teacher is sent away from /admin and below", redirectFor("teacher", "/admin") === "/dashboard" && redirectFor("teacher", "/admin/games/abc") === "/dashboard");
 check("students land on /student", homePath("student") === "/student");

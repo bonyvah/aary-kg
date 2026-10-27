@@ -1,5 +1,4 @@
 import uuid
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -105,7 +104,7 @@ async def set_attendance(
 async def close(session: AsyncSession, user: User, session_id: uuid.UUID) -> ExamSession:
     exam_session = await get_owned(session, user, session_id)
     _open(exam_session)
-    closed = datetime.now(UTC)
+    closed = exam_attempts.now()
     exam_attempts.finish_all(exam_session, closed)
     exam_session.status = "closed"
     exam_session.closed_at = closed

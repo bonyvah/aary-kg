@@ -139,7 +139,9 @@
       "examsEmpty": "Пока нет экзаменов",
       "createExamSheet": "Создать экзаменационный лист",
       "startExam": "Провести экзамен",
-      "examSheetsEmpty": "Пока нет экзаменационных листов"
+      "examSheetsEmpty": "Пока нет экзаменационных листов",
+      "search": "Поиск",
+      "nothingFound": "Ничего не найдено"
     },
     "quizView": {
       "back": "Назад",

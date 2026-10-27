@@ -7,6 +7,7 @@ import { generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
 import { validateGroupName } from "../src/lib/groups.ts";
 import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
+import { matches } from "../src/lib/search.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -96,6 +97,11 @@ check("unticking goes back to present", toggle({ attendance: "absent", lateMinut
 
 check("exam clock", clock(1800) === "30:00" && clock(61) === "1:01" && clock(5) === "0:05" && clock(3725) === "1:02:05" && clock(-3) === "0:00");
 check("only answers with text are shown", usedPositions(["a", "", " ", "d"]).join() === "1,4");
+
+// Search: every word, any case, in the screen's language.
+check("search ignores case and word order", matches("Алгебра 9-класс", "9-КЛАСС алг", "ru"));
+check("search needs every word", !matches("Алгебра", "алгебра физика", "ru"));
+check("an empty search matches all", matches("Тарых", "  ", "ky"));
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

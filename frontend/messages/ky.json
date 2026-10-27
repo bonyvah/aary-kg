@@ -208,7 +208,9 @@
     "staff.examSession.page.grant.confirm",
     "student.exam.startAgain",
     "common.apiError.CANNOT_GRANT",
-    "common.apiError.ATTEMPT_INACTIVE"
+    "common.apiError.ATTEMPT_INACTIVE",
+    "staff.dashboard.search",
+    "staff.dashboard.nothingFound"
   ],
   "app": {
     "name": "aary kg"
@@ -350,7 +352,9 @@
       "examsEmpty": "Азырынча экзамен жок",
       "createExamSheet": "Экзамен барагын түзүү",
       "startExam": "Экзамен өткөрүү",
-      "examSheetsEmpty": "Азырынча экзамен барагы жок"
+      "examSheetsEmpty": "Азырынча экзамен барагы жок",
+      "search": "Издөө",
+      "nothingFound": "Эч нерсе табылган жок"
     },
     "quizView": {
       "back": "Артка",

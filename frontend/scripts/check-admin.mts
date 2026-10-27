@@ -3,7 +3,7 @@
 import { passwordProblem } from "../src/lib/account.ts";
 import { describeEdit, parseWhole } from "../src/lib/adminGame.ts";
 import { homePath, redirectFor } from "../src/lib/staffRoutes.ts";
-import { generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
+import { filterUsers, generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
 import { validateGroupName } from "../src/lib/groups.ts";
 import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
@@ -102,6 +102,17 @@ check("only answers with text are shown", usedPositions(["a", "", " ", "d"]).joi
 check("search ignores case and word order", matches("Алгебра 9-класс", "9-КЛАСС алг", "ru"));
 check("search needs every word", !matches("Алгебра", "алгебра физика", "ru"));
 check("an empty search matches all", matches("Тарых", "  ", "ky"));
+
+// Users management filter.
+const people = [
+  { name: "Айбек Ч", login: "aibek", role: "teacher" as const, groupId: null },
+  { name: "Айзада К", login: "aizada", role: "student" as const, groupId: "g1" },
+  { name: "Бакыт Т", login: "bakyt", role: "student" as const, groupId: "g2" },
+];
+const found = (query: string, role: "all" | "teacher" | "student" | "admin", groupId = "") => filterUsers(people, { query, role, groupId }, "ru").map((u) => u.login).join();
+check("search by name or login", found("айз", "all") === "aizada" && found("BAK", "all") === "bakyt");
+check("filter by role", found("", "student") === "aizada,bakyt" && found("", "teacher") === "aibek");
+check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "all", "g2") === "aibek,aizada,bakyt");
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

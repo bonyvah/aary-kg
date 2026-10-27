@@ -1,4 +1,5 @@
-import type { ManagedUser } from "@/types/user";
+import { matches } from "@/lib/search";
+import type { ManagedUser, UserRole } from "@/types/user";
 
 /** Stable codes of a failed «create user». The frontend turns them into translated text. */
 export type AdminErrorCode = "FIELD_REQUIRED" | "LOGIN_INVALID" | "LOGIN_TAKEN" | "GROUP_REQUIRED";
@@ -40,4 +41,20 @@ function randomIndex(max: number): number {
   do crypto.getRandomValues(values);
   while ((values[0] ?? 0) >= limit);
   return (values[0] ?? 0) % max;
+}
+
+export type UserFilter = { query: string; role: UserRole | "all"; groupId: string };
+
+/** The users the admin is looking for: by name or login, by role, and for students by group ("" = any). */
+export function filterUsers<U extends Pick<ManagedUser, "name" | "login" | "role" | "groupId">>(
+  users: readonly U[],
+  filter: UserFilter,
+  locale: string,
+): U[] {
+  return users.filter(
+    (user) =>
+      (filter.role === "all" || user.role === filter.role) &&
+      (filter.role !== "student" || filter.groupId === "" || user.groupId === filter.groupId) &&
+      (matches(user.name, filter.query, locale) || matches(user.login, filter.query, locale)),
+  );
 }

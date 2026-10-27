@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { filterUsers, type UserFilter } from "@/lib/adminUsers";
 import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -19,7 +22,7 @@ import { listAllContests } from "@/lib/api/contests";
 import { listAllExamSessions } from "@/lib/api/examSessions";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { CheckCircle, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
+import { CheckCircle, MagnifyingGlass, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminExamsTable } from "./AdminExamsTable";
@@ -56,6 +59,8 @@ export function AdminScreen() {
   const [groups, setGroups] = useState<readonly Group[]>([]);
   const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
+  const locale = useLocale();
+  const [filter, setFilter] = useState<UserFilter>({ query: "", role: "all", groupId: "" });
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
 
@@ -135,6 +140,12 @@ export function AdminScreen() {
     }
   }
 
+  const shown = users ? filterUsers(users, filter, locale) : [];
+  // The groups that have students, for the group filter, sorted by name.
+  const studentGroups = Array.from(
+    new Map((users ?? []).filter((u) => u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
+  ).sort((a, b) => a[1].localeCompare(b[1], locale));
+
   return (
     <StaffShell
       topRight={
@@ -195,6 +206,49 @@ export function AdminScreen() {
             <Spinner label={tc("loading")} />
           </div>
         ) : (
+        <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <Input
+            type="search"
+            hideLabel
+            label={t("filter.search")}
+            placeholder={t("filter.search")}
+            value={filter.query}
+            onChange={(event) => setFilter((f) => ({ ...f, query: event.target.value }))}
+            wrapperClassName="w-full max-w-[360px]"
+          />
+          <Select
+            hideLabel
+            label={t("filter.role")}
+            value={filter.role}
+            onChange={(event) => setFilter((f) => ({ ...f, role: event.target.value as UserFilter["role"], groupId: "" }))}
+            wrapperClassName="w-full max-w-[220px]"
+          >
+            <option value="all">{t("filter.allRoles")}</option>
+            <option value="teacher">{t("filter.teachers")}</option>
+            <option value="student">{t("filter.students")}</option>
+            <option value="admin">{t("filter.admins")}</option>
+          </Select>
+          {filter.role === "student" ? (
+            <Select
+              hideLabel
+              label={t("filter.group")}
+              value={filter.groupId}
+              onChange={(event) => setFilter((f) => ({ ...f, groupId: event.target.value }))}
+              wrapperClassName="w-full max-w-[220px]"
+            >
+              <option value="">{t("filter.allGroups")}</option>
+              {studentGroups.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </Select>
+          ) : null}
+        </div>
+        {shown.length === 0 ? (
+          <EmptyState icon={MagnifyingGlass} title={t("filter.nothingFound")} />
+        ) : (
         <Table className="min-w-[960px]">
           <thead>
             <tr>
@@ -208,7 +262,7 @@ export function AdminScreen() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => {
+            {shown.map((user) => {
               // Other admins are listed for information only: the server refuses any action on them.
               const isAdminUser = user.role === "admin";
               return (
@@ -265,6 +319,8 @@ export function AdminScreen() {
             })}
           </tbody>
         </Table>
+        )}
+        </div>
         )}
       </div>
 

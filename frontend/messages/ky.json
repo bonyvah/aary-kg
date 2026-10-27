@@ -210,7 +210,16 @@
     "common.apiError.CANNOT_GRANT",
     "common.apiError.ATTEMPT_INACTIVE",
     "staff.dashboard.search",
-    "staff.dashboard.nothingFound"
+    "staff.dashboard.nothingFound",
+    "admin.filter.search",
+    "admin.filter.role",
+    "admin.filter.allRoles",
+    "admin.filter.teachers",
+    "admin.filter.students",
+    "admin.filter.admins",
+    "admin.filter.group",
+    "admin.filter.allGroups",
+    "admin.filter.nothingFound"
   ],
   "app": {
     "name": "aary kg"
@@ -1159,6 +1168,17 @@
       "opened": "Башталды",
       "status": "Абалы",
       "students": "Окуучулар"
+    },
+    "filter": {
+      "search": "Аты же логин боюнча издөө",
+      "role": "Ролу",
+      "allRoles": "Бардык ролдор",
+      "teachers": "Мугалимдер",
+      "students": "Окуучулар",
+      "admins": "Администраторлор",
+      "group": "Группа",
+      "allGroups": "Бардык группалар",
+      "nothingFound": "Эч ким табылган жок"
     }
   },
   "contest": {

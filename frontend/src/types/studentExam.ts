@@ -15,6 +15,16 @@ export type StudentAttempt = {
   answers: Record<string, AnswerPosition>;
 };
 
+/** Once the exam is closed: a question with its correct answer and the student's pick (null: none). */
+export type ResultQuestion = StudentQuestion & { correct: AnswerPosition; chosen: AnswerPosition | null };
+
+export type StudentResult = {
+  score: number;
+  total: number;
+  /** Empty in the list of exams. */
+  questions: ResultQuestion[];
+};
+
 export type StudentExam = {
   id: string;
   title: string;
@@ -27,6 +37,8 @@ export type StudentExam = {
   attempt: StudentAttempt | null;
   /** Only while the attempt runs. */
   questions: StudentQuestion[] | null;
+  /** Only once the exam is closed, for a student who took it. */
+  result: StudentResult | null;
 };
 
 export type ScreenSignal = "TAB_BLUR" | "WINDOW_BLUR" | "FULLSCREEN_EXIT" | "PASTE";

@@ -51,6 +51,11 @@ export function StudentHomeScreen() {
                           {exam.title}
                         </Link>
                       </h2>
+                      {exam.result ? (
+                        <p className="text-h3 font-black tabular-nums">
+                          {te("result.score", { score: exam.result.score, total: exam.result.total })}
+                        </p>
+                      ) : null}
                       <p className="mt-auto text-body text-ink-muted">
                         {te("meta", { count: exam.questionCount, minutes: exam.minutes })} · {dateTime(new Date(exam.openedAt))}
                       </p>

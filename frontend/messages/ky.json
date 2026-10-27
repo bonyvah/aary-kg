@@ -140,7 +140,11 @@
     "common.apiError.ATTEMPT_NOT_FOUND",
     "common.apiError.ATTEMPT_FINISHED",
     "common.apiError.ATTEMPT_STARTED",
-    "common.apiError.QUESTION_NOT_FOUND"
+    "common.apiError.QUESTION_NOT_FOUND",
+    "student.exam.result.counter",
+    "student.exam.result.unanswered",
+    "student.exam.result.correct",
+    "student.exam.result.wrong"
   ],
   "app": {
     "name": "aary kg"
@@ -1188,6 +1192,13 @@
         "title": "Толук экранга кайт",
         "body": "Экзамен толук экранда гана өтөт. Андан чыкканыңды, башка өтмөккө же терезеге өткөнүңдү мугалим көрөт.",
         "enter": "Толук экран"
+      },
+      "result": {
+        "score": "{score} / {total}",
+        "counter": "{current}/{total} суроо",
+        "unanswered": "Жооп берилген жок",
+        "correct": "Туура жооп",
+        "wrong": "Сиздин жообуңуз, туура эмес"
       }
     }
   }

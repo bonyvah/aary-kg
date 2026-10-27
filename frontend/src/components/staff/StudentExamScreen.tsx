@@ -10,6 +10,7 @@ import { getStudentExam, startStudentExam } from "@/lib/api/studentExams";
 import { enterFullscreen } from "@/lib/playerFlow/useScreenGuard";
 import { useCountdown } from "@/lib/studentExam";
 import type { StudentExam, StudentQuestion } from "@/types/studentExam";
+import { ExamResult } from "./ExamResult";
 import { ExamTakingScreen } from "./ExamTakingScreen";
 import { StudentExamBadge } from "./StudentExamBadge";
 import { StaffMenu } from "./StaffMenu";
@@ -102,6 +103,7 @@ export function StudentExamScreen({ exam: initial }: { exam: StudentExam }) {
           </Button>
         </div>
       ) : null}
+      {exam.result ? <ExamResult result={exam.result} /> : null}
       {toast}
     </StaffShell>
   );

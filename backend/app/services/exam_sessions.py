@@ -1,10 +1,10 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import ApiError
-from app.models.exam_session import ExamSession, ExamSessionStudent
+from app.models.exam_session import ExamAttempt, ExamAttemptEvent, ExamSession, ExamSessionStudent
 from app.models.group import Group
 from app.models.user import User
 from app.repositories import exam_sessions as repo
@@ -72,6 +72,53 @@ async def get_owned(session: AsyncSession, user: User, session_id: uuid.UUID) ->
     return exam_session
 
 
+async def get_viewable(session: AsyncSession, user: User, session_id: uuid.UUID) -> ExamSession:
+    """The teacher who started it, or an admin (read-only: every change goes through get_owned)."""
+    if user.role != "admin":
+        return await get_owned(session, user, session_id)
+    exam_session = await repo.get(session, session_id)
+    if not exam_session:
+        raise ApiError(404, "SESSION_NOT_FOUND")
+    if exam_attempts.finish_due(exam_session):
+        await session.commit()
+    return exam_session
+
+
+async def signal_counts(session: AsyncSession, exam_session: ExamSession) -> dict[uuid.UUID, dict[str, int]]:
+    """attempt id -> kind -> how many times, for the session's attempts."""
+    ids = [a.id for a in exam_session.attempts]
+    if not ids:
+        return {}
+    rows = await session.execute(
+        select(ExamAttemptEvent.attempt_id, ExamAttemptEvent.kind, func.count())
+        .where(ExamAttemptEvent.attempt_id.in_(ids))
+        .group_by(ExamAttemptEvent.attempt_id, ExamAttemptEvent.kind)
+    )
+    counts: dict[uuid.UUID, dict[str, int]] = {}
+    for attempt_id, kind, n in rows:
+        counts.setdefault(attempt_id, {})[kind] = n
+    return counts
+
+
+async def attempt_detail(
+    session: AsyncSession, user: User, session_id: uuid.UUID, student_id: uuid.UUID
+) -> tuple[ExamSession, ExamSessionStudent, ExamAttempt | None, list[ExamAttemptEvent]]:
+    exam_session = await get_viewable(session, user, session_id)
+    row = next((s for s in exam_session.students if s.student_id == student_id), None)
+    if row is None:
+        raise ApiError(404, "STUDENT_NOT_FOUND")
+    attempt = exam_session.attempt_of(student_id)
+    events: list[ExamAttemptEvent] = []
+    if attempt is not None:
+        result = await session.execute(
+            select(ExamAttemptEvent)
+            .where(ExamAttemptEvent.attempt_id == attempt.id)
+            .order_by(ExamAttemptEvent.id)
+        )
+        events = list(result.scalars())
+    return exam_session, row, attempt, events
+
+
 def _open(exam_session: ExamSession) -> None:
     if exam_session.status != "open":
         raise ApiError(409, "SESSION_CLOSED")
@@ -114,6 +161,14 @@ async def close(session: AsyncSession, user: User, session_id: uuid.UUID) -> Exa
 
 async def list_owned(session: AsyncSession, user: User) -> list[ExamSession]:
     sessions = await repo.list_for_owner(session, user.id)
+    if any([exam_attempts.finish_due(s) for s in sessions]):
+        await session.commit()
+    return sessions
+
+
+async def list_all(session: AsyncSession) -> list[ExamSession]:
+    """For admins: every exam, newest first."""
+    sessions = await repo.list_all(session)
     if any([exam_attempts.finish_due(s) for s in sessions]):
         await session.commit()
     return sessions

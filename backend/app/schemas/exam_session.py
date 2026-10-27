@@ -41,6 +41,11 @@ class SessionGroupOut(CamelModel):
     name: str
 
 
+class SignalCount(CamelModel):
+    kind: str
+    count: int
+
+
 class SessionStudentOut(CamelModel):
     student_id: uuid.UUID
     name: str
@@ -50,11 +55,17 @@ class SessionStudentOut(CamelModel):
     attempt_state: AttemptState
     started_at: datetime | None
     submitted_at: datetime | None
+    # Once ended: manual (handed in), timeout or closed (ended by the exam's close).
+    submit_reason: Literal["manual", "timeout", "closed"] | None
+    score: int | None
+    # Screen signals during the attempt, only the kinds seen.
+    signals: list[SignalCount]
 
 
 class ExamSessionOut(CamelModel):
     id: uuid.UUID
     exam_id: uuid.UUID
+    owner_name: str
     title: str
     minutes: int
     question_count: int
@@ -67,6 +78,7 @@ class ExamSessionOut(CamelModel):
 
 class ExamSessionSummary(CamelModel):
     id: uuid.UUID
+    owner_name: str
     title: str
     status: Literal["open", "closed"]
     opened_at: datetime
@@ -141,3 +153,24 @@ class AnswerIn(CamelModel):
 class SignalIn(CamelModel):
     kind: str = Field(max_length=20)
     question_id: str | None = Field(default=None, max_length=64)
+
+
+class SignalOut(CamelModel):
+    kind: str
+    question_id: str | None
+    at: datetime
+
+
+class AttemptDetailOut(CamelModel):
+    """One student's attempt for the teacher (and admins): every answer and every signal."""
+
+    student_id: uuid.UUID
+    name: str
+    attempt_state: AttemptState
+    started_at: datetime | None
+    submitted_at: datetime | None
+    submit_reason: Literal["manual", "timeout", "closed"] | None
+    score: int | None
+    total: int
+    questions: list[ResultQuestionOut]
+    signals: list[SignalOut]

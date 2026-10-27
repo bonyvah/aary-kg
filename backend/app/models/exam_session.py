@@ -43,6 +43,7 @@ class ExamSession(Base):
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
+    owner: Mapped[User] = relationship(lazy="selectin", foreign_keys=[owner_id])
     # The groups the teacher picked, to show them. Who takes the exam is the student list.
     groups: Mapped[list[Group]] = relationship(secondary=exam_session_groups, lazy="selectin")
     students: Mapped[list["ExamSessionStudent"]] = relationship(

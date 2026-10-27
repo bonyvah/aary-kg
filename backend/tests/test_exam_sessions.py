@@ -124,10 +124,19 @@ async def test_only_the_owner_of_the_sheet_starts_and_sees_a_session(as_user):
     assert (r.status_code, r.json()["code"]) == (404, "EXAM_NOT_FOUND")
     assert (await admin.post("/exam-sessions", json=_start(eid, gid, ids))).status_code == 403
     sid = (await teacher.post("/exam-sessions", json=_start(eid, gid, ids))).json()["id"]
+    assert (await other.get(f"/exam-sessions/{sid}")).json()["code"] == "SESSION_NOT_FOUND"
     for c in (other, admin):
-        assert (await c.get(f"/exam-sessions/{sid}")).json()["code"] == "SESSION_NOT_FOUND"
         assert (await c.post(f"/exam-sessions/{sid}/close")).status_code == 404
+        assert (
+            await c.put(f"/exam-sessions/{sid}/students/{ids['aizada']}", json={"attendance": "absent"})
+        ).status_code == 404
         assert (await c.get("/exam-sessions")).json() == []
+    # An admin reads it (and every exam), but changes nothing.
+    seen = (await admin.get(f"/exam-sessions/{sid}")).json()
+    assert (seen["ownerName"], seen["status"]) == ("Ulan", "open")
+    listed = (await admin.get("/admin/exam-sessions")).json()
+    assert [(x["id"], x["ownerName"]) for x in listed] == [(sid, "Ulan")]
+    assert (await teacher.get("/admin/exam-sessions")).status_code == 403
 
 
 async def test_attendance_changes_while_open_and_a_student_can_be_added(as_user):

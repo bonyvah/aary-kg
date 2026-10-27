@@ -232,3 +232,36 @@ async def test_no_result_for_a_student_who_did_not_take_it(as_user, client_facto
     teacher, student, sid, _ = await _setup(as_user, client_factory)
     await teacher.post(f"/exam-sessions/{sid}/close")
     assert (await student.get(f"/student/exams/{sid}")).json()["result"] is None
+
+
+async def test_the_teacher_sees_scores_reasons_signals_and_answers(as_user, client_factory, clock):
+    teacher, student, sid, student_id = await _setup(as_user, client_factory)
+    await student.post(f"/student/exams/{sid}/start")
+    await student.put(f"/student/exams/{sid}/answers/q1", json={"answer": 2})
+    for kind, qid in (("TAB_BLUR", "q1"), ("TAB_BLUR", "q2"), ("PASTE", "q2")):
+        await student.post(f"/student/exams/{sid}/signals", json={"kind": kind, "questionId": qid})
+    row = (await teacher.get(f"/exam-sessions/{sid}")).json()["students"][0]
+    assert (row["score"], row["submitReason"]) == (None, None)  # still writing
+    assert row["signals"] == [{"kind": "TAB_BLUR", "count": 2}, {"kind": "PASTE", "count": 1}]
+
+    clock.move(minutes=31)
+    row = (await teacher.get(f"/exam-sessions/{sid}")).json()["students"][0]
+    assert (row["attemptState"], row["submitReason"], row["score"]) == ("submitted", "timeout", 1)
+
+    detail = (await teacher.get(f"/exam-sessions/{sid}/students/{student_id}")).json()
+    assert (detail["score"], detail["total"], detail["submitReason"]) == (1, 3, "timeout")
+    assert [(q["id"], q["chosen"], q["correct"]) for q in detail["questions"]] == [
+        ("q1", 2, 2),
+        ("q2", None, 1),
+        ("q3", None, 3),
+    ]
+    assert [(e["kind"], e["questionId"]) for e in detail["signals"]] == [
+        ("TAB_BLUR", "q1"),
+        ("TAB_BLUR", "q2"),
+        ("PASTE", "q2"),
+    ]
+    admin, _ = await as_user("root2", role="admin")
+    assert (await admin.get(f"/exam-sessions/{sid}/students/{student_id}")).json()["score"] == 1
+    other, _ = await as_user("omur")
+    assert (await other.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 404
+    assert (await student.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 403

@@ -26,3 +26,8 @@ async def list_for_student(session: AsyncSession, student_id: uuid.UUID) -> list
         .order_by(ExamSession.opened_at.desc())
     )
     return list(result.scalars())
+
+
+async def list_all(session: AsyncSession) -> list[ExamSession]:
+    result = await session.execute(select(ExamSession).order_by(ExamSession.opened_at.desc()))
+    return list(result.scalars())

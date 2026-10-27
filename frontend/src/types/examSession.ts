@@ -27,6 +27,10 @@ export type SessionStudent = AttendanceChange & {
   suspect: boolean;
   /** Screen signals during the attempt, only the kinds seen. */
   signals: { kind: ScreenSignal; count: number }[];
+  /** Every attempt taken, inactive ones too. */
+  attemptCount: number;
+  /** The teacher may give one more attempt. */
+  canGrant: boolean;
 };
 
 export type SubmitReason = "manual" | "timeout" | "closed";
@@ -38,21 +42,34 @@ export type QuestionDecision = "mercy" | "skip";
 
 export type DecisionInput = { decision: Decision; questions?: Record<string, QuestionDecision> };
 
-export type AuditEntry = {
-  actorName: string;
-  at: string;
-  action: string;
-  before: { decision: Decision | null; questions: Record<string, QuestionDecision> } | null;
-  after: { decision: Decision | null; questions: Record<string, QuestionDecision> } | null;
-};
+type Ruling = { decision: Decision | null; questions: Record<string, QuestionDecision> };
 
-/** One student's attempt for the teacher (and admins): every answer and every signal. */
-export type AttemptDetail = Pick<SessionStudent, "studentId" | "name" | "attemptState" | "startedAt" | "submittedAt" | "submitReason" | "score" | "rawScore" | "decision" | "suspect"> & {
+/** What a teacher or an admin did: a ruling, one more attempt (allowed attempts before and after), an inactivated attempt. */
+export type AuditEntry = { actorName: string; at: string } & (
+  | { action: "decision"; before: Ruling; after: Ruling }
+  | { action: "grant"; before: { attempts: number }; after: { attempts: number } }
+  | { action: "inactivate"; before: { active: boolean }; after: { active: boolean } }
+);
+
+/** One attempt for the teacher (and admins): every answer and every signal. */
+export type AttemptRecord = Pick<SessionStudent, "attemptState" | "startedAt" | "submittedAt" | "submitReason" | "score" | "rawScore" | "decision" | "suspect"> & {
+  id: string;
+  number: number;
+  active: boolean;
+  /** The latest active attempt: its score counts. */
+  counts: boolean;
   questionDecisions: Record<string, QuestionDecision>;
-  history: AuditEntry[];
-  total: number;
   questions: ResultQuestion[];
   signals: { kind: ScreenSignal; questionId: string | null; at: string }[];
+};
+
+/** One student on an exam: every attempt, the first one first, and the log of what was done. */
+export type AttemptDetail = {
+  studentId: string;
+  name: string;
+  total: number;
+  attempts: AttemptRecord[];
+  history: AuditEntry[];
 };
 
 /** One run of an exam sheet for chosen students. Title, time limit and questions are copied from the sheet. */

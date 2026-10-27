@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ListChecks } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, ListChecks } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
@@ -10,7 +10,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
-import { closeExamSession, decide, setAttendance } from "@/lib/api/examSessions";
+import { closeExamSession, decide, grantAttempt, setAttendance } from "@/lib/api/examSessions";
 import { PRESENT } from "@/lib/examSessions";
 import { useDateTime } from "@/lib/useDateTime";
 import type { AttendanceChange, DecisionInput, ExamSession, StudentChoice } from "@/types/examSession";
@@ -41,6 +41,7 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
   const readOnly = useCurrentUser().role === "admin";
   const [viewing, setViewing] = useState<{ studentId: string; name: string } | null>(null);
   const [ruling, setRuling] = useState<{ studentId: string; name: string } | null>(null);
+  const [granting, setGranting] = useState<{ studentId: string; name: string } | null>(null);
   const tc = useTranslations("common");
   const dateTime = useDateTime();
   const { toast, show } = useToast();
@@ -72,6 +73,20 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
       show("danger", tc(`apiError.${toKnownCode(error)}`));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function grant() {
+    if (!granting) return;
+    setBusy(true);
+    try {
+      setSession(await grantAttempt(session.id, granting.studentId));
+      show("success", t("granted"));
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setBusy(false);
+      setGranting(null);
     }
   }
 
@@ -133,12 +148,15 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
         disabled={!editable}
         onChange={(id, attendance) => void change(id, attendance)}
         extra={{
-          headers: [ta("state"), ta("score"), ta("signals"), ta("answers")],
+          headers: [ta("state"), ta("score"), ta("signals"), ta("answers"), ...(editable ? [ta("again")] : [])],
           cells: (studentId) => {
             const row = byId.get(studentId);
             if (!row) return [];
             return [
-              <SubmitStateBadge key="state" state={row.attemptState} reason={row.submitReason} />,
+              <span key="state" className="flex flex-wrap items-center gap-1">
+                <SubmitStateBadge state={row.attemptState} reason={row.submitReason} />
+                {row.attemptCount > 1 ? <Badge variant="neutral">{ta("attempts", { count: row.attemptCount })}</Badge> : null}
+              </span>,
               <span key="score" className="font-black tabular-nums">
                 {row.score === null ? "" : ta("scoreValue", { score: row.score, total: session.questionCount })}
               </span>,
@@ -160,6 +178,21 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
                   <Icon icon={ListChecks} weight="bold" />
                 </Button>
               ),
+              ...(editable
+                ? [
+                    row.canGrant ? (
+                      <Button
+                        key="again"
+                        variant="secondary"
+                        aria-label={ta("againFor", { name: row.name })}
+                        title={ta("againFor", { name: row.name })}
+                        onClick={() => setGranting(row)}
+                      >
+                        <Icon icon={ArrowCounterClockwise} weight="bold" />
+                      </Button>
+                    ) : null,
+                  ]
+                : []),
             ];
           },
         }}
@@ -199,8 +232,26 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
         />
       ) : null}
       {viewing ? (
-        <AttemptModal sessionId={session.id} studentId={viewing.studentId} name={viewing.name} onClose={() => setViewing(null)} />
+        <AttemptModal
+          sessionId={session.id}
+          studentId={viewing.studentId}
+          name={viewing.name}
+          admin={readOnly}
+          onChanged={setSession}
+          onClose={() => setViewing(null)}
+        />
       ) : null}
+      <ConfirmModal
+        open={granting !== null}
+        title={t("grant.title")}
+        body={granting ? t("grant.body", { name: granting.name }) : ""}
+        confirmLabel={t("grant.confirm")}
+        cancelLabel={t("cancel")}
+        variant="success"
+        busy={busy}
+        onConfirm={() => void grant()}
+        onClose={() => setGranting(null)}
+      />
       <ConfirmModal
         open={closing}
         title={t("confirmClose.title")}

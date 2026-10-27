@@ -189,7 +189,26 @@
     "staff.examSession.attempt.history",
     "student.exam.result.notCounted",
     "common.apiError.ATTEMPT_RUNNING",
-    "common.apiError.NOT_A_SUSPECT"
+    "common.apiError.NOT_A_SUSPECT",
+    "staff.examSession.attempt.number",
+    "staff.examSession.attempt.counts",
+    "staff.examSession.attempt.inactive",
+    "staff.examSession.attempt.inactivate",
+    "staff.examSession.attempt.confirmInactivate",
+    "staff.examSession.attempt.cancel",
+    "staff.examSession.attempt.inactivated",
+    "staff.examSession.attempt.granted",
+    "staff.examSession.attempt.inactivatedEntry",
+    "staff.examSession.attendance.again",
+    "staff.examSession.attendance.againFor",
+    "staff.examSession.attendance.attempts",
+    "staff.examSession.page.granted",
+    "staff.examSession.page.grant.title",
+    "staff.examSession.page.grant.body",
+    "staff.examSession.page.grant.confirm",
+    "student.exam.startAgain",
+    "common.apiError.CANNOT_GRANT",
+    "common.apiError.ATTEMPT_INACTIVE"
   ],
   "app": {
     "name": "aary kg"
@@ -514,7 +533,10 @@
         "answers": "Жооптор",
         "answersFor": "Жооптор: {name}",
         "timeUp": "Убакыт бүттү",
-        "endedByClose": "Мугалим жапты"
+        "endedByClose": "Мугалим жапты",
+        "again": "Дагы аракет",
+        "againFor": "Дагы бир аракет: {name}",
+        "attempts": "{count, plural, one {# аракет} other {# аракет}}"
       },
       "setup": {
         "back": "Артка",
@@ -545,7 +567,13 @@
           "body": "Окуучулар аны мындан ары тапшыра алышпайт. Кайра ачууга болбойт."
         },
         "teacher": "Мугалим: {name}",
-        "ruled": "Чечим сакталды."
+        "ruled": "Чечим сакталды.",
+        "granted": "Аракет берилди.",
+        "grant": {
+          "title": "Дагы бир аракет бересизби?",
+          "body": "{name} экзаменди дагы бир жолу тапшыра алат. Акыркы аракет эсептелет.",
+          "confirm": "Аракет берүү"
+        }
       },
       "attempt": {
         "close": "Жабуу",
@@ -556,7 +584,16 @@
         "correct": "Туура жооп: {answer}",
         "otherSignals": "Башка белгилер",
         "notCounted": "Эсептелген жок",
-        "history": "Чечимдердин тарыхы"
+        "history": "Чечимдердин тарыхы",
+        "number": "{number}-аракет",
+        "counts": "Эсептелет",
+        "inactive": "Активдүү эмес",
+        "inactivate": "Активдүү эмес кылуу",
+        "confirmInactivate": "{number}-аракет көрүнүп турат, бирок эсептелбейт.",
+        "cancel": "Жокко чыгаруу",
+        "inactivated": "Аракет активдүү эмес.",
+        "granted": "Дагы бир аракет берди (баары {attempts})",
+        "inactivatedEntry": "Аракетти активдүү эмес кылды"
       },
       "suspects": {
         "title": "Шектүүлөр",
@@ -828,7 +865,9 @@
       "ATTEMPT_STARTED": "Окуучу экзаменди баштап койгон.",
       "QUESTION_NOT_FOUND": "Суроо табылган жок.",
       "ATTEMPT_RUNNING": "Окуучу экзаменди дагы жазып жатат.",
-      "NOT_A_SUSPECT": "Окуучу экрандан чыккан жок."
+      "NOT_A_SUSPECT": "Окуучу экрандан чыккан жок.",
+      "CANNOT_GRANT": "Азыр дагы бир аракет берүүгө болбойт.",
+      "ATTEMPT_INACTIVE": "Аракет активдүү эмес болуп калган."
     },
     "toDashboard": "Башкы бетке"
   },
@@ -1305,7 +1344,8 @@
         "correct": "Туура жооп",
         "wrong": "Сиздин жообуңуз, туура эмес",
         "notCounted": "Эсептелген жок"
-      }
+      },
+      "startAgain": "Кайра баштоо"
     }
   }
 }

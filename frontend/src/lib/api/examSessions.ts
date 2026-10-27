@@ -29,3 +29,10 @@ export const listAllExamSessions = () => apiFetch<ExamSessionSummary[]>("/admin/
 
 export const decide = (id: string, studentId: string, input: DecisionInput) =>
   apiFetch<ExamSession>(`/exam-sessions/${id}/students/${studentId}/decision`, { method: "PUT", body: input });
+
+export const grantAttempt = (id: string, studentId: string) =>
+  apiFetch<ExamSession>(`/exam-sessions/${id}/students/${studentId}/grant`, { method: "POST" });
+
+/** Admins only: kept and shown, no longer counted. */
+export const inactivateAttempt = (attemptId: string) =>
+  apiFetch<ExamSession>(`/admin/exam-attempts/${attemptId}/inactivate`, { method: "POST" });

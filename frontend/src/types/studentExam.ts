@@ -40,6 +40,8 @@ export type StudentExam = {
   closedAt: string | null;
   attendance: Attendance;
   attempt: StudentAttempt | null;
+  /** Open, not absent, nothing running, and an attempt left (the first, or one the teacher gave). */
+  canStart: boolean;
   /** Only while the attempt runs. */
   questions: StudentQuestion[] | null;
   /** Only once the exam is closed, for a student who took it. */

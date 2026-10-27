@@ -76,7 +76,7 @@ export function StudentExamScreen({ exam: initial }: { exam: StudentExam }) {
     return <ExamTakingScreen exam={exam} onEnded={(next) => (next ? setExam(next) : void reload())} />;
   }
 
-  const canStart = exam.status === "open" && exam.attendance !== "absent" && exam.attempt === null;
+  const canStart = exam.canStart;
 
   return (
     <StaffShell
@@ -99,7 +99,7 @@ export function StudentExamScreen({ exam: initial }: { exam: StudentExam }) {
       {canStart ? (
         <div>
           <Button variant="success" size="lg" disabled={busy} onClick={() => void start()}>
-            {t("start")}
+            {t(exam.attempt ? "startAgain" : "start")}
           </Button>
         </div>
       ) : null}

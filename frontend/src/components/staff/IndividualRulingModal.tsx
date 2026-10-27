@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { getAttemptDetail } from "@/lib/api/examSessions";
 import { useDateTime } from "@/lib/useDateTime";
-import type { AttemptDetail, QuestionDecision } from "@/types/examSession";
+import type { AttemptRecord, QuestionDecision } from "@/types/examSession";
 import { ResourceView, useResource } from "./Resource";
 
 type IndividualRulingModalProps = {
@@ -24,7 +24,11 @@ export function IndividualRulingModal({ sessionId, studentId, name, busy, onSave
   const resource = useResource(() => getAttemptDetail(sessionId, studentId));
   return (
     <ResourceView resource={resource} inline>
-      {(detail) => <RulingForm detail={detail} name={name} busy={busy} onSave={onSave} onClose={onClose} />}
+      {(detail) => {
+        // The ruling is on the attempt that counts.
+        const attempt = detail.attempts.find((a) => a.counts);
+        return attempt ? <RulingForm detail={attempt} name={name} busy={busy} onSave={onSave} onClose={onClose} /> : null;
+      }}
     </ResourceView>
   );
 }
@@ -35,7 +39,7 @@ function RulingForm({
   busy,
   onSave,
   onClose,
-}: { detail: AttemptDetail } & Pick<IndividualRulingModalProps, "name" | "busy" | "onSave" | "onClose">) {
+}: { detail: AttemptRecord } & Pick<IndividualRulingModalProps, "name" | "busy" | "onSave" | "onClose">) {
   const t = useTranslations("staff.examSession.individual");
   const tf = useTranslations("admin.game.flagNames");
   const dateTime = useDateTime();

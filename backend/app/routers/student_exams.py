@@ -3,18 +3,39 @@ import uuid
 from fastapi import APIRouter, Response
 
 from app.deps import Session, StudentUser
-from app.models.exam_session import ExamSession
+from app.models.exam_session import ExamAttempt, ExamSession
 from app.models.user import User
 from app.schemas.exam_session import (
     AnswerIn,
+    ResultQuestionOut,
     SignalIn,
     StudentAttemptOut,
     StudentExamOut,
     StudentQuestionOut,
+    StudentResultOut,
 )
 from app.services import exam_attempts as service
 
 router = APIRouter(prefix="/student/exams", tags=["student-exams"])
+
+
+def _result(s: ExamSession, attempt: ExamAttempt | None, *, with_questions: bool) -> StudentResultOut | None:
+    """Nothing about the answers before the exam is closed."""
+    if attempt is None or attempt.score is None or s.status != "closed":
+        return None
+    questions = [
+        ResultQuestionOut(
+            id=q["id"],
+            text=q["text"],
+            answers=q["answers"],
+            correct=q["correct"],
+            chosen=attempt.answers.get(q["id"]),
+        )
+        for q in s.questions
+    ]
+    return StudentResultOut(
+        score=attempt.score, total=len(s.questions), questions=questions if with_questions else []
+    )
 
 
 def _out(s: ExamSession, student: User, *, with_questions: bool) -> StudentExamOut:
@@ -44,6 +65,7 @@ def _out(s: ExamSession, student: User, *, with_questions: bool) -> StudentExamO
         questions=[StudentQuestionOut(id=q["id"], text=q["text"], answers=q["answers"]) for q in s.questions]
         if running and with_questions
         else None,
+        result=_result(s, attempt, with_questions=with_questions),
     )
 
 

@@ -206,3 +206,29 @@ async def test_screen_signals_are_logged_with_the_question_while_running(as_user
             ("FULLSCREEN_EXIT", "q2"),
             ("PASTE", None),
         ]
+
+
+async def test_the_result_is_shown_only_once_the_exam_is_closed(as_user, client_factory, clock):
+    teacher, student, sid, _ = await _setup(as_user, client_factory)
+    await student.post(f"/student/exams/{sid}/start")
+    await student.put(f"/student/exams/{sid}/answers/q1", json={"answer": 2})
+    await student.put(f"/student/exams/{sid}/answers/q2", json={"answer": 2})
+    r = await student.post(f"/student/exams/{sid}/submit")
+    assert r.json()["result"] is None and "correct" not in r.text  # handed in, the exam still open
+
+    await teacher.post(f"/exam-sessions/{sid}/close")
+    body = (await student.get(f"/student/exams/{sid}")).json()
+    assert (body["result"]["score"], body["result"]["total"]) == (1, 3)
+    assert [(q["id"], q["correct"], q["chosen"]) for q in body["result"]["questions"]] == [
+        ("q1", 2, 2),
+        ("q2", 1, 2),
+        ("q3", 3, None),
+    ]
+    listed = (await student.get("/student/exams")).json()[0]["result"]
+    assert (listed["score"], listed["total"], listed["questions"]) == (1, 3, [])
+
+
+async def test_no_result_for_a_student_who_did_not_take_it(as_user, client_factory, clock):
+    teacher, student, sid, _ = await _setup(as_user, client_factory)
+    await teacher.post(f"/exam-sessions/{sid}/close")
+    assert (await student.get(f"/student/exams/{sid}")).json()["result"] is None

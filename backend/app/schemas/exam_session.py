@@ -101,6 +101,23 @@ class StudentAttemptOut(CamelModel):
     answers: dict[str, int]
 
 
+class ResultQuestionOut(CamelModel):
+    id: str
+    text: str
+    answers: list[str]
+    correct: int
+    # None: not answered.
+    chosen: int | None
+
+
+class StudentResultOut(CamelModel):
+    """Once the exam is closed: what the student got, question by question."""
+
+    score: int
+    total: int
+    questions: list[ResultQuestionOut]
+
+
 class StudentExamOut(CamelModel):
     id: uuid.UUID
     title: str
@@ -113,6 +130,8 @@ class StudentExamOut(CamelModel):
     attempt: StudentAttemptOut | None
     # Only while the attempt runs.
     questions: list[StudentQuestionOut] | None
+    # Only once the exam is closed, for a student who took it.
+    result: StudentResultOut | None
 
 
 class AnswerIn(CamelModel):

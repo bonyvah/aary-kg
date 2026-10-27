@@ -4,12 +4,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import ApiError
-from app.models.exam_session import ExamAttempt, ExamAttemptEvent, ExamSession, ExamSessionStudent
+from app.models.exam_session import ExamAttempt, ExamAttemptEvent, ExamAudit, ExamSession, ExamSessionStudent
 from app.models.group import Group
 from app.models.user import User
 from app.repositories import exam_sessions as repo
 from app.repositories import users as users_repo
-from app.schemas.exam_session import AttendanceChange, ExamSessionIn
+from app.schemas.exam_session import AttendanceChange, DecisionIn, ExamSessionIn
 from app.services import exam_attempts
 from app.services import exams as exams_service
 
@@ -98,6 +98,61 @@ async def signal_counts(session: AsyncSession, exam_session: ExamSession) -> dic
     for attempt_id, kind, n in rows:
         counts.setdefault(attempt_id, {})[kind] = n
     return counts
+
+
+async def history(session: AsyncSession, session_id: uuid.UUID, student_id: uuid.UUID) -> list[ExamAudit]:
+    result = await session.execute(
+        select(ExamAudit)
+        .where(ExamAudit.session_id == session_id, ExamAudit.student_id == student_id)
+        .order_by(ExamAudit.id)
+    )
+    return list(result.scalars())
+
+
+def ruling(attempt: ExamAttempt) -> dict[str, object]:
+    return {"decision": attempt.decision, "questions": dict(attempt.question_decisions)}
+
+
+async def decide(
+    session: AsyncSession, user: User, session_id: uuid.UUID, student_id: uuid.UUID, payload: DecisionIn
+) -> ExamSession:
+    """The teacher's anti-cheat ruling on an ended attempt with screen signals. It can change any
+    time; the shown score is worked out from it. Every change is audited."""
+    exam_session = await get_owned(session, user, session_id)
+    attempt = exam_session.attempt_of(student_id)
+    if attempt is None:
+        raise ApiError(404, "ATTEMPT_NOT_FOUND")
+    if attempt.submitted_at is None:
+        raise ApiError(409, "ATTEMPT_RUNNING")
+    counts = (await signal_counts(session, exam_session)).get(attempt.id, {})
+    if not any(counts.get(kind) for kind in exam_attempts.SUSPECT_KINDS):
+        raise ApiError(409, "NOT_A_SUSPECT")
+    ids = {q["id"] for q in exam_session.questions}
+    if any(qid not in ids for qid in payload.questions):
+        raise ApiError(404, "QUESTION_NOT_FOUND")
+    questions = (
+        {qid: d for qid, d in payload.questions.items() if d == "skip"}
+        if payload.decision == "individual"
+        else {}
+    )
+    before = ruling(attempt)
+    if before == {"decision": payload.decision, "questions": questions}:
+        raise ApiError(409, "NOTHING_TO_CHANGE")
+    attempt.decision = payload.decision
+    attempt.question_decisions = questions
+    session.add(
+        ExamAudit(
+            session_id=exam_session.id,
+            student_id=student_id,
+            attempt_id=attempt.id,
+            actor_id=user.id,
+            action="decision",
+            before=before,
+            after=ruling(attempt),
+        )
+    )
+    await session.commit()
+    return await get_owned(session, user, session_id)
 
 
 async def attempt_detail(

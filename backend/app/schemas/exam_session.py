@@ -9,6 +9,8 @@ from app.schemas.base import CamelModel
 Attendance = Literal["present", "late", "absent"]
 # none: not started; in_progress: the clock runs; submitted: ended (by the student, the time or the close).
 AttemptState = Literal["none", "in_progress", "submitted"]
+Decision = Literal["mercy", "zero", "individual"]
+QuestionDecision = Literal["mercy", "skip"]
 MIN_LATE_MINUTES = 1
 MAX_LATE_MINUTES = 180
 
@@ -57,7 +59,12 @@ class SessionStudentOut(CamelModel):
     submitted_at: datetime | None
     # Once ended: manual (handed in), timeout or closed (ended by the exam's close).
     submit_reason: Literal["manual", "timeout", "closed"] | None
+    # After the anti-cheat ruling; raw_score is the correct answers alone.
     score: int | None
+    raw_score: int | None
+    decision: Decision | None
+    # Left the screen at least once (pasting alone doesn't count).
+    suspect: bool
     # Screen signals during the attempt, only the kinds seen.
     signals: list[SignalCount]
 
@@ -120,6 +127,8 @@ class ResultQuestionOut(CamelModel):
     correct: int
     # None: not answered.
     chosen: int | None
+    # False when the teacher's ruling took the question out (or zeroed the attempt).
+    counted: bool = True
 
 
 class StudentResultOut(CamelModel):
@@ -171,6 +180,28 @@ class AttemptDetailOut(CamelModel):
     submitted_at: datetime | None
     submit_reason: Literal["manual", "timeout", "closed"] | None
     score: int | None
+    raw_score: int | None
+    decision: Decision | None
+    question_decisions: dict[str, QuestionDecision]
+    suspect: bool
     total: int
     questions: list[ResultQuestionOut]
     signals: list[SignalOut]
+    history: list["AuditOut"]
+
+
+class DecisionIn(CamelModel):
+    decision: Decision
+    # Individual only: questions not listed keep their points (mercy).
+    questions: dict[str, QuestionDecision] = Field(default_factory=dict, max_length=100)
+
+
+class AuditOut(CamelModel):
+    actor_name: str
+    at: datetime
+    action: str
+    before: dict | None
+    after: dict | None
+
+
+AttemptDetailOut.model_rebuild()

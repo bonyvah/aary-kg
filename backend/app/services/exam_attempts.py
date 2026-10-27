@@ -27,6 +27,31 @@ def score(exam_session: ExamSession, answers: dict[str, int]) -> int:
     return sum(1 for q in exam_session.questions if answers.get(q["id"]) == q["correct"])
 
 
+SUSPECT_KINDS = ("TAB_BLUR", "WINDOW_BLUR", "FULLSCREEN_EXIT")
+
+
+def final_score(exam_session: ExamSession, attempt: ExamAttempt) -> int | None:
+    """The score after the teacher's ruling: zero, or without the questions that don't count."""
+    if attempt.score is None:
+        return None
+    if attempt.decision == "zero":
+        return 0
+    if attempt.decision == "individual":
+        skipped = {qid for qid, d in attempt.question_decisions.items() if d == "skip"}
+        return sum(
+            1
+            for q in exam_session.questions
+            if q["id"] not in skipped and attempt.answers.get(q["id"]) == q["correct"]
+        )
+    return attempt.score
+
+
+def counted(attempt: ExamAttempt, question_id: str) -> bool:
+    if attempt.decision == "zero":
+        return False
+    return not (attempt.decision == "individual" and attempt.question_decisions.get(question_id) == "skip")
+
+
 def finish(exam_session: ExamSession, attempt: ExamAttempt, reason: str, at: datetime) -> None:
     attempt.submitted_at = min(at, attempt.deadline_at)
     attempt.submit_reason = reason

@@ -30,11 +30,14 @@ def _result(s: ExamSession, attempt: ExamAttempt | None, *, with_questions: bool
             answers=q["answers"],
             correct=q["correct"],
             chosen=attempt.answers.get(q["id"]),
+            counted=service.counted(attempt, q["id"]),
         )
         for q in s.questions
     ]
     return StudentResultOut(
-        score=attempt.score, total=len(s.questions), questions=questions if with_questions else []
+        score=service.final_score(s, attempt) or 0,
+        total=len(s.questions),
+        questions=questions if with_questions else [],
     )
 
 

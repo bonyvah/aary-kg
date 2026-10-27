@@ -265,3 +265,63 @@ async def test_the_teacher_sees_scores_reasons_signals_and_answers(as_user, clie
     other, _ = await as_user("omur")
     assert (await other.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 404
     assert (await student.get(f"/exam-sessions/{sid}/students/{student_id}")).status_code == 403
+
+
+async def _suspect_attempt(as_user, client_factory, signal="TAB_BLUR"):
+    teacher, student, sid, student_id = await _setup(as_user, client_factory)
+    await student.post(f"/student/exams/{sid}/start")
+    await student.put(f"/student/exams/{sid}/answers/q1", json={"answer": 2})  # right
+    await student.put(f"/student/exams/{sid}/answers/q3", json={"answer": 3})  # right
+    await student.post(f"/student/exams/{sid}/signals", json={"kind": signal, "questionId": "q3"})
+    return teacher, student, sid, student_id
+
+
+async def test_rulings_change_the_score_and_are_audited(as_user, client_factory, clock):
+    teacher, student, sid, student_id = await _suspect_attempt(as_user, client_factory)
+    url = f"/exam-sessions/{sid}/students/{student_id}/decision"
+    r = await teacher.put(url, json={"decision": "zero"})
+    assert (r.status_code, r.json()["code"]) == (409, "ATTEMPT_RUNNING")
+    await student.post(f"/student/exams/{sid}/submit")
+    row = (await teacher.get(f"/exam-sessions/{sid}")).json()["students"][0]
+    assert (row["suspect"], row["score"], row["rawScore"], row["decision"]) == (True, 2, 2, None)
+
+    row = (await teacher.put(url, json={"decision": "zero"})).json()["students"][0]
+    assert (row["score"], row["rawScore"], row["decision"]) == (0, 2, "zero")
+    # Changed the next day: q3 doesn't count, q1 keeps its point.
+    r = await teacher.put(url, json={"decision": "individual", "questions": {"q3": "skip", "q1": "mercy"}})
+    assert r.json()["students"][0]["score"] == 1
+    assert (await teacher.put(url, json={"decision": "individual", "questions": {"q3": "skip"}})).json()[
+        "code"
+    ] == "NOTHING_TO_CHANGE"
+    row = (await teacher.put(url, json={"decision": "mercy"})).json()["students"][0]
+    assert row["score"] == 2
+
+    detail = (await teacher.get(f"/exam-sessions/{sid}/students/{student_id}")).json()
+    assert [(h["actorName"], h["before"]["decision"], h["after"]["decision"]) for h in detail["history"]] == [
+        ("Ulan", None, "zero"),
+        ("Ulan", "zero", "individual"),
+        ("Ulan", "individual", "mercy"),
+    ]
+    assert detail["history"][1]["after"]["questions"] == {"q3": "skip"}
+
+    # What the student sees after the close follows the ruling.
+    await teacher.put(url, json={"decision": "individual", "questions": {"q3": "skip"}})
+    await teacher.post(f"/exam-sessions/{sid}/close")
+    result = (await student.get(f"/student/exams/{sid}")).json()["result"]
+    assert result["score"] == 1 and [q["counted"] for q in result["questions"]] == [True, True, False]
+    # Rulings can still change after the close.
+    assert (await teacher.put(url, json={"decision": "mercy"})).status_code == 200
+    assert (await student.get(f"/student/exams/{sid}")).json()["result"]["score"] == 2
+
+
+async def test_only_suspects_get_rulings_and_only_from_the_owner(as_user, client_factory, clock):
+    teacher, student, sid, student_id = await _suspect_attempt(as_user, client_factory, signal="PASTE")
+    await student.post(f"/student/exams/{sid}/submit")
+    url = f"/exam-sessions/{sid}/students/{student_id}/decision"
+    r = await teacher.put(url, json={"decision": "zero"})
+    assert (r.status_code, r.json()["code"]) == (409, "NOT_A_SUSPECT")  # pasting alone is no reason
+    assert (await teacher.get(f"/exam-sessions/{sid}")).json()["students"][0]["suspect"] is False
+    admin, _ = await as_user("root2", role="admin")
+    assert (await admin.put(url, json={"decision": "zero"})).status_code == 404
+    bad = await teacher.put(url, json={"decision": "individual", "questions": {"nope": "skip"}})
+    assert bad.status_code in (404, 409)

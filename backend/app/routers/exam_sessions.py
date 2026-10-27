@@ -9,6 +9,8 @@ from app.schemas.exam_session import (
     AttemptDetailOut,
     AttemptState,
     AttendanceChange,
+    AuditOut,
+    DecisionIn,
     ExamSessionIn,
     ExamSessionOut,
     ExamSessionSummary,
@@ -18,6 +20,7 @@ from app.schemas.exam_session import (
     SignalCount,
     SignalOut,
 )
+from app.services import exam_attempts
 from app.services import exam_sessions as service
 
 router = APIRouter(prefix="/exam-sessions", tags=["exam-sessions"])
@@ -35,8 +38,13 @@ def _signals(counts: dict[str, int]) -> list[SignalCount]:
     return [SignalCount(kind=kind, count=counts[kind]) for kind in KIND_ORDER if counts.get(kind)]
 
 
+def _suspect(counts: dict[str, int]) -> bool:
+    return any(counts.get(kind) for kind in exam_attempts.SUSPECT_KINDS)
+
+
 def _student(s: ExamSession, row: ExamSessionStudent, counts: dict) -> SessionStudentOut:
     attempt = s.attempt_of(row.student_id)
+    mine = counts.get(attempt.id, {}) if attempt else {}
     return SessionStudentOut(
         student_id=row.student_id,
         name=row.student.name,
@@ -47,8 +55,11 @@ def _student(s: ExamSession, row: ExamSessionStudent, counts: dict) -> SessionSt
         started_at=attempt.started_at if attempt else None,
         submitted_at=attempt.submitted_at if attempt else None,
         submit_reason=attempt.submit_reason if attempt else None,  # type: ignore[arg-type]
-        score=attempt.score if attempt else None,
-        signals=_signals(counts.get(attempt.id, {})) if attempt else [],
+        score=exam_attempts.final_score(s, attempt) if attempt else None,
+        raw_score=attempt.score if attempt else None,
+        decision=attempt.decision if attempt else None,  # type: ignore[arg-type]
+        suspect=_suspect(mine),
+        signals=_signals(mine),
     )
 
 
@@ -124,6 +135,10 @@ async def attempt_detail(
     """One student's answers and screen signals, for the teacher who started the exam or an admin."""
     s, row, attempt, events = await service.attempt_detail(session, user, session_id, student_id)
     answers = attempt.answers if attempt else {}
+    counts: dict[str, int] = {}
+    for e in events:
+        counts[e.kind] = counts.get(e.kind, 0) + 1
+    audit = await service.history(session, session_id, student_id)
     return AttemptDetailOut(
         student_id=row.student_id,
         name=row.student.name,
@@ -131,7 +146,11 @@ async def attempt_detail(
         started_at=attempt.started_at if attempt else None,
         submitted_at=attempt.submitted_at if attempt else None,
         submit_reason=attempt.submit_reason if attempt else None,  # type: ignore[arg-type]
-        score=attempt.score if attempt else None,
+        score=exam_attempts.final_score(s, attempt) if attempt else None,
+        raw_score=attempt.score if attempt else None,
+        decision=attempt.decision if attempt else None,  # type: ignore[arg-type]
+        question_decisions=attempt.question_decisions if attempt else {},  # type: ignore[arg-type]
+        suspect=_suspect(counts),
         total=len(s.questions),
         questions=[
             ResultQuestionOut(
@@ -140,11 +159,28 @@ async def attempt_detail(
                 answers=q["answers"],
                 correct=q["correct"],
                 chosen=answers.get(q["id"]),
+                counted=exam_attempts.counted(attempt, q["id"]) if attempt else True,
             )
             for q in s.questions
         ],
         signals=[SignalOut(kind=e.kind, question_id=e.question_id, at=e.at) for e in events],
+        history=[
+            AuditOut(actor_name=a.actor.name, at=a.at, action=a.action, before=a.before, after=a.after)
+            for a in audit
+        ],
     )
+
+
+@router.put(
+    "/{session_id}/students/{student_id}/decision",
+    response_model=ExamSessionOut,
+    response_model_by_alias=True,
+)
+async def decide(
+    session_id: uuid.UUID, student_id: uuid.UUID, body: DecisionIn, user: StaffUser, session: Session
+) -> ExamSessionOut:
+    """Mercy, zero, or per question: changeable any time, audited."""
+    return await _out(session, await service.decide(session, user, session_id, student_id, body))
 
 
 @admin_router.get("", response_model=list[ExamSessionSummary], response_model_by_alias=True)

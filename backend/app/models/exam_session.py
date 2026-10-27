@@ -86,8 +86,12 @@ class ExamAttempt(Base):
     submit_reason: Mapped[str | None] = mapped_column(String(10), default=None)  # manual | timeout | closed
     # question id -> chosen position 1-4
     answers: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
-    # Correct answers, counted when the attempt ends.
+    # Correct answers, counted when the attempt ends. What is shown also follows the ruling below.
     score: Mapped[int | None] = mapped_column(Integer, default=None)
+    # The teacher's anti-cheat ruling: None (none yet), mercy, zero or individual (per question).
+    decision: Mapped[str | None] = mapped_column(String(12), default=None)
+    # Individual ruling: question id -> mercy | skip (skip: the question doesn't count).
+    question_decisions: Mapped[dict[str, str]] = mapped_column(JSONB, default=dict)
 
 
 class ExamAttemptEvent(Base):
@@ -102,3 +106,23 @@ class ExamAttemptEvent(Base):
     kind: Mapped[str] = mapped_column(String(20))
     question_id: Mapped[str | None] = mapped_column(String(64), default=None)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ExamAudit(Base):
+    """What a teacher or an admin did to a student's exam: rulings, extra attempts, inactivated attempts."""
+
+    __tablename__ = "exam_audit"
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("exam_sessions.id", ondelete="CASCADE"))
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    attempt_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("exam_attempts.id", ondelete="CASCADE"), default=None
+    )
+    actor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    action: Mapped[str] = mapped_column(String(20))  # decision
+    before: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    after: Mapped[dict[str, Any] | None] = mapped_column(JSONB, default=None)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    actor: Mapped[User] = relationship(lazy="selectin", foreign_keys=[actor_id])

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
+import { useStoredTab } from "@/lib/useStoredTab";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -45,7 +46,7 @@ type Tab = (typeof TABS)[number];
 export function AdminScreen() {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
-  const [tab, setTab] = useState<Tab>("users");
+  const [tab, setTab] = useStoredTab<Tab>("aary.adminTab", TABS, "users");
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
   const allExams = useResource(listAllExamSessions);

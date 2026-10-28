@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
 import { matches } from "@/lib/search";
+import { useStoredTab } from "@/lib/useStoredTab";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
 import { listExams } from "@/lib/api/exams";
@@ -30,7 +31,7 @@ export function DashboardScreen() {
   const user = useCurrentUser();
   const t = useTranslations("staff.dashboard");
   const locale = useLocale();
-  const [tab, setTab] = useState<Tab>("quizzes");
+  const [tab, setTab] = useStoredTab<Tab>("aary.dashboardTab", TABS, "quizzes");
   const [query, setQuery] = useState("");
   const searchable = tab === "quizzes" || tab === "examSheets";
   const idBase = useId();

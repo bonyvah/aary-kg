@@ -66,7 +66,10 @@
     "staff.editor.ai.total",
     "staff.editor.ai.size",
     "staff.editor.ai.tooBig",
-    "common.apiError.TOO_MANY_FILES"
+    "common.apiError.TOO_MANY_FILES",
+    "staff.editor.import.promptToAi",
+    "staff.editor.import.pickFile",
+    "staff.editor.import.pasteLabel"
   ],
   "app": {
     "name": "aary kg"
@@ -251,12 +254,9 @@
       "import": {
         "open": "JSONдон импорттоо",
         "title": "Суроолорду JSONдон импорттоо",
-        "intro": "Сурамды көчүрүп, нейротармак менен чатка коюңуз, теманы жана суроолордун санын жазыңыз. Жоопту бул жерге коюңуз. Суроолор викторинанын аягына кошулат, андан кийин адаттагыдай сактаңыз.",
-        "copyPrompt": "Сурамды көчүрүү",
-        "copyFormat": "Форматты көчүрүү",
         "copied": "Көчүрүлдү.",
         "copyFailed": "Көчүрүү мүмкүн болбоду.",
-        "pasteLabel": "Суроолор менен JSON",
+        "pasteLabel": "JSON файл же текст",
         "cancel": "Жокко чыгаруу",
         "submit": "Суроолорду кошуу",
         "imported": "{count, plural, other {# суроо кошулду}}.",
@@ -283,7 +283,9 @@
           "CORRECT_INVALID": "{question}-суроо: «correct» жооптун номери болушу керек, 1ден баштап.",
           "SECONDS_INVALID": "{question}-суроо: «seconds» 5тен 300гө чейин болушу керек.",
           "READ_SECONDS_INVALID": "{question}-суроо: «readSeconds» 3төн 10го чейин болушу керек."
-        }
+        },
+        "promptToAi": "ИИ үчүн суроо",
+        "pickFile": ".json тандоо"
       },
       "ai": {
         "open": "Материалдан",

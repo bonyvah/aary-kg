@@ -2,11 +2,14 @@
 
 import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/useToast";
 import { DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
 import { parseQuizJson, type ImportedQuestion, type ImportError } from "@/lib/quizEditor/importJson";
+
+/** A quiz of 100 questions as JSON is well under this. */
+const MAX_JSON_BYTES = 1024 * 1024;
 
 type ImportQuizModalProps = {
   open: boolean;
@@ -24,6 +27,17 @@ export function ImportQuizModal({ open, room, onClose, onImport }: ImportQuizMod
   const { toast, show } = useToast();
   const fieldId = useId();
   const errorsId = `${fieldId}-errors`;
+  const fileInputId = useId();
+
+  /** A .json file goes into the field, so it can be read and checked like pasted text. */
+  async function readFile(file: File) {
+    if (file.size > MAX_JSON_BYTES) {
+      setErrors([{ code: "NOT_JSON" }]);
+      return;
+    }
+    setRaw(await file.text());
+    setErrors([]);
+  }
 
   // A fresh field every time it opens.
   useEffect(() => {
@@ -86,14 +100,24 @@ export function ImportQuizModal({ open, room, onClose, onImport }: ImportQuizMod
       }
     >
       <div className="flex flex-col gap-4">
-        <p>{t("intro")}</p>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Button variant="secondary" onClick={() => void copy(t("prompt", { format }))}>
-            {t("copyPrompt")}
+            {t("promptToAi")}
           </Button>
-          <Button variant="secondary" onClick={() => void copy(format)}>
-            {t("copyFormat")}
-          </Button>
+          <label htmlFor={fileInputId} className={buttonClasses({ variant: "secondary" })}>
+            {t("pickFile")}
+          </label>
+          <input
+            id={fileInputId}
+            type="file"
+            accept=".json,application/json"
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void readFile(file);
+            }}
+          />
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor={fieldId} className="text-body font-bold text-ink">

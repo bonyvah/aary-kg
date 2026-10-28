@@ -7,34 +7,29 @@ import { listDrafts, type Draft, type DraftKind } from "@/lib/quizEditor/drafts"
 
 const HREF: Record<DraftKind, string> = { quiz: "/quizzes/manage/new", exam: "/exams/manage/new" };
 
-/** Every quiz or exam sheet being created in this browser, as grey cards: not saved yet. Nothing when there are none. */
-export function DraftCards({ kind }: { kind: DraftKind }) {
+/** The drafts of this kind in this browser, latest touched first (read after the page has loaded). */
+export function useDrafts(kind: DraftKind): Draft[] {
   const [drafts, setDrafts] = useState<Draft[]>([]);
-
   useEffect(() => {
     setDrafts(listDrafts(kind));
   }, [kind]);
-
-  if (drafts.length === 0) return null;
-  return (
-    <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-      {drafts.map((draft) => (
-        <li key={draft.id} className="flex">
-          <DraftCard draft={draft} href={`${HREF[kind]}?draft=${encodeURIComponent(draft.id)}`} />
-        </li>
-      ))}
-    </ul>
-  );
+  return drafts;
 }
 
-function DraftCard({ draft, href }: { draft: Draft; href: string }) {
+export function draftHref(kind: DraftKind, id: string): string {
+  return `${HREF[kind]}?draft=${encodeURIComponent(id)}`;
+}
+
+/** A quiz or exam sheet being created, in grey: not saved yet. */
+export function DraftCard({ draft, kind }: { draft: Draft; kind: DraftKind }) {
+  const href = draftHref(kind, draft.id);
   const t = useTranslations("staff.dashboard");
   const count = draft.doc.questions.filter((q) => q.text.trim() !== "").length;
 
   return (
     <div
       className={
-        "relative flex min-h-[116px] flex-1 flex-col gap-2 rounded-lg border-2 border-draft-edge bg-draft p-6 text-on-draft " +
+        "relative flex h-full min-h-[116px] flex-1 flex-col gap-2 rounded-lg border-2 border-draft-edge bg-draft p-6 text-on-draft " +
         "shadow-[0_4px_0_0_var(--draft-edge)] transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--draft-edge)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }

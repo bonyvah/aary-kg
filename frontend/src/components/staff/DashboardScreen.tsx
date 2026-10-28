@@ -14,7 +14,8 @@ import { listExamSessions } from "@/lib/api/examSessions";
 import { listGames } from "@/lib/api/games";
 import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
-import { DraftCards } from "./DraftCard";
+import { DraftCard, useDrafts } from "./DraftCard";
+import type { Draft } from "@/lib/quizEditor/drafts";
 import { FilteredList } from "./FilteredList";
 import { ExamCard } from "./ExamCard";
 import { ExamSessionCard } from "./ExamSessionCard";
@@ -30,6 +31,16 @@ const PAGE_SIZE = 12;
 
 const TABS = ["quizzes", "examSheets", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
+
+type Row<T> = { id: string; title: string; draft?: Draft; item?: T };
+
+/** Drafts first, then the saved ones: one list to search and page through. */
+function withDrafts<T extends { id: string; title: string }>(drafts: readonly Draft[], items: readonly T[]): Row<T>[] {
+  return [
+    ...drafts.map((draft) => ({ id: `draft:${draft.id}`, title: draft.doc.title, draft })),
+    ...items.map((item) => ({ id: item.id, title: item.title, item })),
+  ];
+}
 
 function Grid<T extends { id: string }>({ items, render }: { items: readonly T[]; render: (item: T) => ReactNode }) {
   return (
@@ -50,6 +61,8 @@ export function DashboardScreen() {
   const idBase = useId();
   const quizzes = useResource(listQuizzes);
   const examSheets = useResource(listExams);
+  const quizDrafts = useDrafts("quiz");
+  const examDrafts = useDrafts("exam");
   const exams = useResource(listExamSessions);
   const contests = useResource(listContests);
   const games = useResource(listGames);
@@ -92,44 +105,48 @@ export function DashboardScreen() {
       </div>
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
-          <div className="flex flex-col gap-4">
-          <DraftCards kind="quiz" />
           <ResourceView resource={quizzes} inline>
             {(all) => (
               <FilteredList
                 key="quizzes"
-                items={all}
+                items={withDrafts(quizDrafts, all)}
                 actions={
                   <ButtonLink href="/quizzes/library" variant="secondary">
                     {t("library")}
                   </ButtonLink>
                 }
-                fields={{ text: (quiz) => [quiz.title] }}
+                fields={{ text: (row) => [row.title] }}
                 pageSize={PAGE_SIZE}
                 empty={<EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />}
               >
-                {(page) => <Grid items={page} render={(quiz) => <QuizCard quiz={quiz} />} />}
+                {(page) => (
+                  <Grid
+                    items={page}
+                    render={(row) => (row.draft ? <DraftCard kind="quiz" draft={row.draft} /> : <QuizCard quiz={row.item!} />)}
+                  />
+                )}
               </FilteredList>
             )}
           </ResourceView>
-          </div>
         ) : tab === "examSheets" ? (
-          <div className="flex flex-col gap-4">
-          <DraftCards kind="exam" />
           <ResourceView resource={examSheets} inline>
             {(all) => (
               <FilteredList
                 key="examSheets"
-                items={all}
-                fields={{ text: (exam) => [exam.title] }}
+                items={withDrafts(examDrafts, all)}
+                fields={{ text: (row) => [row.title] }}
                 pageSize={PAGE_SIZE}
                 empty={<EmptyState icon={Files} title={t("examSheetsEmpty")} />}
               >
-                {(page) => <Grid items={page} render={(exam) => <ExamCard exam={exam} />} />}
+                {(page) => (
+                  <Grid
+                    items={page}
+                    render={(row) => (row.draft ? <DraftCard kind="exam" draft={row.draft} /> : <ExamCard exam={row.item!} />)}
+                  />
+                )}
               </FilteredList>
             )}
           </ResourceView>
-          </div>
         ) : tab === "exams" ? (
           <ResourceView resource={exams} inline>
             {(all) => (

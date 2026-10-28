@@ -1,5 +1,10 @@
-import { QuizEditorLoader } from "@/components/staff/QuizEditorLoader";
+import { Suspense } from "react";
+import { NewQuizLoader } from "@/components/staff/QuizEditorLoader";
 
 export default function NewQuizPage() {
-  return <QuizEditorLoader id={null} />;
+  return (
+    <Suspense>
+      <NewQuizLoader />
+    </Suspense>
+  );
 }

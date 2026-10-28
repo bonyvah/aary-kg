@@ -14,7 +14,7 @@ import { listExamSessions } from "@/lib/api/examSessions";
 import { listGames } from "@/lib/api/games";
 import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
-import { DraftCard } from "./DraftCard";
+import { DraftCards } from "./DraftCard";
 import { FilteredList } from "./FilteredList";
 import { ExamCard } from "./ExamCard";
 import { ExamSessionCard } from "./ExamSessionCard";
@@ -98,7 +98,7 @@ export function DashboardScreen() {
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
           <div className="flex flex-col gap-4">
-          <DraftCard kind="quiz" />
+          <DraftCards kind="quiz" />
           <ResourceView resource={quizzes} inline>
             {(all) => (
               <FilteredList
@@ -115,7 +115,7 @@ export function DashboardScreen() {
           </div>
         ) : tab === "examSheets" ? (
           <div className="flex flex-col gap-4">
-          <DraftCard kind="exam" />
+          <DraftCards kind="exam" />
           <ResourceView resource={examSheets} inline>
             {(all) => (
               <FilteredList

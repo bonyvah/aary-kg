@@ -16,16 +16,17 @@ import {
 import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
-import { blankQuiz, DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
+import { DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { DocEditorScreen } from "./DocEditorScreen";
 import { AiGenerateModal } from "./AiGenerateModal";
 import { ImportQuestionsModal } from "./ImportQuestionsModal";
 import { ImportQuizModal } from "./ImportQuizModal";
 
-export function EditorScreen({ quiz }: { quiz: Quiz }) {
+/** `draftId`: a new quiz is kept under it in this browser while it is written. */
+export function EditorScreen({ quiz, draftId }: { quiz: Quiz; draftId: string | null }) {
   const t = useTranslations("staff.editor");
-  const editor = useQuizEditor(quiz);
+  const editor = useQuizEditor(quiz, draftId);
   const customSeconds = useCustomSeconds();
   const [importing, setImporting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -91,7 +92,6 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
       editor={editor}
       titleLabel={t("titleLabel")}
       savedMessage={t("saved")}
-      blank={blankQuiz()}
       quickstart={
         <>
           <Button variant="secondary" onClick={() => setGenerating(true)}>

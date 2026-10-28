@@ -33,8 +33,6 @@ type DocEditorScreenProps<D extends EditorDoc> = {
   setupFields?: ReactNode;
   /** Step 1: ways to fill the questions quickly (from material, from a quiz, JSON). */
   quickstart: ReactNode;
-  /** A fresh document, for «throw the draft away». */
-  blank: D;
   /** Step 2, under the answers, before «remove question»: the quiz question's times. */
   questionSettings?: (question: D["questions"][number]) => ReactNode;
   /** Shown when there is no save result to show. */
@@ -53,7 +51,6 @@ export function DocEditorScreen<D extends EditorDoc>({
   savedMessage,
   setupFields,
   quickstart,
-  blank,
   questionSettings,
   toast,
   children,
@@ -163,7 +160,7 @@ export function DocEditorScreen<D extends EditorDoc>({
         confirmLabel={t("draft.discard")}
         cancelLabel={t("draft.keep")}
         onConfirm={() => {
-          editor.discardDraft(blank);
+          editor.discardDraft();
           setDiscarding(false);
         }}
         onClose={() => setDiscarding(false)}

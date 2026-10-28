@@ -21,7 +21,8 @@ type SaveApi<D extends EditorDoc> = {
 };
 
 /** State of the editor. «Save» checks the fields here first, then sends the document to the API. */
-export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
+/** `draftId`: where a new document is kept in this browser while it is written (null when editing a saved one). */
+export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>, draftId: string | null) {
   const [state, dispatch] = useReducer(
     (current: ReturnType<typeof initialEditorState<D>>, event: EditorEvent<D>) => editorReducer(current, event),
     doc,
@@ -33,8 +34,8 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
 
   // A new document is kept as a draft as it is written, so closing the tab loses nothing.
   useEffect(() => {
-    if (isNew && hasContent(state.doc)) writeDraft(api.draft, state.doc);
-  }, [isNew, state.doc, api.draft]);
+    if (isNew && draftId && hasContent(state.doc)) writeDraft(api.draft, draftId, state.doc);
+  }, [isNew, draftId, state.doc, api.draft]);
 
   const save = useCallback(async () => {
     dispatch({ type: "VALIDATED" });
@@ -42,7 +43,7 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
     setSaving(true);
     try {
       const saved = isNew ? await api.create(state.doc) : await api.update(state.doc);
-      if (isNew) clearDraft(api.draft);
+      if (isNew && draftId) clearDraft(api.draft, draftId);
       dispatch({ type: "SAVE_SUCCEEDED", doc: saved });
       router.push("/dashboard");
     } catch (error) {
@@ -54,7 +55,7 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
     } finally {
       setSaving(false);
     }
-  }, [state.doc, router, api, isNew]);
+  }, [state.doc, router, api, isNew, draftId]);
 
   type Question = D["questions"][number];
   return {
@@ -80,14 +81,11 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>) {
     removeQuestion: useCallback((id: string) => dispatch({ type: "QUESTION_REMOVED", id }), []),
     moveQuestion: useCallback((id: string, to: number) => dispatch({ type: "QUESTION_MOVED", id, to }), []),
     isNew,
-    /** Throws the draft away and starts again from `blank`. */
-    discardDraft: useCallback(
-      (blank: D) => {
-        clearDraft(api.draft);
-        dispatch({ type: "DOC_REPLACED", doc: blank });
-      },
-      [api.draft],
-    ),
+    /** Throws this draft away and goes back to the dashboard. */
+    discardDraft: useCallback(() => {
+      if (draftId) clearDraft(api.draft, draftId);
+      router.push("/dashboard");
+    }, [api.draft, draftId, router]),
     importQuestions: useCallback(
       (title: string | null, questions: Omit<Question, "id">[]) => dispatch({ type: "QUESTIONS_IMPORTED", title, questions }),
       [],
@@ -113,6 +111,6 @@ const EXAM_API: SaveApi<Exam> = {
   draft: "exam",
 };
 
-export const useQuizEditor = (quiz: Quiz) => useDocEditor(quiz, QUIZ_API);
+export const useQuizEditor = (quiz: Quiz, draftId: string | null) => useDocEditor(quiz, QUIZ_API, draftId);
 
-export const useExamEditor = (exam: Exam) => useDocEditor(exam, EXAM_API);
+export const useExamEditor = (exam: Exam, draftId: string | null) => useDocEditor(exam, EXAM_API, draftId);

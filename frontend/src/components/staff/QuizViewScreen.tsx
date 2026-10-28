@@ -38,6 +38,16 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
   const [copying, setCopying] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  /** The quiz's bazar link: any teacher who opens it can read, host or copy the quiz. */
+  async function share() {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/quizzes/library/${quiz.id}`);
+      show("success", t("linkCopied"));
+    } catch {
+      show("danger", t("linkFailed"));
+    }
+  }
+
   async function remove() {
     setDeleting(false);
     try {
@@ -79,10 +89,18 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
           <ButtonLink href={props.library ? "/quizzes/library" : "/dashboard"} variant="neutral">
             {t("back")}
           </ButtonLink>
+          <Button variant="secondary" onClick={() => void share()}>
+            {t("share")}
+          </Button>
           {props.library ? (
-            <Button variant="success" disabled={copying} onClick={() => void copy()}>
-              {t("copy")}
-            </Button>
+            <>
+              <Button variant="secondary" disabled={copying} onClick={() => void copy()}>
+                {t("copy")}
+              </Button>
+              <ButtonLink href={`/host/${quiz.id}`} variant="accent" onClick={() => writeHostGame(quiz.id, null)}>
+                {t("start")}
+              </ButtonLink>
+            </>
           ) : (
             <>
               <Button variant="danger" onClick={() => setDeleting(true)}>

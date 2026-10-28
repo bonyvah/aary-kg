@@ -78,7 +78,10 @@
     "staff.quizView.delete",
     "staff.quizView.deleteTitle",
     "staff.quizView.deleteBody",
-    "staff.quizView.cancel"
+    "staff.quizView.cancel",
+    "staff.quizView.share",
+    "staff.quizView.linkCopied",
+    "staff.quizView.linkFailed"
   ],
   "app": {
     "name": "aary kg"
@@ -241,7 +244,10 @@
       "delete": "Өчүрүү",
       "deleteTitle": "Викторинаны өчүрөсүзбү?",
       "deleteBody": "«{title}» тизмелериңизден жоголот. Ойнолгон оюндар сакталат.",
-      "cancel": "Жокко чыгаруу"
+      "cancel": "Жокко чыгаруу",
+      "share": "Шилтемени көчүрүү",
+      "linkCopied": "Шилтеме көчүрүлдү.",
+      "linkFailed": "Шилтемени көчүрүү мүмкүн болгон жок."
     },
     "editor": {
       "back": "Артка",

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Toast, ToastRegion } from "@/components/ui/Toast";
 import { knownCode } from "@/lib/api/client";
 import { hasContent } from "@/lib/quizEditor/drafts";
+import { downloadJson } from "@/lib/quizEditor/exportJson";
 import { answerKey, textKey, type EditorDoc } from "@/lib/quizEditor/reducer";
 import type { DocEditor } from "@/lib/quizEditor/useQuizEditor";
 import { AnswerEditor } from "./AnswerEditor";
@@ -98,6 +99,11 @@ export function DocEditorScreen<D extends EditorDoc>({
                   {t("draft.discard")}
                 </Button>
               ) : null}
+              {editor.isNew ? null : (
+                <Button variant="secondary" onClick={() => downloadJson(state.doc)}>
+                  {t("exportJson")}
+                </Button>
+              )}
               {save}
               <Button variant="primary" onClick={() => setStep("questions")}>
                 {t("toQuestions")}

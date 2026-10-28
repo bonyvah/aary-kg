@@ -15,6 +15,7 @@ import { copyLibraryQuiz, type LibraryQuiz } from "@/lib/api/quizzes";
 import { toKnownCode } from "@/lib/api/client";
 import { useToast } from "@/components/ui/useToast";
 import { writeHostGame } from "@/lib/hostFlow/hostGame";
+import { downloadJson } from "@/lib/quizEditor/exportJson";
 import type { Quiz } from "@/types/quiz";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -72,6 +73,9 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
             </Button>
           ) : (
             <>
+              <Button variant="secondary" onClick={() => downloadJson(props.quiz)}>
+                {t("exportJson")}
+              </Button>
               <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
                 {t("edit")}
               </ButtonLink>

@@ -2,6 +2,7 @@
 // Run: pnpm check:quiz-import
 import { parseQuizJson } from "../src/lib/quizEditor/importJson.ts";
 import { blankQuiz, editorReducer, initialEditorState } from "../src/lib/quizEditor/reducer.ts";
+import { fileName, toExportJson } from "../src/lib/quizEditor/exportJson.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -69,6 +70,14 @@ check("a question moves down", order(moved) === [...three.doc.questions.slice(1)
 check("moving past the end stops at the end", order(editorReducer(three, { type: "QUESTION_MOVED", id: first, to: 99 })) === order(moved));
 check("moving in place changes nothing", editorReducer(three, { type: "QUESTION_MOVED", id: first, to: 0 }) === three);
 check("a replaced document starts over", editorReducer(three, { type: "DOC_REPLACED", doc: blankQuiz() }).doc.questions.length === 1);
+
+// Export: what the import reads back.
+const sparse = { id: "q", title: "Тарых", status: "ready" as const, questions: [{ id: "x", text: "Q", answers: ["a", "", "c", ""] as [string, string, string, string], correct: 3 as const, seconds: 30, readSeconds: 5 }] };
+const out = toExportJson(sparse);
+check("blank answers dropped, correct counted among the rest", JSON.stringify(out.questions[0]) === JSON.stringify({ text: "Q", answers: ["a", "c"], correct: 2, seconds: 30, readSeconds: 5 }));
+const back = parseQuizJson(JSON.stringify(out), 100);
+check("the import reads the export", back.ok && back.title === "Тарых" && back.questions[0]?.correct === 2 && back.questions[0]?.seconds === 30);
+check("file name from the title", fileName("Тарых: 7-класс!") === "Тарых-7-класс.json" && fileName("  ") === "quiz.json");
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

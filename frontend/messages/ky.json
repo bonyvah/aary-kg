@@ -69,7 +69,9 @@
     "common.apiError.TOO_MANY_FILES",
     "staff.editor.import.promptToAi",
     "staff.editor.import.pickFile",
-    "staff.editor.import.pasteLabel"
+    "staff.editor.import.pasteLabel",
+    "staff.editor.exportJson",
+    "staff.quizView.exportJson"
   ],
   "app": {
     "name": "aary kg"
@@ -227,7 +229,8 @@
       "expandAll": "Баарын ачуу",
       "collapseAll": "Баарын жабуу",
       "correct": "Туура жооп",
-      "copy": "Өзүмө көчүрүү"
+      "copy": "Өзүмө көчүрүү",
+      "exportJson": ".json жүктөө"
     },
     "editor": {
       "back": "Артка",
@@ -320,7 +323,8 @@
         "discardTitle": "Долбоорду өчүрөсүзбү?",
         "discardBody": "Бул жерде жазылгандардын баары жоголот.",
         "keep": "Калтыруу"
-      }
+      },
+      "exportJson": ".json жүктөө"
     },
     "report": {
       "toDashboard": "Башкы бетке",

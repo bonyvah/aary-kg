@@ -61,6 +61,7 @@ export function DocEditorScreen<D extends EditorDoc>({
   const { state } = editor;
   const [step, setStep] = useState<Step>("setup");
   const [discarding, setDiscarding] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!state.saveResult) return;
@@ -100,9 +101,14 @@ export function DocEditorScreen<D extends EditorDoc>({
                 </Button>
               ) : null}
               {editor.isNew ? null : (
-                <Button variant="secondary" onClick={() => downloadJson(state.doc)}>
-                  {t("exportJson")}
-                </Button>
+                <>
+                  <Button variant="danger" onClick={() => setDeleting(true)}>
+                    {t("delete")}
+                  </Button>
+                  <Button variant="secondary" onClick={() => downloadJson(state.doc)}>
+                    {t("exportJson")}
+                  </Button>
+                </>
               )}
               {save}
               <Button variant="primary" onClick={() => setStep("questions")}>
@@ -159,6 +165,18 @@ export function DocEditorScreen<D extends EditorDoc>({
 
       {children}
 
+      <ConfirmModal
+        open={deleting}
+        title={t("deleteTitle")}
+        body={t("deleteBody", { title: state.doc.title })}
+        confirmLabel={t("delete")}
+        cancelLabel={t("draft.keep")}
+        onConfirm={() => {
+          setDeleting(false);
+          void editor.remove();
+        }}
+        onClose={() => setDeleting(false)}
+      />
       <ConfirmModal
         open={discarding}
         title={t("draft.discardTitle")}

@@ -71,7 +71,14 @@
     "staff.editor.import.pickFile",
     "staff.editor.import.pasteLabel",
     "staff.editor.exportJson",
-    "staff.quizView.exportJson"
+    "staff.quizView.exportJson",
+    "staff.editor.delete",
+    "staff.editor.deleteTitle",
+    "staff.editor.deleteBody",
+    "staff.quizView.delete",
+    "staff.quizView.deleteTitle",
+    "staff.quizView.deleteBody",
+    "staff.quizView.cancel"
   ],
   "app": {
     "name": "aary kg"
@@ -230,7 +237,11 @@
       "collapseAll": "Баарын жабуу",
       "correct": "Туура жооп",
       "copy": "Өзүмө көчүрүү",
-      "exportJson": ".json жүктөө"
+      "exportJson": ".json жүктөө",
+      "delete": "Өчүрүү",
+      "deleteTitle": "Викторинаны өчүрөсүзбү?",
+      "deleteBody": "«{title}» тизмелериңизден жоголот. Ойнолгон оюндар сакталат.",
+      "cancel": "Жокко чыгаруу"
     },
     "editor": {
       "back": "Артка",
@@ -324,7 +335,10 @@
         "discardBody": "Бул жерде жазылгандардын баары жоголот.",
         "keep": "Калтыруу"
       },
-      "exportJson": ".json жүктөө"
+      "exportJson": ".json жүктөө",
+      "delete": "Өчүрүү",
+      "deleteTitle": "Өчүрөсүзбү?",
+      "deleteBody": "«{title}» тизмелериңизден жоголот. Өткөн оюндар жана экзамендер сакталат."
     },
     "report": {
       "toDashboard": "Башкы бетке",

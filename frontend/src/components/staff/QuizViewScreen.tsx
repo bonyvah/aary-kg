@@ -11,7 +11,8 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
-import { copyLibraryQuiz, type LibraryQuiz } from "@/lib/api/quizzes";
+import { copyLibraryQuiz, deleteQuiz, type LibraryQuiz } from "@/lib/api/quizzes";
+import { ConfirmModal } from "./ConfirmModal";
 import { toKnownCode } from "@/lib/api/client";
 import { useToast } from "@/components/ui/useToast";
 import { writeHostGame } from "@/lib/hostFlow/hostGame";
@@ -35,6 +36,17 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
   const router = useRouter();
   const { toast, show } = useToast();
   const [copying, setCopying] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function remove() {
+    setDeleting(false);
+    try {
+      await deleteQuiz(quiz.id);
+      router.push("/dashboard");
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    }
+  }
 
   async function copy() {
     setCopying(true);
@@ -73,6 +85,9 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
             </Button>
           ) : (
             <>
+              <Button variant="danger" onClick={() => setDeleting(true)}>
+                {t("delete")}
+              </Button>
               <Button variant="secondary" onClick={() => downloadJson(props.quiz)}>
                 {t("exportJson")}
               </Button>
@@ -152,6 +167,15 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
           );
         })}
       </ol>
+      <ConfirmModal
+        open={deleting}
+        title={t("deleteTitle")}
+        body={t("deleteBody", { title: quiz.title })}
+        confirmLabel={t("delete")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => void remove()}
+        onClose={() => setDeleting(false)}
+      />
       {toast}
     </StaffShell>
   );

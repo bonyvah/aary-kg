@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import type { AnswerPosition } from "@/components/game/AnswerTile";
-import { createExam, updateExam } from "@/lib/api/exams";
-import { createQuiz, updateQuiz } from "@/lib/api/quizzes";
+import { createExam, deleteExam, updateExam } from "@/lib/api/exams";
+import { createQuiz, deleteQuiz, updateQuiz } from "@/lib/api/quizzes";
 import { ApiRequestError } from "@/lib/api/client";
 import type { Exam } from "@/types/exam";
 import type { Quiz } from "@/types/quiz";
@@ -18,6 +18,7 @@ type SaveApi<D extends EditorDoc> = {
   invalidCode: string;
   /** Where a new document is kept in this browser until it is saved. */
   draft: DraftKind;
+  remove: (id: string) => Promise<void>;
 };
 
 /** State of the editor. «Save» checks the fields here first, then sends the document to the API. */
@@ -81,6 +82,15 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>, draft
     removeQuestion: useCallback((id: string) => dispatch({ type: "QUESTION_REMOVED", id }), []),
     moveQuestion: useCallback((id: string, to: number) => dispatch({ type: "QUESTION_MOVED", id, to }), []),
     isNew,
+    /** Deletes a saved document (the server keeps it hidden if it was used) and goes back to the dashboard. */
+    remove: useCallback(async () => {
+      try {
+        await api.remove(state.doc.id);
+        router.push("/dashboard");
+      } catch (error) {
+        dispatch({ type: "SAVE_FAILED", code: error instanceof ApiRequestError ? error.code : "UNKNOWN" });
+      }
+    }, [api, state.doc.id, router]),
     /** Throws this draft away and goes back to the dashboard. */
     discardDraft: useCallback(() => {
       if (draftId) clearDraft(api.draft, draftId);
@@ -102,6 +112,7 @@ const QUIZ_API: SaveApi<Quiz> = {
   update: (quiz) => updateQuiz(quiz.id, { title: quiz.title, questions: quiz.questions }),
   invalidCode: "QUIZ_INVALID",
   draft: "quiz",
+  remove: deleteQuiz,
 };
 
 const EXAM_API: SaveApi<Exam> = {
@@ -109,6 +120,7 @@ const EXAM_API: SaveApi<Exam> = {
   update: (exam) => updateExam(exam.id, { title: exam.title, minutes: exam.minutes, questions: exam.questions }),
   invalidCode: "EXAM_INVALID",
   draft: "exam",
+  remove: deleteExam,
 };
 
 export const useQuizEditor = (quiz: Quiz, draftId: string | null) => useDocEditor(quiz, QUIZ_API, draftId);

@@ -23,3 +23,5 @@ export const getLibraryQuiz = (id: string) => apiFetch<LibraryQuiz>(`/quiz-libra
 
 /** A copy among one's own quizzes. */
 export const copyLibraryQuiz = (id: string) => apiFetch<Quiz>(`/quiz-library/${id}/copy`, { method: "POST" });
+
+export const deleteQuiz = (id: string) => apiFetch<void>(`/quizzes/${id}`, { method: "DELETE" });

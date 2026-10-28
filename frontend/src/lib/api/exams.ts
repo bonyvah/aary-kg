@@ -12,3 +12,5 @@ export const createExam = (input: ExamInput) => apiFetch<Exam>("/exams", { metho
 
 export const updateExam = (id: string, input: ExamInput) =>
   apiFetch<Exam>(`/exams/${id}`, { method: "PUT", body: input });
+
+export const deleteExam = (id: string) => apiFetch<void>(`/exams/${id}`, { method: "DELETE" });

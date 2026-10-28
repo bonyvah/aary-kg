@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints
@@ -57,6 +58,7 @@ class ContestOut(CamelModel):
     status: ContestStatus
     owner_id: uuid.UUID
     owner_name: str
+    created_at: datetime
     criteria: list[CriterionOut]
     entries: list[EntryOut]
     jury: list[JuryMemberOut]

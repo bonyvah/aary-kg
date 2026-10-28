@@ -102,6 +102,7 @@ async def to_out(session: AsyncSession, contests: Sequence[Contest], viewer: Use
                 "status": c.status,
                 "ownerId": c.owner_id,
                 "ownerName": c.owner.name,
+                "createdAt": c.created_at,
                 "criteria": c.criteria,
                 "entries": c.entries,
                 "jury": [{"userId": j.user_id, "name": j.user.name, "finished": j.finished} for j in c.jury],

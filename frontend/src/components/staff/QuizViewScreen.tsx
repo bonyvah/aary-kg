@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CaretDown } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { answerPositions, type AnswerPosition } from "@/components/game/AnswerTile";
@@ -10,6 +11,9 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
+import { copyLibraryQuiz, type LibraryQuiz } from "@/lib/api/quizzes";
+import { toKnownCode } from "@/lib/api/client";
+import { useToast } from "@/components/ui/useToast";
 import { writeHostGame } from "@/lib/hostFlow/hostGame";
 import type { Quiz } from "@/types/quiz";
 import { StaffMenu } from "./StaffMenu";
@@ -17,9 +21,30 @@ import { StaffShell } from "./StaffShell";
 
 const POSITIONS: readonly AnswerPosition[] = [1, 2, 3, 4];
 
-/** A quiz to read before hosting it: the questions, with their answers hidden until opened. */
-export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
+type QuizViewScreenProps =
+  | { quiz: Quiz; library?: false }
+  /** Another teacher's quiz from the library: read it and copy it. */
+  | { quiz: LibraryQuiz; library: true };
+
+/** A quiz to read before hosting it (or copying it): the questions, with their answers hidden until opened. */
+export function QuizViewScreen(props: QuizViewScreenProps) {
+  const { quiz } = props;
   const t = useTranslations("staff.quizView");
+  const tc = useTranslations("common");
+  const router = useRouter();
+  const { toast, show } = useToast();
+  const [copying, setCopying] = useState(false);
+
+  async function copy() {
+    setCopying(true);
+    try {
+      const mine = await copyLibraryQuiz(quiz.id);
+      router.push(`/quizzes/view/${mine.id}`);
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+      setCopying(false);
+    }
+  }
   const baseId = useId();
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
   const allOpen = open.size === quiz.questions.length;
@@ -33,17 +58,28 @@ export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
   return (
     <StaffShell topRight={<StaffMenu />}>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="min-w-0 flex-1 text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
+          {props.library ? <p className="text-body-lg font-bold text-ink-muted">{props.quiz.ownerName}</p> : null}
+        </div>
         <div className="flex flex-wrap gap-3">
-          <ButtonLink href="/dashboard" variant="neutral">
+          <ButtonLink href={props.library ? "/quizzes/library" : "/dashboard"} variant="neutral">
             {t("back")}
           </ButtonLink>
-          <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
-            {t("edit")}
-          </ButtonLink>
-          <ButtonLink href={`/host/${quiz.id}`} variant="accent" onClick={() => writeHostGame(quiz.id, null)}>
-            {t("start")}
-          </ButtonLink>
+          {props.library ? (
+            <Button variant="success" disabled={copying} onClick={() => void copy()}>
+              {t("copy")}
+            </Button>
+          ) : (
+            <>
+              <ButtonLink href={`/quizzes/manage/${quiz.id}`} variant="secondary">
+                {t("edit")}
+              </ButtonLink>
+              <ButtonLink href={`/host/${quiz.id}`} variant="accent" onClick={() => writeHostGame(quiz.id, null)}>
+                {t("start")}
+              </ButtonLink>
+            </>
+          )}
         </div>
       </div>
 
@@ -112,6 +148,7 @@ export function QuizViewScreen({ quiz }: { quiz: Quiz }) {
           );
         })}
       </ol>
+      {toast}
     </StaffShell>
   );
 }

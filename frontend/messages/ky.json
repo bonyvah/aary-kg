@@ -43,7 +43,12 @@
     "common.pagination.label",
     "common.pagination.previous",
     "common.pagination.next",
-    "common.pagination.position"
+    "common.pagination.position",
+    "staff.dashboard.library",
+    "staff.library.back",
+    "staff.library.title",
+    "staff.library.empty",
+    "staff.quizView.copy"
   ],
   "app": {
     "name": "aary kg"
@@ -187,7 +192,8 @@
       "startExam": "Экзамен өткөрүү",
       "examSheetsEmpty": "Азырынча экзамен барагы жок",
       "search": "Издөө",
-      "nothingFound": "Эч нерсе табылган жок"
+      "nothingFound": "Эч нерсе табылган жок",
+      "library": "Китепкана"
     },
     "quizView": {
       "back": "Артка",
@@ -198,7 +204,8 @@
       "seconds": "{seconds} сек",
       "expandAll": "Баарын ачуу",
       "collapseAll": "Баарын жабуу",
-      "correct": "Туура жооп"
+      "correct": "Туура жооп",
+      "copy": "Өзүмө көчүрүү"
     },
     "editor": {
       "back": "Артка",
@@ -502,6 +509,11 @@
         "mercy": "Кечирүү",
         "skip": "Эсептебөө"
       }
+    },
+    "library": {
+      "back": "Артка",
+      "title": "Мугалимдердин викториналары",
+      "empty": "Азырынча башка викторина жок"
     }
   },
   "design": {

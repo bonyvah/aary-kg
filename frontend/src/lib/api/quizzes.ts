@@ -12,3 +12,14 @@ export const createQuiz = (input: QuizInput) => apiFetch<Quiz>("/quizzes", { met
 
 export const updateQuiz = (id: string, input: QuizInput) =>
   apiFetch<Quiz>(`/quizzes/${id}`, { method: "PUT", body: input });
+
+/** Another teacher's quiz in the library. */
+export type LibraryQuizSummary = { id: string; title: string; questionCount: number; ownerName: string; updatedAt: string };
+export type LibraryQuiz = Pick<Quiz, "id" | "title" | "questions"> & { ownerName: string };
+
+export const listLibrary = () => apiFetch<LibraryQuizSummary[]>("/quiz-library");
+
+export const getLibraryQuiz = (id: string) => apiFetch<LibraryQuiz>(`/quiz-library/${id}`);
+
+/** A copy among one's own quizzes. */
+export const copyLibraryQuiz = (id: string) => apiFetch<Quiz>(`/quiz-library/${id}/copy`, { method: "POST" });

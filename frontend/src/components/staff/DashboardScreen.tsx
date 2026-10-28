@@ -72,9 +72,14 @@ export function DashboardScreen() {
           className="max-w-[720px] flex-1"
         />
         {tab === "quizzes" ? (
-          <ButtonLink href="/quizzes/manage/new" variant="success">
-            {t("createQuiz")}
-          </ButtonLink>
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href="/quizzes/library" variant="secondary">
+              {t("library")}
+            </ButtonLink>
+            <ButtonLink href="/quizzes/manage/new" variant="success">
+              {t("createQuiz")}
+            </ButtonLink>
+          </div>
         ) : tab === "examSheets" ? (
           <ButtonLink href="/exams/manage/new" variant="success">
             {t("createExamSheet")}

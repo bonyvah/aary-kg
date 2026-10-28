@@ -19,6 +19,6 @@ export function blankExam(): Exam {
 }
 
 /** Quiz questions as exam questions: a copy without the quiz-only times, and without the ids (the editor gives new ones). */
-export function fromQuiz(questions: readonly QuizQuestion[]): Omit<ExamQuestion, "id">[] {
+export function fromQuiz(questions: readonly (QuizQuestion | ExamQuestion)[]): Omit<ExamQuestion, "id">[] {
   return questions.map(({ text, answers, correct }) => ({ text, answers: [...answers] as ExamQuestion["answers"], correct }));
 }

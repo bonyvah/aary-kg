@@ -16,10 +16,11 @@ import {
 import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
-import { DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
+import { blankQuiz, DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { DocEditorScreen } from "./DocEditorScreen";
 import { AiGenerateModal } from "./AiGenerateModal";
+import { ImportQuestionsModal } from "./ImportQuestionsModal";
 import { ImportQuizModal } from "./ImportQuizModal";
 
 export function EditorScreen({ quiz }: { quiz: Quiz }) {
@@ -28,6 +29,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const customSeconds = useCustomSeconds();
   const [importing, setImporting] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [picking, setPicking] = useState(false);
   const importToast = useToast();
   const { state } = editor;
 
@@ -89,10 +91,14 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
       editor={editor}
       titleLabel={t("titleLabel")}
       savedMessage={t("saved")}
-      toolbar={
+      blank={blankQuiz()}
+      quickstart={
         <>
           <Button variant="secondary" onClick={() => setGenerating(true)}>
             {t("ai.open")}
+          </Button>
+          <Button variant="secondary" onClick={() => setPicking(true)}>
+            {t("fromOthers")}
           </Button>
           <Button variant="secondary" onClick={() => setImporting(true)}>
             {t("import.open")}
@@ -102,6 +108,28 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
       questionSettings={questionSettings}
       toast={importToast.toast}
     >
+      {picking ? (
+        <ImportQuestionsModal
+          room={MAX_QUESTIONS - filled.length}
+          exclude={editor.isNew ? undefined : { kind: "quiz", id: state.doc.id }}
+          onClose={() => setPicking(false)}
+          onImport={(title, questions) => {
+            // Questions from an exam sheet have no times: the quiz's defaults. A quiz's keep theirs.
+            editor.importQuestions(
+              title,
+              questions.map(({ text, answers, correct, ...rest }) => ({
+                text,
+                answers: [...answers] as typeof answers,
+                correct,
+                seconds: "seconds" in rest ? (rest.seconds as number) : DEFAULT_SECONDS,
+                readSeconds: "readSeconds" in rest ? (rest.readSeconds as number) : DEFAULT_READ_SECONDS,
+              })),
+            );
+            setPicking(false);
+            importToast.show("success", t("import.imported", { count: questions.length }));
+          }}
+        />
+      ) : null}
       {generating ? (
         <AiGenerateModal
           room={MAX_QUESTIONS - filled.length}

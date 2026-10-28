@@ -6,22 +6,31 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { SearchInput } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { getExam, listExams } from "@/lib/api/exams";
 import { getQuiz, listQuizzes } from "@/lib/api/quizzes";
+import { Badge } from "@/components/ui/Badge";
 import { search } from "@/lib/search";
-import type { Quiz } from "@/types/quiz";
+import type { BaseQuestion } from "@/types/quiz";
+
+type Source = { kind: "quiz" | "exam"; id: string; title: string; questionCount: number };
+type Loaded = { title: string; questions: BaseQuestion[] };
+
+const load = async (source: Source): Promise<Loaded> => (source.kind === "quiz" ? getQuiz(source.id) : getExam(source.id));
 import { ResourceView, useResource } from "./Resource";
 
-type ImportFromQuizModalProps = {
-  /** How many questions the exam can still take. */
+type ImportQuestionsModalProps = {
+  /** How many questions the document can still take. */
   room: number;
-  onImport: (quiz: Quiz, picked: Quiz["questions"]) => void;
+  /** The document being edited, so it isn't offered as its own source. */
+  exclude?: { kind: "quiz" | "exam"; id: string };
+  onImport: (title: string, picked: BaseQuestion[]) => void;
   onClose: () => void;
 };
 
-/** Pick one of your quizzes, then all or some of its questions: they are copied into the exam. */
-export function ImportFromQuizModal({ room, onImport, onClose }: ImportFromQuizModalProps) {
+/** Pick one of your quizzes or exam sheets, then all or some of its questions: they are copied in. */
+export function ImportQuestionsModal({ room, exclude, onImport, onClose }: ImportQuestionsModalProps) {
   const t = useTranslations("staff.examEditor.fromQuiz");
-  const [quizId, setQuizId] = useState<string | null>(null);
+  const [source, setSource] = useState<Source | null>(null);
 
   return (
     <Modal
@@ -32,25 +41,31 @@ export function ImportFromQuizModal({ room, onImport, onClose }: ImportFromQuizM
       // The lists scroll inside; the dialog itself never does.
       className="overflow-y-hidden"
       actions={
-        quizId ? null : (
+        source ? null : (
           <Button variant="neutral" onClick={onClose}>
             {t("cancel")}
           </Button>
         )
       }
     >
-      {quizId ? (
-        <QuestionPicker quizId={quizId} room={room} onBack={() => setQuizId(null)} onImport={onImport} />
+      {source ? (
+        <QuestionPicker source={source} room={room} onBack={() => setSource(null)} onImport={onImport} />
       ) : (
-        <QuizPicker onPick={setQuizId} />
+        <SourcePicker exclude={exclude} onPick={setSource} />
       )}
     </Modal>
   );
 }
 
-function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
+function SourcePicker({ exclude, onPick }: { exclude?: ImportQuestionsModalProps["exclude"]; onPick: (source: Source) => void }) {
   const t = useTranslations("staff.examEditor.fromQuiz");
-  const quizzes = useResource(listQuizzes);
+  const quizzes = useResource(async (): Promise<Source[]> => {
+    const [own, sheets] = await Promise.all([listQuizzes(), listExams()]);
+    return [
+      ...own.map((q) => ({ kind: "quiz" as const, id: q.id, title: q.title, questionCount: q.questionCount })),
+      ...sheets.map((e) => ({ kind: "exam" as const, id: e.id, title: e.title, questionCount: e.questionCount })),
+    ].filter((s) => !(exclude && s.kind === exclude.kind && s.id === exclude.id));
+  });
   const [query, setQuery] = useState("");
 
   return (
@@ -62,13 +77,16 @@ function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
           return items.length > 0 ? (
             <ul className="flex max-h-[min(420px,calc(100dvh-20rem))] min-h-[120px] flex-col gap-2 overflow-y-auto">
               {items.map((quiz) => (
-                <li key={quiz.id}>
+                <li key={`${quiz.kind}:${quiz.id}`}>
                   <button
                     type="button"
-                    onClick={() => onPick(quiz.id)}
+                    onClick={() => onPick(quiz)}
                     className="flex min-h-[44px] w-full cursor-pointer flex-wrap items-center justify-between gap-2 rounded-md bg-surface-raised px-4 py-3 text-left hover:bg-surface focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   >
-                    <span className="font-bold [overflow-wrap:anywhere]">{quiz.title}</span>
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <Badge variant={quiz.kind === "quiz" ? "brand" : "neutral"}>{t(`kind.${quiz.kind}`)}</Badge>
+                      <span className="font-bold [overflow-wrap:anywhere]">{quiz.title}</span>
+                    </span>
                     <span className="text-body text-ink-muted">{t("questionCount", { count: quiz.questionCount })}</span>
                   </button>
                 </li>
@@ -84,12 +102,12 @@ function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
 }
 
 function QuestionPicker({
-  quizId,
+  source,
   room,
   onBack,
   onImport,
-}: { quizId: string } & Pick<ImportFromQuizModalProps, "room" | "onImport"> & { onBack: () => void }) {
-  const resource = useResource(() => getQuiz(quizId));
+}: { source: Source } & Pick<ImportQuestionsModalProps, "room" | "onImport"> & { onBack: () => void }) {
+  const resource = useResource(() => load(source));
   return (
     <ResourceView resource={resource} inline>
       {(quiz) => <QuestionList quiz={quiz} room={room} onBack={onBack} onImport={onImport} />}
@@ -102,7 +120,7 @@ function QuestionList({
   room,
   onBack,
   onImport,
-}: { quiz: Quiz } & Pick<ImportFromQuizModalProps, "room" | "onImport"> & { onBack: () => void }) {
+}: { quiz: Loaded } & Pick<ImportQuestionsModalProps, "room" | "onImport"> & { onBack: () => void }) {
   const t = useTranslations("staff.examEditor.fromQuiz");
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set(quiz.questions.map((q) => q.id)));
   const all = picked.size === quiz.questions.length;
@@ -148,7 +166,7 @@ function QuestionList({
         <Button
           variant="success"
           disabled={picked.size === 0 || tooMany}
-          onClick={() => onImport(quiz, quiz.questions.filter((q) => picked.has(q.id)))}
+          onClick={() => onImport(quiz.title, quiz.questions.filter((q) => picked.has(q.id)))}
         >
           {t("import", { count: picked.size })}
         </Button>

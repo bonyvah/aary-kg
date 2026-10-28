@@ -48,7 +48,20 @@
     "staff.library.back",
     "staff.library.title",
     "staff.library.empty",
-    "staff.quizView.copy"
+    "staff.quizView.copy",
+    "staff.dashboard.untitled",
+    "staff.editor.toQuestions",
+    "staff.editor.toSetup",
+    "staff.editor.fromOthers",
+    "staff.editor.questionCount",
+    "staff.editor.moveUp",
+    "staff.editor.moveDown",
+    "staff.editor.draft.discard",
+    "staff.editor.draft.discardTitle",
+    "staff.editor.draft.discardBody",
+    "staff.editor.draft.keep",
+    "staff.examEditor.fromQuiz.kind.quiz",
+    "staff.examEditor.fromQuiz.kind.exam"
   ],
   "app": {
     "name": "aary kg"
@@ -193,7 +206,8 @@
       "examSheetsEmpty": "Азырынча экзамен барагы жок",
       "search": "Издөө",
       "nothingFound": "Эч нерсе табылган жок",
-      "library": "Китепкана"
+      "library": "Китепкана",
+      "untitled": "Аталышы жок"
     },
     "quizView": {
       "back": "Артка",
@@ -283,6 +297,18 @@
           "ky": "Кыргызча",
           "ru": "Орусча"
         }
+      },
+      "toQuestions": "Суроолорго",
+      "toSetup": "Жөндөөлөргө кайтуу",
+      "fromOthers": "Викторина жана барактардан",
+      "questionCount": "{count, plural, one {# суроо} other {# суроо}}",
+      "moveUp": "{number}-суроону жогору",
+      "moveDown": "{number}-суроону төмөн",
+      "draft": {
+        "discard": "Долбоорду өчүрүү",
+        "discardTitle": "Долбоорду өчүрөсүзбү?",
+        "discardBody": "Бул жерде жазылгандардын баары жоголот.",
+        "keep": "Калтыруу"
       }
     },
     "report": {
@@ -380,7 +406,11 @@
         "all": "Бардык суроолор",
         "tooMany": "{room, plural, one {Дагы # суроо кошууга болот} other {Дагы # суроо кошууга болот}}.",
         "import": "{count, plural, one {# суроо кошуу} other {# суроо кошуу}}",
-        "imported": "{count, plural, one {# суроо кошулду} other {# суроо кошулду}}."
+        "imported": "{count, plural, one {# суроо кошулду} other {# суроо кошулду}}.",
+        "kind": {
+          "quiz": "Викторина",
+          "exam": "Экзамен барагы"
+        }
       }
     },
     "examSession": {

@@ -41,6 +41,10 @@ export type EditorEvent<D extends EditorDoc = Quiz> =
   | { type: "QUESTION_CHANGED"; change: Partial<Omit<QuestionOf<D>, "id" | "text" | "answers">> }
   | { type: "QUESTION_ADDED" }
   | { type: "QUESTION_REMOVED"; id: string }
+  /** Drag and drop (or the move buttons): the question goes to this place in the list, 0-based. */
+  | { type: "QUESTION_MOVED"; id: string; to: number }
+  /** Start over from another document, e.g. a fresh one when a draft is thrown away. */
+  | { type: "DOC_REPLACED"; doc: D }
   /** Questions from pasted JSON, added at the end. The title is used only while the quiz has none. */
   | { type: "QUESTIONS_IMPORTED"; title: string | null; questions: Omit<QuestionOf<D>, "id">[] }
   /** Save pressed: the client-side check. Anything missing is marked and nothing is sent. */
@@ -201,6 +205,17 @@ export function editorReducer<D extends EditorDoc>(state: EditorState<D>, event:
         state.selectedId === event.id ? (questions[Math.min(index, questions.length - 1)]?.id ?? "") : state.selectedId;
       return { ...state, doc: { ...state.doc, questions }, selectedId };
     }
+    case "QUESTION_MOVED": {
+      const from = state.doc.questions.findIndex((q) => q.id === event.id);
+      const to = Math.max(0, Math.min(state.doc.questions.length - 1, event.to));
+      if (from === -1 || from === to) return state;
+      const questions = [...state.doc.questions];
+      const [moved] = questions.splice(from, 1);
+      questions.splice(to, 0, moved!);
+      return { ...state, doc: { ...state.doc, questions } };
+    }
+    case "DOC_REPLACED":
+      return initialEditorState(event.doc);
     case "QUESTIONS_IMPORTED": {
       if (event.questions.length === 0) return state;
       // The blank question a new quiz starts with is replaced, not left in front.

@@ -60,5 +60,15 @@ const added = editorReducer(filled, { type: "QUESTION_ADDED" });
 check("a new question starts with the reading time of the one before", added.doc.questions.length === 2 && added.doc.questions[1]?.readSeconds === 7);
 check("a new quiz reads for 3 seconds", blankQuiz().questions[0]?.readSeconds === 3);
 
+// Reordering: a question moves to a place, the others keep their order.
+const three = editorReducer(twice, { ...imported, title: null });
+const order = (state: typeof three) => state.doc.questions.map((q) => q.id).join();
+const first = three.doc.questions[0]!.id;
+const moved = editorReducer(three, { type: "QUESTION_MOVED", id: first, to: 2 });
+check("a question moves down", order(moved) === [...three.doc.questions.slice(1).map((q) => q.id), first].join());
+check("moving past the end stops at the end", order(editorReducer(three, { type: "QUESTION_MOVED", id: first, to: 99 })) === order(moved));
+check("moving in place changes nothing", editorReducer(three, { type: "QUESTION_MOVED", id: first, to: 0 }) === three);
+check("a replaced document starts over", editorReducer(three, { type: "DOC_REPLACED", doc: blankQuiz() }).doc.questions.length === 1);
+
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

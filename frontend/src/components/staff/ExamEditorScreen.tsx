@@ -5,13 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/useToast";
-import { fromQuiz, MAX_MINUTES, MIN_MINUTES, MINUTES_OPTIONS } from "@/lib/examEditor";
+import { blankExam, fromQuiz, MINUTES_OPTIONS } from "@/lib/examEditor";
 import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useExamEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Exam } from "@/types/exam";
 import { DocEditorScreen } from "./DocEditorScreen";
 import { AiGenerateModal } from "./AiGenerateModal";
-import { ImportFromQuizModal } from "./ImportFromQuizModal";
+import { ImportQuestionsModal } from "./ImportQuestionsModal";
 
 export function ExamEditorScreen({ exam }: { exam: Exam }) {
   const t = useTranslations("staff.examEditor");
@@ -34,9 +34,10 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
       editor={editor}
       titleLabel={t("titleLabel")}
       savedMessage={t("saved")}
-      toolbar={
+      blank={blankExam()}
+      setupFields={
         <Dropdown
-          label={""}
+          label={t("minutesLabel")}
           wrapperClassName="w-full max-w-[200px]"
           value={minutes}
           options={options}
@@ -44,13 +45,13 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
           onChange={choose}
         />
       }
-      toolbarEnd={
+      quickstart={
         <>
           <Button variant="secondary" onClick={() => setGenerating(true)}>
             {te("ai.open")}
           </Button>
           <Button variant="secondary" onClick={() => setImporting(true)}>
-            {t("fromQuiz.open")}
+            {te("fromOthers")}
           </Button>
         </>
       }
@@ -68,11 +69,12 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
         />
       ) : null}
       {importing ? (
-        <ImportFromQuizModal
+        <ImportQuestionsModal
           room={MAX_QUESTIONS - filled.length}
+          exclude={editor.isNew ? undefined : { kind: "exam", id: editor.state.doc.id }}
           onClose={() => setImporting(false)}
-          onImport={(quiz, picked) => {
-            editor.importQuestions(quiz.title, fromQuiz(picked));
+          onImport={(title, picked) => {
+            editor.importQuestions(title, fromQuiz(picked));
             setImporting(false);
             importToast.show("success", t("fromQuiz.imported", { count: picked.length }));
           }}

@@ -212,6 +212,24 @@
           "SECONDS_INVALID": "Вопрос {question}: «seconds» должно быть от 5 до 300.",
           "READ_SECONDS_INVALID": "Вопрос {question}: «readSeconds» должно быть от 3 до 10."
         }
+      },
+      "ai": {
+        "open": "Из материала",
+        "title": "Вопросы из материала",
+        "cancel": "Отмена",
+        "generate": "Создать вопросы",
+        "working": "Создаём вопросы…",
+        "pickFile": "Выбрать файл",
+        "removeFile": "Убрать файл",
+        "fileKinds": "PDF, Word, PowerPoint или текст, до 10 МБ",
+        "pasteLabel": "Или вставьте текст",
+        "count": "Сколько вопросов",
+        "customCount": "Другое число",
+        "language": "Язык вопросов",
+        "languages": {
+          "ky": "Кыргызский",
+          "ru": "Русский"
+        }
       }
     },
     "report": {
@@ -672,7 +690,16 @@
       "ATTEMPT_RUNNING": "Ученик ещё пишет экзамен.",
       "NOT_A_SUSPECT": "Ученик не покидал экран.",
       "CANNOT_GRANT": "Сейчас нельзя дать ещё одну попытку.",
-      "ATTEMPT_INACTIVE": "Попытка уже неактивна."
+      "ATTEMPT_INACTIVE": "Попытка уже неактивна.",
+      "UNSUPPORTED_FILE": "Такой файл не подходит: нужен PDF, Word, PowerPoint или текст.",
+      "FILE_TOO_LARGE": "Файл больше 10 МБ.",
+      "PAYLOAD_TOO_LARGE": "Слишком большой запрос.",
+      "MATERIAL_UNREADABLE": "В файле не найден текст. Сканы без текста не читаются.",
+      "MATERIAL_TOO_SHORT": "Текста слишком мало.",
+      "MATERIAL_REQUIRED": "Выберите файл или вставьте текст.",
+      "AI_NOT_CONFIGURED": "Создание вопросов не настроено.",
+      "AI_LIMIT": "На сегодня лимит исчерпан. Попробуйте завтра.",
+      "AI_FAILED": "Не удалось создать вопросы. Попробуйте ещё раз."
     },
     "toDashboard": "На главную"
   },

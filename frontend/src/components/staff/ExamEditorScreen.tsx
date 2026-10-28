@@ -10,10 +10,12 @@ import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useExamEditor } from "@/lib/quizEditor/useQuizEditor";
 import type { Exam } from "@/types/exam";
 import { DocEditorScreen } from "./DocEditorScreen";
+import { AiGenerateModal } from "./AiGenerateModal";
 import { ImportFromQuizModal } from "./ImportFromQuizModal";
 
 export function ExamEditorScreen({ exam }: { exam: Exam }) {
   const t = useTranslations("staff.examEditor");
+  const te = useTranslations("staff.editor");
   const editor = useExamEditor(exam);
   const { minutes } = editor.state.doc;
   // The presets, plus a typed-in time limit this exam already has.
@@ -22,6 +24,7 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
     .map((value) => ({ value, label: String(value) }));
   const choose = (value: number) => editor.changeDoc({ minutes: value });
   const [importing, setImporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const importToast = useToast();
   // The blank question a new exam starts with is replaced by an import, so it takes no room.
   const filled = editor.state.doc.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
@@ -33,22 +36,37 @@ export function ExamEditorScreen({ exam }: { exam: Exam }) {
       savedMessage={t("saved")}
       toolbar={
         <Dropdown
-          label={t("minutesLabel")}
+          label={""}
           wrapperClassName="w-full max-w-[200px]"
           value={minutes}
           options={options}
           selectedLabel={t("minutesOption", { minutes })}
           onChange={choose}
-          custom={{ label: t("customMinutesLabel"), min: MIN_MINUTES, max: MAX_MINUTES, onCommit: choose }}
         />
       }
       toolbarEnd={
-        <Button variant="secondary" onClick={() => setImporting(true)}>
-          {t("fromQuiz.open")}
-        </Button>
+        <>
+          <Button variant="secondary" onClick={() => setGenerating(true)}>
+            {te("ai.open")}
+          </Button>
+          <Button variant="secondary" onClick={() => setImporting(true)}>
+            {t("fromQuiz.open")}
+          </Button>
+        </>
       }
       toast={importToast.toast}
     >
+      {generating ? (
+        <AiGenerateModal
+          room={MAX_QUESTIONS - filled.length}
+          onClose={() => setGenerating(false)}
+          onImport={(title, questions) => {
+            editor.importQuestions(title || null, questions);
+            setGenerating(false);
+            importToast.show("success", t("fromQuiz.imported", { count: questions.length }));
+          }}
+        />
+      ) : null}
       {importing ? (
         <ImportFromQuizModal
           room={MAX_QUESTIONS - filled.length}

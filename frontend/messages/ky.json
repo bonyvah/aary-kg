@@ -1,4 +1,29 @@
 {
+  "_todo_review": [
+    "staff.editor.ai.open",
+    "staff.editor.ai.title",
+    "staff.editor.ai.cancel",
+    "staff.editor.ai.generate",
+    "staff.editor.ai.working",
+    "staff.editor.ai.pickFile",
+    "staff.editor.ai.removeFile",
+    "staff.editor.ai.fileKinds",
+    "staff.editor.ai.pasteLabel",
+    "staff.editor.ai.count",
+    "staff.editor.ai.customCount",
+    "staff.editor.ai.language",
+    "staff.editor.ai.languages.ky",
+    "staff.editor.ai.languages.ru",
+    "common.apiError.UNSUPPORTED_FILE",
+    "common.apiError.FILE_TOO_LARGE",
+    "common.apiError.PAYLOAD_TOO_LARGE",
+    "common.apiError.MATERIAL_UNREADABLE",
+    "common.apiError.MATERIAL_TOO_SHORT",
+    "common.apiError.MATERIAL_REQUIRED",
+    "common.apiError.AI_NOT_CONFIGURED",
+    "common.apiError.AI_LIMIT",
+    "common.apiError.AI_FAILED"
+  ],
   "app": {
     "name": "aary kg"
   },
@@ -211,6 +236,24 @@
           "CORRECT_INVALID": "{question}-суроо: «correct» жооптун номери болушу керек, 1ден баштап.",
           "SECONDS_INVALID": "{question}-суроо: «seconds» 5тен 300гө чейин болушу керек.",
           "READ_SECONDS_INVALID": "{question}-суроо: «readSeconds» 3төн 10го чейин болушу керек."
+        }
+      },
+      "ai": {
+        "open": "Материалдан",
+        "title": "Материалдан суроолор",
+        "cancel": "Жокко чыгаруу",
+        "generate": "Суроолорду түзүү",
+        "working": "Суроолор түзүлүүдө…",
+        "pickFile": "Файл тандоо",
+        "removeFile": "Файлды алып салуу",
+        "fileKinds": "PDF, Word, PowerPoint же текст, 10 МБга чейин",
+        "pasteLabel": "Же текстти коюңуз",
+        "count": "Канча суроо",
+        "customCount": "Башка сан",
+        "language": "Суроолордун тили",
+        "languages": {
+          "ky": "Кыргызча",
+          "ru": "Орусча"
         }
       }
     },
@@ -672,7 +715,16 @@
       "ATTEMPT_RUNNING": "Окуучу экзаменди дагы жазып жатат.",
       "NOT_A_SUSPECT": "Окуучу экрандан чыккан жок.",
       "CANNOT_GRANT": "Азыр дагы бир аракет берүүгө болбойт.",
-      "ATTEMPT_INACTIVE": "Аракет активдүү эмес болуп калган."
+      "ATTEMPT_INACTIVE": "Аракет активдүү эмес болуп калган.",
+      "UNSUPPORTED_FILE": "Мындай файл туура келбейт: PDF, Word, PowerPoint же текст керек.",
+      "FILE_TOO_LARGE": "Файл 10 МБдан чоң.",
+      "PAYLOAD_TOO_LARGE": "Суроо-талап өтө чоң.",
+      "MATERIAL_UNREADABLE": "Файлдан текст табылган жок. Тексти жок сканерлер окулбайт.",
+      "MATERIAL_TOO_SHORT": "Текст өтө аз.",
+      "MATERIAL_REQUIRED": "Файл тандаңыз же текст коюңуз.",
+      "AI_NOT_CONFIGURED": "Суроо түзүү жөндөлгөн эмес.",
+      "AI_LIMIT": "Бүгүнкү лимит бүттү. Эртең аракет кылыңыз.",
+      "AI_FAILED": "Суроолорду түзүү мүмкүн болгон жок. Кайра аракет кылыңыз."
     },
     "toDashboard": "Башкы бетке"
   },

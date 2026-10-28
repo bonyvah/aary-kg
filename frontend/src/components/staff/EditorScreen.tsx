@@ -16,8 +16,10 @@ import {
 import { MAX_QUESTIONS } from "@/lib/quizEditor/importJson";
 import { useCustomSeconds } from "@/lib/quizEditor/useCustomSeconds";
 import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
+import { DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { DocEditorScreen } from "./DocEditorScreen";
+import { AiGenerateModal } from "./AiGenerateModal";
 import { ImportQuizModal } from "./ImportQuizModal";
 
 export function EditorScreen({ quiz }: { quiz: Quiz }) {
@@ -25,6 +27,7 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
   const editor = useQuizEditor(quiz);
   const customSeconds = useCustomSeconds();
   const [importing, setImporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const importToast = useToast();
   const { state } = editor;
 
@@ -87,13 +90,32 @@ export function EditorScreen({ quiz }: { quiz: Quiz }) {
       titleLabel={t("titleLabel")}
       savedMessage={t("saved")}
       toolbar={
-        <Button variant="secondary" onClick={() => setImporting(true)}>
-          {t("import.open")}
-        </Button>
+        <>
+          <Button variant="secondary" onClick={() => setGenerating(true)}>
+            {t("ai.open")}
+          </Button>
+          <Button variant="secondary" onClick={() => setImporting(true)}>
+            {t("import.open")}
+          </Button>
+        </>
       }
       questionSettings={questionSettings}
       toast={importToast.toast}
     >
+      {generating ? (
+        <AiGenerateModal
+          room={MAX_QUESTIONS - filled.length}
+          onClose={() => setGenerating(false)}
+          onImport={(title, questions) => {
+            editor.importQuestions(
+              title || null,
+              questions.map((q) => ({ ...q, seconds: DEFAULT_SECONDS, readSeconds: DEFAULT_READ_SECONDS })),
+            );
+            setGenerating(false);
+            importToast.show("success", t("import.imported", { count: questions.length }));
+          }}
+        />
+      ) : null}
       <ImportQuizModal
         open={importing}
         room={MAX_QUESTIONS - filled.length}

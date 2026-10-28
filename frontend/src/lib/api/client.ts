@@ -25,8 +25,9 @@ export async function apiFetch<T>(path: string, { method = "GET", body }: Reques
     response = await fetch(`${BASE}${path}`, {
       method,
       credentials: "same-origin",
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      // A FormData (a file upload) sets its own multipart content type.
+      headers: body === undefined || body instanceof FormData ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiRequestError(0, "NETWORK", null);
@@ -87,6 +88,15 @@ const KNOWN_CODES = [
   "NOT_A_SUSPECT",
   "CANNOT_GRANT",
   "ATTEMPT_INACTIVE",
+  "UNSUPPORTED_FILE",
+  "FILE_TOO_LARGE",
+  "PAYLOAD_TOO_LARGE",
+  "MATERIAL_UNREADABLE",
+  "MATERIAL_TOO_SHORT",
+  "MATERIAL_REQUIRED",
+  "AI_NOT_CONFIGURED",
+  "AI_LIMIT",
+  "AI_FAILED",
   "QUESTION_NOT_FOUND",
   "CONTEST_INVALID",
   "CONTEST_NOT_DRAFT",

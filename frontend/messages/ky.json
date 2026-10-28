@@ -186,7 +186,7 @@
       "draft": "Жасалууда",
       "questionCount": "{count, plural, one {# суроо} other {# суроо}}",
       "contestsEmpty": {
-        "title": "Конкурстар жакында чыгат",
+        "title": "Азырынча конкурс жок",
         "description": "Конкурс түзүп, жюри тандаңыз."
       },
       "createContest": "Конкурс түзүү",

@@ -4,6 +4,8 @@ import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { IconButton } from "@/components/ui/IconButton";
+import { X } from "@phosphor-icons/react/ssr";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
@@ -88,9 +90,9 @@ export function AiGenerateModal({ room, onImport, onClose }: AiGenerateModalProp
           {file ? (
             <>
               <span className="min-w-0 font-bold [overflow-wrap:anywhere]">{file.name}</span>
-              <Button variant="neutral" disabled={busy} onClick={() => setFile(null)}>
-                {t("removeFile")}
-              </Button>
+              <IconButton label={t("removeFile")} title={t("removeFile")} disabled={busy} onClick={() => setFile(null)}>
+                <X weight="bold" size={22} aria-hidden="true" />
+              </IconButton>
             </>
           ) : (
             <span className="text-body text-ink-muted">{t("fileKinds")}</span>
@@ -121,6 +123,8 @@ export function AiGenerateModal({ room, onImport, onClose }: AiGenerateModalProp
             value={count}
             options={options}
             onChange={setCount}
+            // At the bottom of the dialog: opening down would be cut off by its edge.
+            placement="up"
             custom={{ label: t("customCount"), min: 1, max, onCommit: setCount }}
           />
           <Select

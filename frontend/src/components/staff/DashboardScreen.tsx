@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ClockCounterClockwise, Exam, Files, MagnifyingGlass, Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Input } from "@/components/ui/Input";
+import { SearchInput } from "@/components/ui/Input";
 import { matches } from "@/lib/search";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
@@ -80,10 +80,7 @@ export function DashboardScreen() {
         ) : null}
       </div>
       {searchable ? (
-        <Input
-          type="search"
-          hideLabel
-          label={t("search")}
+        <SearchInput label={t("search")}
           placeholder={t("search")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}

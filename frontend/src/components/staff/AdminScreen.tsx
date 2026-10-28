@@ -6,7 +6,7 @@ import { useDateTime } from "@/lib/useDateTime";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Input } from "@/components/ui/Input";
+import { SearchInput } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { filterUsers, type UserFilter } from "@/lib/adminUsers";
 import { Icon } from "@/components/ui/Icon";
@@ -199,10 +199,7 @@ export function AdminScreen() {
         ) : (
         <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end gap-4">
-          <Input
-            type="search"
-            hideLabel
-            label={t("filter.search")}
+          <SearchInput label={t("filter.search")}
             placeholder={t("filter.search")}
             value={filter.query}
             onChange={(event) => setFilter((f) => ({ ...f, query: event.target.value }))}

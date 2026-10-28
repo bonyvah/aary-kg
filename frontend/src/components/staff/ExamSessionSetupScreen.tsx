@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Input } from "@/components/ui/Input";
+import { SearchInput } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
@@ -135,7 +135,7 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
           </fieldset>
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-2 text-body font-bold">{t("students")}</legend>
-            <Input hideLabel label={t("search")} placeholder={t("search")} value={search} onChange={(event) => setSearch(event.target.value)} />
+            <SearchInput label={t("search")} value={search} onChange={(event) => setSearch(event.target.value)} />
             <div className="flex max-h-[320px] flex-col gap-1 overflow-y-auto">
               {outside.map((student) => (
                 <Checkbox

@@ -1,12 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ClockCounterClockwise, Exam, Files, MagnifyingGlass, Question, Trophy } from "@phosphor-icons/react/ssr";
+import { ClockCounterClockwise, Exam, Files, Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { SearchInput } from "@/components/ui/Input";
-import { search } from "@/lib/search";
 import { useStoredTab } from "@/lib/useStoredTab";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
@@ -15,6 +14,7 @@ import { listExamSessions } from "@/lib/api/examSessions";
 import { listGames } from "@/lib/api/games";
 import { listQuizzes } from "@/lib/api/quizzes";
 import { ContestCard } from "./ContestCard";
+import { FilteredList } from "./FilteredList";
 import { ExamCard } from "./ExamCard";
 import { ExamSessionCard } from "./ExamSessionCard";
 import { GameCard } from "./GameCard";
@@ -24,15 +24,28 @@ import { QuizCard } from "./QuizCard";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
+// Three rows of cards on a wide screen.
+const PAGE_SIZE = 12;
+
 const TABS = ["quizzes", "examSheets", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
+
+function Grid<T extends { id: string }>({ items, render }: { items: readonly T[]; render: (item: T) => ReactNode }) {
+  return (
+    <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((item) => (
+        <li key={item.id} className="flex">
+          <div className="flex-1">{render(item)}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function DashboardScreen() {
   const user = useCurrentUser();
   const t = useTranslations("staff.dashboard");
   const [tab, setTab] = useStoredTab<Tab>("aary.dashboardTab", TABS, "quizzes");
-  const [query, setQuery] = useState("");
-  const searchable = tab === "quizzes" || tab === "examSheets";
   const idBase = useId();
   const quizzes = useResource(listQuizzes);
   const examSheets = useResource(listExams);
@@ -55,10 +68,7 @@ export function DashboardScreen() {
           label={t("tabsLabel")}
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
-          onChange={(next) => {
-            setTab(next);
-            setQuery("");
-          }}
+          onChange={setTab}
           className="max-w-[720px] flex-1"
         />
         {tab === "quizzes" ? (
@@ -79,110 +89,80 @@ export function DashboardScreen() {
           </ButtonLink>
         ) : null}
       </div>
-      {searchable ? (
-        <SearchInput label={t("search")}
-          placeholder={t("search")}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          wrapperClassName="w-full max-w-[420px]"
-        />
-      ) : null}
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
           <ResourceView resource={quizzes} inline>
-            {(all) => {
-              const items = search(all, query, (quiz) => [quiz.title]);
-              return items.length > 0 ? (
-                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((quiz) => (
-                    <li key={quiz.id} className="flex">
-                      <div className="flex-1">
-                        <QuizCard quiz={quiz} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : all.length > 0 ? (
-                <EmptyState icon={MagnifyingGlass} title={t("nothingFound")} />
-              ) : (
-                <EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />
-              );
-            }}
+            {(all) => (
+              <FilteredList
+                key="quizzes"
+                items={all}
+                fields={{ text: (quiz) => [quiz.title] }}
+                pageSize={PAGE_SIZE}
+                empty={<EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />}
+              >
+                {(page) => <Grid items={page} render={(quiz) => <QuizCard quiz={quiz} />} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : tab === "examSheets" ? (
           <ResourceView resource={examSheets} inline>
-            {(all) => {
-              const items = search(all, query, (exam) => [exam.title]);
-              return items.length > 0 ? (
-                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((exam) => (
-                    <li key={exam.id} className="flex">
-                      <div className="flex-1">
-                        <ExamCard exam={exam} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : all.length > 0 ? (
-                <EmptyState icon={MagnifyingGlass} title={t("nothingFound")} />
-              ) : (
-                <EmptyState icon={Files} title={t("examSheetsEmpty")} />
-              );
-            }}
+            {(all) => (
+              <FilteredList
+                key="examSheets"
+                items={all}
+                fields={{ text: (exam) => [exam.title] }}
+                pageSize={PAGE_SIZE}
+                empty={<EmptyState icon={Files} title={t("examSheetsEmpty")} />}
+              >
+                {(page) => <Grid items={page} render={(exam) => <ExamCard exam={exam} />} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : tab === "exams" ? (
           <ResourceView resource={exams} inline>
-            {(items) =>
-              items.length > 0 ? (
-                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((session) => (
-                    <li key={session.id} className="flex">
-                      <div className="flex-1">
-                        <ExamSessionCard session={session} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState icon={Exam} title={t("examsEmpty")} />
-              )
-            }
+            {(all) => (
+              <FilteredList
+                key="exams"
+                items={all}
+                fields={{ text: (session) => [session.title, ...session.groupNames], date: (session) => session.openedAt }}
+                pageSize={PAGE_SIZE}
+                empty={<EmptyState icon={Exam} title={t("examsEmpty")} />}
+              >
+                {(page) => <Grid items={page} render={(session) => <ExamSessionCard session={session} />} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : tab === "games" ? (
           <ResourceView resource={games} inline>
-            {(items) =>
-              items.length > 0 ? (
-                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((game) => (
-                    <li key={game.id} className="flex">
-                      <div className="flex-1">
-                        <GameCard game={game} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState icon={ClockCounterClockwise} title={t("gamesEmpty.title")} description={t("gamesEmpty.description")} />
-              )
-            }
+            {(all) => (
+              <FilteredList
+                key="games"
+                items={all}
+                fields={{ text: (game) => [game.quizTitle], date: (game) => game.finishedAt }}
+                pageSize={PAGE_SIZE}
+                empty={<EmptyState icon={ClockCounterClockwise} title={t("gamesEmpty.title")} description={t("gamesEmpty.description")} />}
+              >
+                {(page) => <Grid items={page} render={(game) => <GameCard game={game} />} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : (
           <ResourceView resource={contests} inline>
-            {(items) =>
-              items.length > 0 ? (
-                <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((contest) => (
-                    <li key={contest.id} className="flex">
-                      <div className="flex-1">
-                        <ContestCard contest={contest} userId={user.id} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState icon={Trophy} title={t("contestsEmpty.title")} description={t("contestsEmpty.description")} />
-              )
-            }
+            {(all) => (
+              <FilteredList
+                key="contests"
+                items={all}
+                fields={{
+                  text: (contest) => [contest.title, contest.ownerName],
+                  host: (contest) => contest.ownerName,
+                  date: (contest) => contest.createdAt,
+                }}
+                pageSize={PAGE_SIZE}
+                empty={<EmptyState icon={Trophy} title={t("contestsEmpty.title")} description={t("contestsEmpty.description")} />}
+              >
+                {(page) => <Grid items={page} render={(contest) => <ContestCard contest={contest} userId={user.id} />} />}
+              </FilteredList>
+            )}
           </ResourceView>
         )}
       </div>

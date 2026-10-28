@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { filterUsers, type UserFilter } from "@/lib/adminUsers";
+import { pageOf } from "@/lib/listFilter";
+import { Pagination } from "@/components/ui/Pagination";
 import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -29,6 +31,7 @@ import type { ManagedUser } from "@/types/user";
 import { AdminExamsTable } from "./AdminExamsTable";
 import { AdminGamesTable } from "./AdminGamesTable";
 import { AdminGroups } from "./AdminGroups";
+import { FilteredList } from "./FilteredList";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
@@ -39,6 +42,9 @@ import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
+
+// Rows per page in the tables.
+const TABLE_PAGE = 20;
 
 const TABS = ["users", "groups", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
@@ -61,7 +67,12 @@ export function AdminScreen() {
   const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
   const locale = useLocale();
-  const [filter, setFilter] = useState<UserFilter>({ query: "", role: "all", groupId: "" });
+  const [filter, setFilterState] = useState<UserFilter>({ query: "", role: "all", groupId: "" });
+  const [usersPage, setUsersPage] = useState(1);
+  const setFilter = (change: (f: UserFilter) => UserFilter) => {
+    setFilterState(change);
+    setUsersPage(1);
+  };
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
 
@@ -141,7 +152,8 @@ export function AdminScreen() {
     }
   }
 
-  const shown = users ? filterUsers(users, filter) : [];
+  const matching = users ? filterUsers(users, filter) : [];
+  const { items: shown, page: userPage, pages: userPages } = pageOf(matching, usersPage, TABLE_PAGE);
   // The groups that have students, for the group filter, sorted by name.
   const studentGroups = Array.from(
     new Map((users ?? []).filter((u) => u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
@@ -177,15 +189,42 @@ export function AdminScreen() {
           <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} />
         ) : tab === "games" ? (
           <ResourceView resource={allGames} inline>
-            {(items) => <AdminGamesTable games={items} />}
+            {(items) => (
+              <FilteredList
+                items={items}
+                fields={{ text: (g) => [g.quizTitle, g.ownerName], host: (g) => g.ownerName, date: (g) => g.finishedAt }}
+                pageSize={TABLE_PAGE}
+                empty={<AdminGamesTable games={[]} />}
+              >
+                {(page) => <AdminGamesTable games={page} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : tab === "exams" ? (
           <ResourceView resource={allExams} inline>
-            {(items) => <AdminExamsTable exams={items} />}
+            {(items) => (
+              <FilteredList
+                items={items}
+                fields={{ text: (e) => [e.title, e.ownerName, ...e.groupNames], host: (e) => e.ownerName, date: (e) => e.openedAt }}
+                pageSize={TABLE_PAGE}
+                empty={<AdminExamsTable exams={[]} />}
+              >
+                {(page) => <AdminExamsTable exams={page} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : tab === "contests" ? (
           <ResourceView resource={allContests} inline>
-            {(items) => <ContestsTable contests={items} />}
+            {(items) => (
+              <FilteredList
+                items={items}
+                fields={{ text: (c) => [c.title, c.ownerName], host: (c) => c.ownerName, date: (c) => c.createdAt }}
+                pageSize={TABLE_PAGE}
+                empty={<ContestsTable contests={[]} />}
+              >
+                {(page) => <ContestsTable contests={page} />}
+              </FilteredList>
+            )}
           </ResourceView>
         ) : loadError ? (
           <EmptyState
@@ -317,6 +356,7 @@ export function AdminScreen() {
           </tbody>
         </Table>
         )}
+        <Pagination page={userPage} pages={userPages} onChange={setUsersPage} />
         </div>
         )}
       </div>

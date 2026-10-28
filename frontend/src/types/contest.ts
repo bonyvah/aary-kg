@@ -34,6 +34,8 @@ export type Contest = {
   status: ContestStatus;
   ownerId: string;
   ownerName: string;
+  /** ISO date-time. */
+  createdAt: string;
   criteria: Criterion[];
   entries: Entry[];
   jury: JuryMember[];

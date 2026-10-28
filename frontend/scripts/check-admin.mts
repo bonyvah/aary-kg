@@ -9,6 +9,7 @@ import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
 import { fold, matches, search } from "../src/lib/search.ts";
 import { fromQuiz } from "../src/lib/examEditor.ts";
+import { applyFilter, EMPTY_FILTER, pageOf } from "../src/lib/listFilter.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -125,6 +126,21 @@ const quizQuestion = { id: "q7", text: "2 + 2?", answers: ["3", "4", "", ""] as 
 const copied = fromQuiz([quizQuestion]);
 check("a quiz question loses its times and id", JSON.stringify(copied) === JSON.stringify([{ text: "2 + 2?", answers: ["3", "4", "", ""], correct: 2 }]));
 check("the answers are a copy", copied[0]?.answers !== quizQuestion.answers);
+
+// List filters and pages.
+const games = [
+  { id: "a", title: "Тарых", host: "Улан", at: "2026-10-01T10:00:00" },
+  { id: "b", title: "Физика", host: "Айжан", at: "2026-10-05T10:00:00" },
+  { id: "c", title: "Тарых 2", host: "Айжан", at: "2026-10-09T10:00:00" },
+];
+const gameFields = { text: (g: (typeof games)[number]) => [g.title], host: (g: (typeof games)[number]) => g.host, date: (g: (typeof games)[number]) => g.at };
+const ids = (filter: Partial<typeof EMPTY_FILTER>) => applyFilter(games, { ...EMPTY_FILTER, ...filter }, gameFields).map((g) => g.id).join();
+check("no filter keeps all", ids({}) === "a,b,c");
+check("by host", ids({ host: "Айжан" }) === "b,c");
+check("by days, both ends included", ids({ from: "2026-10-05", to: "2026-10-09" }) === "b,c" && ids({ to: "2026-10-01" }) === "a");
+check("search with the others", ids({ query: "тарых", host: "Айжан" }) === "c");
+const paged = pageOf([1, 2, 3, 4, 5], 2, 2);
+check("pages", paged.items.join() === "3,4" && paged.pages === 3 && pageOf([1, 2, 3], 9, 2).page === 2 && pageOf([], 1, 5).pages === 1);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

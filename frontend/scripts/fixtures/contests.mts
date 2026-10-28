@@ -88,6 +88,7 @@ export const mockContests: readonly Contest[] = [
     status: "draft",
     ownerId: "u-aizhan",
     ownerName: "Айжан Мамбетова",
+    createdAt: "2026-10-01T09:00:00Z",
     criteria: criteria(
       [
         ["Аткаруу", 1.5],
@@ -106,6 +107,7 @@ export const mockContests: readonly Contest[] = [
     status: "open",
     ownerId: "u-aizhan",
     ownerName: "Айжан Мамбетова",
+    createdAt: "2026-10-01T09:00:00Z",
     criteria: openCriteria,
     entries: openEntries,
     jury: jury([
@@ -122,6 +124,7 @@ export const mockContests: readonly Contest[] = [
     status: "open",
     ownerId: "u-ulan",
     ownerName: "Улан Эсенов",
+    createdAt: "2026-10-01T09:00:00Z",
     criteria: criteria(
       [
         ["Грамматика", 5],
@@ -152,6 +155,7 @@ export const mockContests: readonly Contest[] = [
     status: "closed",
     ownerId: "u-ulan",
     ownerName: "Улан Эсенов",
+    createdAt: "2026-10-01T09:00:00Z",
     criteria: closedCriteria,
     entries: closedEntries,
     jury: closedJury,

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Trophy } from "@phosphor-icons/react/ssr";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { finishedCount } from "@/lib/contestScoring";
 import type { Contest } from "@/types/contest";
@@ -9,6 +11,7 @@ import { ContestStatusBadge } from "./ContestStatusBadge";
 export function ContestsTable({ contests }: { contests: readonly Contest[] }) {
   const t = useTranslations("admin.contests");
   const tc = useTranslations("contest");
+  if (contests.length === 0) return <EmptyState icon={Trophy} title={t("empty")} />;
 
   return (
     <Table className="min-w-[760px]">

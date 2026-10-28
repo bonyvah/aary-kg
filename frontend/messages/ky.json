@@ -32,7 +32,18 @@
     "staff.examSession.attendance.addStudent",
     "staff.examSession.attendance.addPick",
     "staff.examSession.attendance.add",
-    "staff.examSession.setup.studentCount"
+    "staff.examSession.setup.studentCount",
+    "admin.contests.empty",
+    "common.filters.search",
+    "common.filters.host",
+    "common.filters.anyHost",
+    "common.filters.from",
+    "common.filters.to",
+    "common.filters.nothingFound",
+    "common.pagination.label",
+    "common.pagination.previous",
+    "common.pagination.next",
+    "common.pagination.position"
   ],
   "app": {
     "name": "aary kg"
@@ -746,7 +757,21 @@
       "AI_LIMIT": "Бүгүнкү лимит бүттү. Эртең аракет кылыңыз.",
       "AI_FAILED": "Суроолорду түзүү мүмкүн болгон жок. Кайра аракет кылыңыз."
     },
-    "toDashboard": "Башкы бетке"
+    "toDashboard": "Башкы бетке",
+    "filters": {
+      "search": "Издөө",
+      "host": "Алып баруучу",
+      "anyHost": "Бардык алып баруучулар",
+      "from": "Баштап",
+      "to": "Чейин",
+      "nothingFound": "Эч нерсе табылган жок"
+    },
+    "pagination": {
+      "label": "Барактар",
+      "previous": "Мурунку барак",
+      "next": "Кийинки барак",
+      "position": "{page} / {pages}"
+    }
   },
   "host": {
     "cheaters": {
@@ -891,7 +916,8 @@
       "owner": "Уюштуруучу",
       "status": "Абалы",
       "entries": "Катышуучулар",
-      "jury": "Жюри"
+      "jury": "Жюри",
+      "empty": "Азырынча конкурс жок"
     },
     "games": {
       "quiz": "Викторина",

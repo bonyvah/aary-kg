@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { Select } from "@/components/ui/Select";
+import { Table, Td, Th } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
 import { closeExamSession, decide, grantAttempt, setAttendance } from "@/lib/api/examSessions";
@@ -17,7 +17,7 @@ import type { AttendanceChange, DecisionInput, ExamSession, StudentChoice } from
 import { AttemptModal } from "./AttemptModal";
 import { IndividualRulingModal } from "./IndividualRulingModal";
 import { SuspectsPanel } from "./SuspectsPanel";
-import { AttendanceTable } from "./AttendanceTable";
+import { AttendanceButton, AttendanceModal } from "./AttendanceModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { ExamSessionStatusBadge } from "./ExamSessionStatusBadge";
 import { StaffMenu } from "./StaffMenu";
@@ -48,10 +48,9 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
   const [session, setSession] = useState(initial);
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [adding, setAdding] = useState("");
+  const [attending, setAttending] = useState(false);
   const open = session.status === "open";
   const editable = open && !readOnly;
-  const byId = new Map(session.students.map((s) => [s.studentId, s]));
   const onExam = new Set(session.students.map((s) => s.studentId));
   const addable = students.filter((s) => !onExam.has(s.id));
 
@@ -129,11 +128,14 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
             {session.closedAt ? ` – ${dateTime(new Date(session.closedAt))}` : ""}
           </p>
         </div>
-        {editable ? (
-          <Button variant="danger" onClick={() => setClosing(true)}>
-            {t("close")}
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-3">
+          <AttendanceButton rows={session.students} onClick={() => setAttending(true)} />
+          {editable ? (
+            <Button variant="danger" onClick={() => setClosing(true)}>
+              {t("close")}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <SuspectsPanel
@@ -143,84 +145,92 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
         onIndividual={(student) => setRuling(student)}
       />
 
-      <AttendanceTable
-        rows={session.students}
-        disabled={!editable}
-        onChange={(id, attendance) => void change(id, attendance)}
-        extra={{
-          headers: [ta("state"), ta("score"), ta("signals"), ta("answers"), ...(editable ? [ta("again")] : [])],
-          cells: (studentId) => {
-            const row = byId.get(studentId);
-            if (!row) return [];
-            return [
-              <span key="state" className="flex flex-wrap items-center gap-1">
-                <SubmitStateBadge state={row.attemptState} reason={row.submitReason} />
-                {row.attemptCount > 1 ? <Badge variant="neutral">{ta("attempts", { count: row.attemptCount })}</Badge> : null}
-              </span>,
-              <span key="score" className="font-black tabular-nums">
+      <Table>
+        <thead>
+          <tr>
+            <Th>{ta("student")}</Th>
+            <Th>{ta("group")}</Th>
+            <Th>{ta("title")}</Th>
+            <Th>{ta("state")}</Th>
+            <Th>{ta("score")}</Th>
+            <Th>{ta("signals")}</Th>
+            <Th>{ta("answers")}</Th>
+            {editable ? <Th>{ta("again")}</Th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {session.students.map((row) => (
+            <tr key={row.studentId}>
+              <Td className="font-bold [overflow-wrap:anywhere]">{row.name}</Td>
+              <Td className="text-ink-muted">{row.groupName ?? ""}</Td>
+              <Td>
+                {row.attendance === "absent" ? (
+                  <Badge variant="danger">{ta("absent")}</Badge>
+                ) : row.attendance === "late" ? (
+                  <Badge variant="accent">{ta("lateBy", { minutes: row.lateMinutes ?? 0 })}</Badge>
+                ) : (
+                  <Badge variant="neutral">{ta("present")}</Badge>
+                )}
+              </Td>
+              <Td>
+                <span className="flex flex-wrap items-center gap-1">
+                  <SubmitStateBadge state={row.attemptState} reason={row.submitReason} />
+                  {row.attemptCount > 1 ? <Badge variant="neutral">{ta("attempts", { count: row.attemptCount })}</Badge> : null}
+                </span>
+              </Td>
+              <Td className="font-black tabular-nums">
                 {row.score === null ? "" : ta("scoreValue", { score: row.score, total: session.questionCount })}
-              </span>,
-              <span key="signals" className="flex flex-wrap gap-1">
-                {row.signals.map((signal) => (
-                  <Badge key={signal.kind} variant={signal.kind === "PASTE" ? "neutral" : "danger"}>
-                    {tf(signal.kind)}: {signal.count}
-                  </Badge>
-                ))}
-              </span>,
-              row.attemptState === "none" ? null : (
-                <Button
-                  key="answers"
-                  variant="secondary"
-                  aria-label={ta("answersFor", { name: row.name })}
-                  title={ta("answersFor", { name: row.name })}
-                  onClick={() => setViewing(row)}
-                >
-                  <Icon icon={ListChecks} weight="bold" />
-                </Button>
-              ),
-              ...(editable
-                ? [
-                    row.canGrant ? (
-                      <Button
-                        key="again"
-                        variant="secondary"
-                        aria-label={ta("againFor", { name: row.name })}
-                        title={ta("againFor", { name: row.name })}
-                        onClick={() => setGranting(row)}
-                      >
-                        <Icon icon={ArrowCounterClockwise} weight="bold" />
-                      </Button>
-                    ) : null,
-                  ]
-                : []),
-            ];
-          },
-        }}
-      />
+              </Td>
+              <Td>
+                <span className="flex flex-wrap gap-1">
+                  {row.signals.map((signal) => (
+                    <Badge key={signal.kind} variant={signal.kind === "PASTE" ? "neutral" : "danger"}>
+                      {tf(signal.kind)}: {signal.count}
+                    </Badge>
+                  ))}
+                </span>
+              </Td>
+              <Td className="py-1">
+                {row.attemptState === "none" ? null : (
+                  <Button
+                    variant="secondary"
+                    aria-label={ta("answersFor", { name: row.name })}
+                    title={ta("answersFor", { name: row.name })}
+                    onClick={() => setViewing(row)}
+                  >
+                    <Icon icon={ListChecks} weight="bold" />
+                  </Button>
+                )}
+              </Td>
+              {editable ? (
+                <Td className="py-1">
+                  {row.canGrant ? (
+                    <Button
+                      variant="secondary"
+                      aria-label={ta("againFor", { name: row.name })}
+                      title={ta("againFor", { name: row.name })}
+                      onClick={() => setGranting(row)}
+                    >
+                      <Icon icon={ArrowCounterClockwise} weight="bold" />
+                    </Button>
+                  ) : null}
+                </Td>
+              ) : null}
+            </tr>
+          ))}
+        </tbody>
+      </Table>
 
-      {editable && addable.length > 0 ? (
-        <div className="flex flex-wrap items-end gap-3">
-          <Select label={t("addStudent")} wrapperClassName="w-full max-w-[360px]" value={adding} onChange={(event) => setAdding(event.target.value)}>
-            <option value="">{t("addPick")}</option>
-            {addable.map((student) => (
-              <option key={student.id} value={student.id}>
-                {student.groupName ? `${student.name} · ${student.groupName}` : student.name}
-              </option>
-            ))}
-          </Select>
-          <Button
-            variant="secondary"
-            disabled={adding === ""}
-            onClick={() => {
-              void change(adding, PRESENT);
-              setAdding("");
-            }}
-          >
-            {t("add")}
-          </Button>
-        </div>
+      {attending ? (
+        <AttendanceModal
+          rows={session.students}
+          disabled={!editable}
+          onChange={(id, attendance) => void change(id, attendance)}
+          addable={addable}
+          onAdd={(id) => void change(id, PRESENT)}
+          onClose={() => setAttending(false)}
+        />
       ) : null}
-
       {ruling ? (
         <IndividualRulingModal
           sessionId={session.id}

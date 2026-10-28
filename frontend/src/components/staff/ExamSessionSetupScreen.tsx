@@ -17,7 +17,7 @@ import type { ExamSummary } from "@/types/exam";
 import type { AttendanceChange, StudentChoice } from "@/types/examSession";
 import type { Group } from "@/types/group";
 import { Users } from "@phosphor-icons/react/ssr";
-import { AttendanceTable } from "./AttendanceTable";
+import { AttendanceButton, AttendanceModal } from "./AttendanceModal";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
@@ -45,6 +45,7 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
   const [search, setSearch] = useState("");
   const [marks, setMarks] = useState<Readonly<Record<string, AttendanceChange>>>({});
   const [busy, setBusy] = useState(false);
+  const [attending, setAttending] = useState(false);
 
   const sortedGroups = useMemo(() => [...groups].sort((a, b) => a.name.localeCompare(b.name, locale)), [groups, locale]);
   const targets = targetStudents(students, groupIds, extraIds, locale);
@@ -88,7 +89,12 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
         </div>
       }
     >
-      <h1 className="text-h1 font-black">{t("title")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-h1 font-black">{t("title")}</h1>
+        <Button variant="success" disabled={busy || examId === "" || rows.length === 0} onClick={() => void start()}>
+          {t("start")}
+        </Button>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Select label={t("sheet")} value={examId} onChange={(event) => setExamId(event.target.value)}>
           {exams.length === 0 ? <option value="">{t("noSheets")}</option> : null}
@@ -98,7 +104,13 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
             </option>
           ))}
         </Select>
-        {more ? null : (
+        {more ? (
+          <div className="flex items-end">
+            <Button variant="secondary" aria-expanded onClick={() => setMore(false)}>
+              {t("lessTargets")}
+            </Button>
+          </div>
+        ) : (
           <Select
             label={t("group")}
             value={[...groupIds][0] ?? ""}
@@ -114,11 +126,13 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
         )}
       </div>
 
-      <div>
-        <Button variant="secondary" aria-expanded={more} onClick={() => setMore((open) => !open)}>
-          {t(more ? "lessTargets" : "moreTargets")}
-        </Button>
-      </div>
+      {more ? null : (
+        <div>
+          <Button variant="secondary" aria-expanded={false} onClick={() => setMore(true)}>
+            {t("moreTargets")}
+          </Button>
+        </div>
+      )}
 
       {more ? (
         <div className="grid gap-6 md:grid-cols-2">
@@ -152,16 +166,20 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
       ) : null}
 
       {rows.length > 0 ? (
-        <AttendanceTable rows={rows} onChange={(studentId, change) => setMarks((m) => ({ ...m, [studentId]: change }))} />
+        <div className="flex flex-wrap items-center gap-4">
+          <p className="text-body-lg font-bold">{t("studentCount", { count: rows.length })}</p>
+          <AttendanceButton rows={rows} onClick={() => setAttending(true)} />
+        </div>
       ) : (
         <EmptyState icon={Users} title={t("noStudents")} />
       )}
-
-      <div className="flex justify-end">
-        <Button variant="success" disabled={busy || examId === "" || rows.length === 0} onClick={() => void start()}>
-          {t("start")}
-        </Button>
-      </div>
+      {attending ? (
+        <AttendanceModal
+          rows={rows}
+          onChange={(studentId, change) => setMarks((m) => ({ ...m, [studentId]: change }))}
+          onClose={() => setAttending(false)}
+        />
+      ) : null}
       {toast}
     </StaffShell>
   );

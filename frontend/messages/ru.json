@@ -359,7 +359,16 @@
         "endedByClose": "Закрыт учителем",
         "again": "Ещё попытка",
         "againFor": "Ещё одна попытка: {name}",
-        "attempts": "{count, plural, one {# попытка} few {# попытки} many {# попыток} other {# попытки}}"
+        "attempts": "{count, plural, one {# попытка} few {# попытки} many {# попыток} other {# попытки}}",
+        "title": "Посещаемость",
+        "done": "Готово",
+        "present": "Пришёл",
+        "lateBy": "Опоздал на {minutes} мин",
+        "absentCount": "{count, plural, one {# отсутствует} few {# отсутствуют} many {# отсутствуют} other {# отсутствуют}}",
+        "lateCount": "{count, plural, one {# опоздал} few {# опоздали} many {# опоздали} other {# опоздали}}",
+        "addStudent": "Добавить ученика",
+        "addPick": "Выберите ученика",
+        "add": "Добавить"
       },
       "setup": {
         "back": "Назад",
@@ -374,7 +383,8 @@
         "students": "Отдельные ученики",
         "search": "Поиск ученика",
         "noStudents": "Нет учеников",
-        "start": "Начать экзамен"
+        "start": "Начать экзамен",
+        "studentCount": "{count, plural, one {# ученик} few {# ученика} many {# учеников} other {# ученика}}"
       },
       "page": {
         "back": "Назад",

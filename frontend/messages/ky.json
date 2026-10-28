@@ -22,7 +22,17 @@
     "common.apiError.MATERIAL_REQUIRED",
     "common.apiError.AI_NOT_CONFIGURED",
     "common.apiError.AI_LIMIT",
-    "common.apiError.AI_FAILED"
+    "common.apiError.AI_FAILED",
+    "staff.examSession.attendance.title",
+    "staff.examSession.attendance.done",
+    "staff.examSession.attendance.present",
+    "staff.examSession.attendance.lateBy",
+    "staff.examSession.attendance.absentCount",
+    "staff.examSession.attendance.lateCount",
+    "staff.examSession.attendance.addStudent",
+    "staff.examSession.attendance.addPick",
+    "staff.examSession.attendance.add",
+    "staff.examSession.setup.studentCount"
   ],
   "app": {
     "name": "aary kg"
@@ -384,7 +394,16 @@
         "endedByClose": "Мугалим жапты",
         "again": "Дагы аракет",
         "againFor": "Дагы бир аракет: {name}",
-        "attempts": "{count, plural, one {# аракет} other {# аракет}}"
+        "attempts": "{count, plural, one {# аракет} other {# аракет}}",
+        "title": "Катышуу",
+        "done": "Даяр",
+        "present": "Келди",
+        "lateBy": "{minutes} мүн кечикти",
+        "absentCount": "{count, plural, one {# келген жок} other {# келген жок}}",
+        "lateCount": "{count, plural, one {# кечикти} other {# кечикти}}",
+        "addStudent": "Окуучу кошуу",
+        "addPick": "Окуучуну тандаңыз",
+        "add": "Кошуу"
       },
       "setup": {
         "back": "Артка",
@@ -399,7 +418,8 @@
         "students": "Айрым окуучулар",
         "search": "Окуучуну издөө",
         "noStudents": "Окуучу жок",
-        "start": "Экзаменди баштоо"
+        "start": "Экзаменди баштоо",
+        "studentCount": "{count, plural, one {# окуучу} other {# окуучу}}"
       },
       "page": {
         "back": "Артка",

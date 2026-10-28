@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Input, SearchInput } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -12,16 +13,19 @@ type ListFiltersProps = {
   hosts?: readonly string[];
   /** The date range filter. */
   dates?: boolean;
+  /** Right after the search box. */
+  actions?: ReactNode;
 };
 
 /** A search, a host and a day range above a list. */
-export function ListFilters({ value, onChange, hosts = [], dates = true }: ListFiltersProps) {
+export function ListFilters({ value, onChange, hosts = [], dates = true, actions }: ListFiltersProps) {
   const t = useTranslations("common.filters");
   const set = (change: Partial<ListFilter>) => onChange({ ...value, ...change });
 
   return (
     <div className="flex flex-wrap items-end gap-4">
       <SearchInput label={t("search")} value={value.query} onChange={(event) => set({ query: event.target.value })} wrapperClassName="w-full max-w-[360px]" />
+      {actions}
       {hosts.length > 1 ? (
         <Select label={t("host")} value={value.host} onChange={(event) => set({ host: event.target.value })} wrapperClassName="w-full max-w-[240px]">
           <option value="">{t("anyHost")}</option>

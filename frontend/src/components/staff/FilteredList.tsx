@@ -15,15 +15,26 @@ type FilteredListProps<T> = {
   pageSize: number;
   /** Shown when the list itself is empty (no filters then). */
   empty: ReactNode;
+  /** Beside the search, e.g. a link to more of the same; shown even when the list is empty. */
+  actions?: ReactNode;
   children: (page: T[]) => ReactNode;
 };
 
 /** A list with its filters above (search, host, days) and pages below. */
-export function FilteredList<T>({ items, fields, pageSize, empty, children }: FilteredListProps<T>) {
+export function FilteredList<T>({ items, fields, pageSize, empty, actions, children }: FilteredListProps<T>) {
   const t = useTranslations("common.filters");
   const locale = useLocale();
   const list = useFilteredList(items, fields, pageSize);
-  if (items.length === 0) return <>{empty}</>;
+  if (items.length === 0) {
+    return actions ? (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap gap-3">{actions}</div>
+        {empty}
+      </div>
+    ) : (
+      <>{empty}</>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -32,6 +43,7 @@ export function FilteredList<T>({ items, fields, pageSize, empty, children }: Fi
         onChange={list.setFilter}
         hosts={fields.host ? hostsOf(items, fields.host, locale) : undefined}
         dates={fields.date !== undefined}
+        actions={actions}
       />
       {list.items.length > 0 ? children(list.items) : <EmptyState icon={MagnifyingGlass} title={t("nothingFound")} />}
       <Pagination page={list.page} pages={list.pages} onChange={list.setPage} />

@@ -73,14 +73,9 @@ export function DashboardScreen() {
           className="max-w-[720px] flex-1"
         />
         {tab === "quizzes" ? (
-          <div className="flex flex-wrap gap-3">
-            <ButtonLink href="/quizzes/library" variant="secondary">
-              {t("library")}
-            </ButtonLink>
-            <ButtonLink href="/quizzes/manage/new" variant="success">
-              {t("createQuiz")}
-            </ButtonLink>
-          </div>
+          <ButtonLink href="/quizzes/manage/new" variant="success">
+            {t("createQuiz")}
+          </ButtonLink>
         ) : tab === "examSheets" ? (
           <ButtonLink href="/exams/manage/new" variant="success">
             {t("createExamSheet")}
@@ -104,6 +99,11 @@ export function DashboardScreen() {
               <FilteredList
                 key="quizzes"
                 items={all}
+                actions={
+                  <ButtonLink href="/quizzes/library" variant="secondary">
+                    {t("library")}
+                  </ButtonLink>
+                }
                 fields={{ text: (quiz) => [quiz.title] }}
                 pageSize={PAGE_SIZE}
                 empty={<EmptyState icon={Question} title={t("quizzesEmpty.title")} description={t("quizzesEmpty.description")} />}

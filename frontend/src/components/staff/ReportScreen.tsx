@@ -1,6 +1,8 @@
 import { useHomePath } from "./SessionProvider";
 import { useState, type CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/useToast";
+import { ExportButtons } from "./ExportButtons";
 import { useDateTime } from "@/lib/useDateTime";
 import { Avatar } from "@/components/game/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -29,6 +31,8 @@ const focusRing = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-
 /** What happened in one finished game: the numbers, every player with the signals the server logged, and every question. */
 export function ReportScreen({ report }: { report: GameReport }) {
   const t = useTranslations("staff.report");
+  const tc = useTranslations("common");
+  const { toast, show } = useToast();
   const home = useHomePath();
   const format = useFormatter();
   const dateTime = useDateTime();
@@ -49,9 +53,26 @@ export function ReportScreen({ report }: { report: GameReport }) {
             {dateTime(new Date(report.finishedAt), { long: true })}
           </p>
         </div>
-        <ButtonLink href={home} variant="neutral">
-          {t("toDashboard")}
-        </ButtonLink>
+        <div className="flex flex-wrap gap-3">
+          <ExportButtons
+            onError={() => show("danger", tc("export.failed"))}
+            table={() => ({
+              title: report.quizTitle,
+              subtitle: dateTime(new Date(report.finishedAt), { long: true }),
+              headers: [t("columns.rank"), t("columns.player"), t("columns.score"), t("columns.correct"), t("columns.signals")],
+              rows: report.players.map((p) => [
+                p.rank,
+                p.nickname,
+                p.score,
+                t("correctOf", { correct: p.correct, total: report.questionCount }),
+                p.flags.map((flag) => t(`flags.${flag.kind}`, { count: flag.count })).join("; "),
+              ]),
+            })}
+          />
+          <ButtonLink href={home} variant="neutral">
+            {t("toDashboard")}
+          </ButtonLink>
+        </div>
       </div>
 
       {report.editCount > 0 ? (
@@ -158,6 +179,7 @@ export function ReportScreen({ report }: { report: GameReport }) {
         {player ? <PlayerAnswers player={player} questions={report.questions} /> : null}
         {question ? <QuestionAnswers question={question} players={report.players} /> : null}
       </Modal>
+      {toast}
     </StaffShell>
   );
 }

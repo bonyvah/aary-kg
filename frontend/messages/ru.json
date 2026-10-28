@@ -402,7 +402,8 @@
         "lateCount": "{count, plural, one {# опоздал} few {# опоздали} many {# опоздали} other {# опоздали}}",
         "addStudent": "Добавить ученика",
         "addPick": "Выберите ученика",
-        "add": "Добавить"
+        "add": "Добавить",
+        "submittedAt": "Сдано"
       },
       "setup": {
         "back": "Назад",
@@ -765,6 +766,11 @@
       "previous": "Предыдущая страница",
       "next": "Следующая страница",
       "position": "{page} из {pages}"
+    },
+    "export": {
+      "xlsx": "Excel",
+      "pdf": "PDF",
+      "failed": "Не удалось сохранить файл."
     }
   },
   "host": {

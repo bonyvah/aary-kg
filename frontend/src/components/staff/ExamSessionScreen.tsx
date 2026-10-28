@@ -15,6 +15,7 @@ import { PRESENT } from "@/lib/examSessions";
 import { useDateTime } from "@/lib/useDateTime";
 import type { AttendanceChange, DecisionInput, ExamSession, StudentChoice } from "@/types/examSession";
 import { AttemptModal } from "./AttemptModal";
+import { ExportButtons } from "./ExportButtons";
 import { IndividualRulingModal } from "./IndividualRulingModal";
 import { SuspectsPanel } from "./SuspectsPanel";
 import { AttendanceButton, AttendanceModal } from "./AttendanceModal";
@@ -129,6 +130,27 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <ExportButtons
+            onError={() => show("danger", tc("export.failed"))}
+            table={() => ({
+              title: session.title,
+              subtitle: [session.groups.map((g) => g.name).join(", "), dateTime(new Date(session.openedAt))].filter(Boolean).join(" · "),
+              headers: [ta("student"), ta("group"), ta("title"), ta("state"), ta("score"), ta("submittedAt"), ta("signals")],
+              rows: session.students.map((row) => [
+                row.name,
+                row.groupName ?? "",
+                row.attendance === "absent" ? ta("absent") : row.attendance === "late" ? ta("lateBy", { minutes: row.lateMinutes ?? 0 }) : ta("present"),
+                row.attemptState === "in_progress"
+                  ? ta("inProgress")
+                  : row.attemptState === "none"
+                    ? ta("notStarted")
+                    : ta(row.submitReason === "timeout" ? "timeUp" : row.submitReason === "closed" ? "endedByClose" : "submitted"),
+                row.score === null ? "" : ta("scoreValue", { score: row.score, total: session.questionCount }),
+                row.submittedAt ? dateTime(new Date(row.submittedAt)) : "",
+                row.signals.map((s) => `${tf(s.kind)}: ${s.count}`).join("; "),
+              ]),
+            })}
+          />
           <AttendanceButton rows={session.students} onClick={() => setAttending(true)} />
           {editable ? (
             <Button variant="danger" onClick={() => setClosing(true)}>

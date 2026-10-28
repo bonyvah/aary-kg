@@ -81,7 +81,11 @@
     "staff.quizView.cancel",
     "staff.quizView.share",
     "staff.quizView.linkCopied",
-    "staff.quizView.linkFailed"
+    "staff.quizView.linkFailed",
+    "common.export.xlsx",
+    "common.export.pdf",
+    "common.export.failed",
+    "staff.examSession.attendance.submittedAt"
   ],
   "app": {
     "name": "aary kg"
@@ -486,7 +490,8 @@
         "lateCount": "{count, plural, one {# кечикти} other {# кечикти}}",
         "addStudent": "Окуучу кошуу",
         "addPick": "Окуучуну тандаңыз",
-        "add": "Кошуу"
+        "add": "Кошуу",
+        "submittedAt": "Тапшырылды"
       },
       "setup": {
         "back": "Артка",
@@ -849,6 +854,11 @@
       "previous": "Мурунку барак",
       "next": "Кийинки барак",
       "position": "{page} / {pages}"
+    },
+    "export": {
+      "xlsx": "Excel",
+      "pdf": "PDF",
+      "failed": "Файлды сактоо мүмкүн болгон жок."
     }
   },
   "host": {

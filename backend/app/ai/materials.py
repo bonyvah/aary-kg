@@ -9,7 +9,9 @@ import zipfile
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+# All the files of one request together.
 MAX_FILE_BYTES = 10 * 1024 * 1024
+MAX_FILES = 10
 # What is sent to the model at most: enough for a chapter or a lecture, and a bounded bill.
 MAX_CHARS = 60_000
 

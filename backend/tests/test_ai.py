@@ -106,7 +106,7 @@ def test_model_output_is_checked_again():
 
 async def test_a_teacher_gets_questions_from_a_file_or_text(as_user, fake_ai):
     c, _ = await as_user("ulan")
-    files = {"file": ("lesson.docx", _docx(LESSON), "application/octet-stream")}
+    files = [("files", ("lesson.docx", _docx(LESSON), "application/octet-stream"))]
     r = await c.post("/ai/questions", data={"count": "5", "language": "ky"}, files=files)
     assert r.status_code == 200, r.json()
     assert r.json() == {
@@ -122,9 +122,13 @@ async def test_bad_requests_get_codes(as_user, fake_ai):
     c, _ = await as_user("ulan")
     form = {"count": "5", "language": "ky"}
     assert (await c.post("/ai/questions", data=form)).json()["code"] == "MATERIAL_REQUIRED"
-    r = await c.post("/ai/questions", data=form, files={"file": ("a.doc", b"x" * 100, "application/msword")})
+    r = await c.post(
+        "/ai/questions", data=form, files=[("files", ("a.doc", b"x" * 100, "application/msword"))]
+    )
     assert (r.status_code, r.json()["code"]) == (415, "UNSUPPORTED_FILE")
-    r = await c.post("/ai/questions", data=form, files={"file": ("a.pdf", b"%PDF broken", "application/pdf")})
+    r = await c.post(
+        "/ai/questions", data=form, files=[("files", ("a.pdf", b"%PDF broken", "application/pdf"))]
+    )
     assert r.json()["code"] == "MATERIAL_UNREADABLE"
     assert (await c.post("/ai/questions", data={**form, "text": "short"})).json()[
         "code"
@@ -153,3 +157,21 @@ async def test_no_key_no_feature(as_user, fake_ai, monkeypatch):
     teacher, _ = await as_user("ulan")
     r = await teacher.post("/ai/questions", data={"count": "5", "language": "ky", "text": LESSON})
     assert (r.status_code, r.json()["code"]) == (503, "AI_NOT_CONFIGURED")
+
+
+async def test_several_files_make_one_material_within_10_mb(as_user, fake_ai, monkeypatch):
+    c, _ = await as_user("ulan")
+    form = {"count": "5", "language": "ru"}
+    files = [
+        ("files", ("a.docx", _docx("Первый урок про клетки. " * 5), "application/octet-stream")),
+        ("files", ("b.pptx", _pptx("Второй урок про ткани. " * 5), "application/octet-stream")),
+    ]
+    assert (await c.post("/ai/questions", data=form, files=files)).status_code == 200
+    material = fake_ai[-1][0]
+    assert "Первый урок" in material and "Второй урок" in material
+    monkeypatch.setattr(materials, "MAX_FILE_BYTES", len(_docx(LESSON)) + 10)
+    two = [("files", ("a.docx", _docx(LESSON), "x")), ("files", ("b.docx", _docx(LESSON), "x"))]
+    r = await c.post("/ai/questions", data=form, files=two)
+    assert (r.status_code, r.json()["code"]) == (413, "FILE_TOO_LARGE")
+    many = [("files", (f"{n}.txt", LESSON.encode(), "text/plain")) for n in range(11)]
+    assert (await c.post("/ai/questions", data=form, files=many)).json()["code"] == "TOO_MANY_FILES"

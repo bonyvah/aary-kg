@@ -61,7 +61,12 @@
     "staff.editor.draft.discardBody",
     "staff.editor.draft.keep",
     "staff.examEditor.fromQuiz.kind.quiz",
-    "staff.examEditor.fromQuiz.kind.exam"
+    "staff.examEditor.fromQuiz.kind.exam",
+    "staff.editor.ai.addFiles",
+    "staff.editor.ai.total",
+    "staff.editor.ai.size",
+    "staff.editor.ai.tooBig",
+    "common.apiError.TOO_MANY_FILES"
   ],
   "app": {
     "name": "aary kg"
@@ -286,9 +291,9 @@
         "cancel": "Жокко чыгаруу",
         "generate": "Суроолорду түзүү",
         "working": "Суроолор түзүлүүдө…",
-        "pickFile": "Файл тандоо",
-        "removeFile": "Файлды алып салуу",
-        "fileKinds": "PDF, Word, PowerPoint же текст, 10 МБга чейин",
+        "pickFile": "Файлдарды тандоо",
+        "removeFile": "{name} алып салуу",
+        "fileKinds": "PDF, Word, PowerPoint же текст, баары 10 МБга чейин",
         "pasteLabel": "Же текстти коюңуз",
         "count": "Канча суроо",
         "customCount": "Башка сан",
@@ -296,7 +301,11 @@
         "languages": {
           "ky": "Кыргызча",
           "ru": "Орусча"
-        }
+        },
+        "addFiles": "Файл кошуу",
+        "total": "{used} / {max} МБ",
+        "size": "{size} МБ",
+        "tooBig": "Файлдар биригип 10 МБдан ашат."
       },
       "toQuestions": "Суроолорго",
       "toSetup": "Жөндөөлөргө кайтуу",
@@ -797,7 +806,8 @@
       "MATERIAL_REQUIRED": "Файл тандаңыз же текст коюңуз.",
       "AI_NOT_CONFIGURED": "Суроо түзүү жөндөлгөн эмес.",
       "AI_LIMIT": "Бүгүнкү лимит бүттү. Эртең аракет кылыңыз.",
-      "AI_FAILED": "Суроолорду түзүү мүмкүн болгон жок. Кайра аракет кылыңыз."
+      "AI_FAILED": "Суроолорду түзүү мүмкүн болгон жок. Кайра аракет кылыңыз.",
+      "TOO_MANY_FILES": "10 файлдан ашпасын."
     },
     "toDashboard": "Башкы бетке",
     "filters": {

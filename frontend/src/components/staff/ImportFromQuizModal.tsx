@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { Input } from "@/components/ui/Input";
+import { SearchInput } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { getQuiz, listQuizzes } from "@/lib/api/quizzes";
 import { matches } from "@/lib/search";
@@ -29,6 +29,8 @@ export function ImportFromQuizModal({ room, onImport, onClose }: ImportFromQuizM
       wide
       onClose={onClose}
       title={t("title")}
+      // The lists scroll inside; the dialog itself never does.
+      className="overflow-y-hidden"
       actions={
         quizId ? null : (
           <Button variant="neutral" onClick={onClose}>
@@ -54,12 +56,12 @@ function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Input type="search" hideLabel label={t("search")} placeholder={t("search")} value={query} onChange={(e) => setQuery(e.target.value)} />
+      <SearchInput label={t("search")} placeholder={t("search")} value={query} onChange={(e) => setQuery(e.target.value)} />
       <ResourceView resource={quizzes} inline>
         {(all) => {
           const items = all.filter((quiz) => matches(quiz.title, query, locale));
           return items.length > 0 ? (
-            <ul className="flex max-h-[420px] flex-col gap-2 overflow-y-auto">
+            <ul className="flex max-h-[min(420px,calc(100dvh-20rem))] min-h-[120px] flex-col gap-2 overflow-y-auto">
               {items.map((quiz) => (
                 <li key={quiz.id}>
                   <button
@@ -124,7 +126,7 @@ function QuestionList({
         checked={all}
         onChange={() => setPicked(all ? new Set() : new Set(quiz.questions.map((q) => q.id)))}
       />
-      <ol className="flex max-h-[380px] flex-col gap-1 overflow-y-auto">
+      <ol className="flex max-h-[min(380px,calc(100dvh-24rem))] min-h-[120px] flex-col gap-1 overflow-y-auto">
         {quiz.questions.map((question, index) => (
           <li key={question.id}>
             <Checkbox

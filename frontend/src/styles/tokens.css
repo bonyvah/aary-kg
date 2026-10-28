@@ -40,6 +40,9 @@
   --on-warning: #1a1a1a;
   --disabled: #e9e9e9;
   --on-disabled: #767676;
+  --draft: #ececee;
+  --draft-edge: #9a98a3;
+  --on-draft: #3b3946;
   --focus-ring: #1368ce;
   --tile-red: #e21b3c;
   --tile-red-edge: #a8122c;
@@ -132,6 +135,9 @@
   --on-warning: #1a1a1a;
   --disabled: #5a2ba3;
   --on-disabled: #cbb6ea;
+  --draft: #4b4558;
+  --draft-edge: #726b82;
+  --on-draft: #ece9f2;
   --focus-ring: #ffc00a;
   --tile-red: #e21b3c;
   --tile-red-edge: #a8122c;
@@ -209,6 +215,9 @@
   --color-on-warning: var(--on-warning);
   --color-disabled: var(--disabled);
   --color-on-disabled: var(--on-disabled);
+  --color-draft: var(--draft);
+  --color-draft-edge: var(--draft-edge);
+  --color-on-draft: var(--on-draft);
   --color-focus-ring: var(--focus-ring);
   --color-tile-red: var(--tile-red);
   --color-tile-red-edge: var(--tile-red-edge);

@@ -7,7 +7,7 @@ import { filterUsers, generatePassword, validateNewUser } from "../src/lib/admin
 import { validateGroupName } from "../src/lib/groups.ts";
 import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
-import { matches } from "../src/lib/search.ts";
+import { fold, matches, search } from "../src/lib/search.ts";
 import { fromQuiz } from "../src/lib/examEditor.ts";
 
 let failed = 0;
@@ -100,9 +100,14 @@ check("exam clock", clock(1800) === "30:00" && clock(61) === "1:01" && clock(5) 
 check("only answers with text are shown", usedPositions(["a", "", " ", "d"]).join() === "1,4");
 
 // Search: every word, any case, in the screen's language.
-check("search ignores case and word order", matches("Алгебра 9-класс", "9-КЛАСС алг", "ru"));
-check("search needs every word", !matches("Алгебра", "алгебра физика", "ru"));
-check("an empty search matches all", matches("Тарых", "  ", "ky"));
+check("search ignores case and word order", matches("Алгебра 9-класс", "9-КЛАСС алг"));
+check("search needs every word", !matches("Алгебра", "алгебра физика"));
+check("an empty search matches all", matches("Тарых", "  "));
+check("letters fold across scripts", fold("Өмүрбек Ңаа") === "omurbek ngaa" && matches("Өмүрбек", "omurbek") && matches("omurbek", "Омурбек"));
+check("a typo is forgiven in a longer word", matches("Математика 5-класс", "матиматика") && matches("Физика", "fizika"));
+check("short words must be exact", !matches("Тарых", "тор") && matches("Тарых", "тар"));
+check("too many typos is no match", !matches("Биология", "геометрия"));
+check("best match first", search(["Алгебранын негиздери", "Алгебра", "Геометрия жана алгебра"], "алгебра", (s) => [s]).join("|") === "Алгебра|Геометрия жана алгебра|Алгебранын негиздери");
 
 // Users management filter.
 const people = [
@@ -110,7 +115,7 @@ const people = [
   { name: "Айзада К", login: "aizada", role: "student" as const, groupId: "g1" },
   { name: "Бакыт Т", login: "bakyt", role: "student" as const, groupId: "g2" },
 ];
-const found = (query: string, role: "all" | "teacher" | "student" | "admin", groupId = "") => filterUsers(people, { query, role, groupId }, "ru").map((u) => u.login).join();
+const found = (query: string, role: "all" | "teacher" | "student" | "admin", groupId = "") => filterUsers(people, { query, role, groupId }).map((u) => u.login).join();
 check("search by name or login", found("айз", "all") === "aizada" && found("BAK", "all") === "bakyt");
 check("filter by role", found("", "student") === "aizada,bakyt" && found("", "teacher") === "aibek");
 check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "all", "g2") === "aibek,aizada,bakyt");

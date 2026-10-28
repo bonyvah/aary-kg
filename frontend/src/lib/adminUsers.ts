@@ -1,4 +1,4 @@
-import { matches } from "@/lib/search";
+import { search } from "@/lib/search";
 import type { ManagedUser, UserRole } from "@/types/user";
 
 /** Stable codes of a failed «create user». The frontend turns them into translated text. */
@@ -45,16 +45,15 @@ function randomIndex(max: number): number {
 
 export type UserFilter = { query: string; role: UserRole | "all"; groupId: string };
 
-/** The users the admin is looking for: by name or login, by role, and for students by group ("" = any). */
+/** The users the admin is looking for: by role, for students by group ("" = any), then by name or login, best first. */
 export function filterUsers<U extends Pick<ManagedUser, "name" | "login" | "role" | "groupId">>(
   users: readonly U[],
   filter: UserFilter,
-  locale: string,
 ): U[] {
-  return users.filter(
+  const picked = users.filter(
     (user) =>
       (filter.role === "all" || user.role === filter.role) &&
-      (filter.role !== "student" || filter.groupId === "" || user.groupId === filter.groupId) &&
-      (matches(user.name, filter.query, locale) || matches(user.login, filter.query, locale)),
+      (filter.role !== "student" || filter.groupId === "" || user.groupId === filter.groupId),
   );
+  return search(picked, filter.query, (user) => [user.name, user.login]);
 }

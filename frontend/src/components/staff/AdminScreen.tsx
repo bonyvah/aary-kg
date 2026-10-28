@@ -141,7 +141,7 @@ export function AdminScreen() {
     }
   }
 
-  const shown = users ? filterUsers(users, filter, locale) : [];
+  const shown = users ? filterUsers(users, filter) : [];
   // The groups that have students, for the group filter, sorted by name.
   const studentGroups = Array.from(
     new Map((users ?? []).filter((u) => u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),

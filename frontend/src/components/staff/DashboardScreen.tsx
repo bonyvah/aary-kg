@@ -1,12 +1,12 @@
 "use client";
 
 import { useId, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { ClockCounterClockwise, Exam, Files, MagnifyingGlass, Question, Trophy } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
-import { matches } from "@/lib/search";
+import { search } from "@/lib/search";
 import { useStoredTab } from "@/lib/useStoredTab";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { listContests } from "@/lib/api/contests";
@@ -30,7 +30,6 @@ type Tab = (typeof TABS)[number];
 export function DashboardScreen() {
   const user = useCurrentUser();
   const t = useTranslations("staff.dashboard");
-  const locale = useLocale();
   const [tab, setTab] = useStoredTab<Tab>("aary.dashboardTab", TABS, "quizzes");
   const [query, setQuery] = useState("");
   const searchable = tab === "quizzes" || tab === "examSheets";
@@ -92,7 +91,7 @@ export function DashboardScreen() {
         {tab === "quizzes" ? (
           <ResourceView resource={quizzes} inline>
             {(all) => {
-              const items = all.filter((quiz) => matches(quiz.title, query, locale));
+              const items = search(all, query, (quiz) => [quiz.title]);
               return items.length > 0 ? (
                 <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((quiz) => (
@@ -113,7 +112,7 @@ export function DashboardScreen() {
         ) : tab === "examSheets" ? (
           <ResourceView resource={examSheets} inline>
             {(all) => {
-              const items = all.filter((exam) => matches(exam.title, query, locale));
+              const items = search(all, query, (exam) => [exam.title]);
               return items.length > 0 ? (
                 <ul className="grid auto-rows-fr gap-4 pb-1 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((exam) => (

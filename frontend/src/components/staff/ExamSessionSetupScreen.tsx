@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
 import { startExamSession } from "@/lib/api/examSessions";
 import { PRESENT, targetStudents } from "@/lib/examSessions";
+import { search as searchItems } from "@/lib/search";
 import type { ExamSummary } from "@/types/exam";
 import type { AttendanceChange, StudentChoice } from "@/types/examSession";
 import type { Group } from "@/types/group";
@@ -50,11 +51,12 @@ export function ExamSessionSetupScreen({ exams, groups, students, examId: presel
   const sortedGroups = useMemo(() => [...groups].sort((a, b) => a.name.localeCompare(b.name, locale)), [groups, locale]);
   const targets = targetStudents(students, groupIds, extraIds, locale);
   const rows = targets.map((s) => ({ ...(marks[s.id] ?? PRESENT), studentId: s.id, name: s.name, groupName: s.groupName }));
-  const query = search.trim().toLocaleLowerCase(locale);
-  const outside = students
+  const outsideAll = students
     .filter((s) => s.groupId === null || !groupIds.has(s.groupId))
-    .filter((s) => query === "" || s.name.toLocaleLowerCase(locale).includes(query) || extraIds.has(s.id))
     .sort((a, b) => a.name.localeCompare(b.name, locale));
+  // Ticked students stay in the list whatever the search says.
+  const found = new Set(searchItems(outsideAll, search, (s) => [s.name, s.groupName ?? ""]).map((s) => s.id));
+  const outside = outsideAll.filter((s) => found.has(s.id) || extraIds.has(s.id));
 
   function flip(set: ReadonlySet<string>, id: string): ReadonlySet<string> {
     const next = new Set(set);

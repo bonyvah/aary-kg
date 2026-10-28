@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { SearchInput } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { getQuiz, listQuizzes } from "@/lib/api/quizzes";
-import { matches } from "@/lib/search";
+import { search } from "@/lib/search";
 import type { Quiz } from "@/types/quiz";
 import { ResourceView, useResource } from "./Resource";
 
@@ -50,7 +50,6 @@ export function ImportFromQuizModal({ room, onImport, onClose }: ImportFromQuizM
 
 function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
   const t = useTranslations("staff.examEditor.fromQuiz");
-  const locale = useLocale();
   const quizzes = useResource(listQuizzes);
   const [query, setQuery] = useState("");
 
@@ -59,7 +58,7 @@ function QuizPicker({ onPick }: { onPick: (id: string) => void }) {
       <SearchInput label={t("search")} placeholder={t("search")} value={query} onChange={(e) => setQuery(e.target.value)} />
       <ResourceView resource={quizzes} inline>
         {(all) => {
-          const items = all.filter((quiz) => matches(quiz.title, query, locale));
+          const items = search(all, query, (quiz) => [quiz.title]);
           return items.length > 0 ? (
             <ul className="flex max-h-[min(420px,calc(100dvh-20rem))] min-h-[120px] flex-col gap-2 overflow-y-auto">
               {items.map((quiz) => (

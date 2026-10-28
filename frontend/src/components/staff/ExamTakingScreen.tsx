@@ -165,13 +165,15 @@ export function ExamTakingScreen({ exam, onEnded }: ExamTakingScreenProps) {
           <Button variant="neutral" disabled={index === 0} onClick={() => setIndex((i) => Math.max(0, i - 1))}>
             {t("previous")}
           </Button>
-          <Button
-            variant="secondary"
-            disabled={index === questions.length - 1}
-            onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}
-          >
-            {t("next")}
-          </Button>
+          {index === questions.length - 1 || unanswered === 0 ? (
+            <Button variant="success" onClick={() => setConfirming(true)}>
+              {t("submit")}
+            </Button>
+          ) : (
+            <Button variant="secondary" onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}>
+              {t("next")}
+            </Button>
+          )}
         </div>
       </main>
 

@@ -13,9 +13,8 @@ async def test_a_teacher_sees_others_quizzes_and_copies_one(as_user):
 
     listing = (await ulan.get("/quiz-library")).json()
     assert [(x["title"], x["ownerName"], x["questionCount"]) for x in listing] == [("Theirs", "Omur", 2)]
-    assert (await ulan.get(f"/quiz-library/{mine}")).json()[
-        "code"
-    ] == "QUIZ_NOT_FOUND"  # one's own: the dashboard
+    # One's own isn't listed (it is on the dashboard), but its shared link opens.
+    assert (await ulan.get(f"/quiz-library/{mine}")).json()["title"] == "Mine"
 
     read = (await ulan.get(f"/quiz-library/{theirs['id']}")).json()
     assert (read["ownerName"], [q["id"] for q in read["questions"]]) == ("Omur", ["a", "b"])
@@ -39,3 +38,13 @@ async def test_only_teachers_use_the_library(as_user):
     student, _ = await as_user("aizada", role="student")
     for c in (admin, student):
         assert (await c.get("/quiz-library")).status_code == 403
+
+
+async def test_a_teacher_hosts_another_teachers_quiz_without_copying(as_user):
+    ulan, _ = await as_user("ulan")
+    omur, _ = await as_user("omur")
+    theirs = (await omur.post("/quizzes", json=quiz(title="Theirs"))).json()["id"]
+    r = await ulan.post("/games", json={"quizId": theirs})
+    assert r.status_code == 201, r.json()
+    assert len(r.json()["pin"]) == 6
+    assert [q["title"] for q in (await ulan.get("/quizzes")).json()] == []  # nothing copied

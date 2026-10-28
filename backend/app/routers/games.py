@@ -77,8 +77,9 @@ async def next_game(game_id: str, body: CreateGameIn, user: TeacherUser, session
 
 
 async def _quiz_snapshot(session: Session, user: TeacherUser, quiz_id: uuid.UUID) -> dict[str, Any]:
-    """The quiz is copied into the game: later edits don't touch it."""
-    quiz = await quizzes_service.get_editable(session, user, quiz_id)
+    """The quiz is copied into the game: later edits don't touch it. Any teacher's quiz can be hosted
+    (straight from the bazar), not only one's own."""
+    quiz = await quizzes_service.get_hostable(session, user, quiz_id)
     return {"id": str(quiz.id), "title": quiz.title, "questions": quiz.questions}
 
 

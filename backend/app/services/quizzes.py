@@ -87,3 +87,11 @@ async def delete(session: AsyncSession, user: User, quiz_id: uuid.UUID) -> None:
     else:
         await session.delete(quiz)
     await session.commit()
+
+
+async def get_hostable(session: AsyncSession, user: User, quiz_id: uuid.UUID) -> Quiz:
+    """A quiz a teacher may host: their own, or any other teacher's from the bazar (not deleted)."""
+    quiz = await repo.get(session, quiz_id)
+    if not quiz or quiz.deleted_at is not None:
+        raise ApiError(404, "QUIZ_NOT_FOUND")
+    return quiz

@@ -35,13 +35,15 @@ async def join(client, pin, nickname):
 # --- creating a game ---------------------------------------------------------------------------
 
 
-async def test_creating_a_game_needs_login_and_your_own_quiz(client, as_user):
+async def test_creating_a_game_needs_login_and_a_quiz(client, as_user):
     r = await client.post("/games", json={"quizId": "00000000-0000-0000-0000-000000000000"})
     assert r.status_code == 401
     host, _, quiz, game = await make_game(as_user)
     assert len(game["pin"]) == 6 and len(game["gameId"]) == 32
     other, _ = await as_user("other")
-    r = await other.post("/games", json={"quizId": quiz["id"]})
+    # Another teacher hosts it straight from the bazar.
+    assert (await other.post("/games", json={"quizId": quiz["id"]})).status_code == 201
+    r = await other.post("/games", json={"quizId": "00000000-0000-0000-0000-000000000000"})
     assert (r.status_code, r.json()["code"]) == (404, "QUIZ_NOT_FOUND")
     admin, _ = await as_user("root", role="admin")  # admins don't host games, not even for their own users
     r = await admin.post("/games", json={"quizId": quiz["id"]})

@@ -28,17 +28,17 @@ class LibraryQuizOut(CamelModel):
     questions: list[Question]
 
 
-async def _others(session: Session, user: TeacherUser, quiz_id: uuid.UUID) -> Quiz:
-    """Another teacher's quiz. One's own quizzes are on the dashboard."""
+async def _shared(session: Session, quiz_id: uuid.UUID) -> Quiz:
+    """Any teacher's quiz, by its link: the owner's own link opens too. Not a deleted one."""
     quiz = await repo.get(session, quiz_id)
-    if quiz is None or quiz.owner_id == user.id or quiz.deleted_at is not None:
+    if quiz is None or quiz.deleted_at is not None:
         raise ApiError(404, "QUIZ_NOT_FOUND")
     return quiz
 
 
 @router.get("", response_model=list[LibraryQuizSummary], response_model_by_alias=True)
 async def library(user: TeacherUser, session: Session) -> list[LibraryQuizSummary]:
-    """Every other teacher's quiz, newest first: to read and to copy."""
+    """Every other teacher's quiz, newest first: to read, host and copy."""
     return [
         LibraryQuizSummary(
             id=q.id,
@@ -53,14 +53,14 @@ async def library(user: TeacherUser, session: Session) -> list[LibraryQuizSummar
 
 @router.get("/{quiz_id}", response_model=LibraryQuizOut, response_model_by_alias=True)
 async def read(quiz_id: uuid.UUID, user: TeacherUser, session: Session) -> LibraryQuizOut:
-    quiz = await _others(session, user, quiz_id)
+    quiz = await _shared(session, quiz_id)
     return LibraryQuizOut(id=quiz.id, title=quiz.title, owner_name=quiz.owner.name, questions=quiz.questions)
 
 
 @router.post("/{quiz_id}/copy", status_code=201, response_model=QuizOut, response_model_by_alias=True)
 async def copy(quiz_id: uuid.UUID, user: TeacherUser, session: Session) -> QuizOut:
     """A copy among one's own quizzes: later edits on either side stay apart."""
-    original = await _others(session, user, quiz_id)
+    original = await _shared(session, quiz_id)
     quiz = Quiz(
         owner_id=user.id,
         title=original.title,

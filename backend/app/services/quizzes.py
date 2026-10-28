@@ -1,8 +1,11 @@
 import uuid
+from datetime import UTC, datetime
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import ApiError
+from app.models.game import Game
 from app.models.quiz import Quiz
 from app.models.user import User
 from app.repositories import quizzes as repo
@@ -61,7 +64,7 @@ async def get_editable(session: AsyncSession, user: User, quiz_id: uuid.UUID) ->
     """Only the owner: not even an admin edits somebody's quiz. Anyone else gets the same answer as for
     a quiz that doesn't exist."""
     quiz = await repo.get(session, quiz_id)
-    if not quiz or quiz.owner_id != user.id:
+    if not quiz or quiz.owner_id != user.id or quiz.deleted_at is not None:
         raise ApiError(404, "QUIZ_NOT_FOUND")
     return quiz
 
@@ -73,3 +76,14 @@ async def update(session: AsyncSession, user: User, quiz_id: uuid.UUID, payload:
     quiz.questions = _questions(payload)
     await session.commit()
     return quiz
+
+
+async def delete(session: AsyncSession, user: User, quiz_id: uuid.UUID) -> None:
+    """Removed if no game was played from it; otherwise only marked deleted, so its games keep their quiz."""
+    quiz = await get_editable(session, user, quiz_id)
+    used = await session.scalar(select(func.count()).select_from(Game).where(Game.quiz_id == quiz.id))
+    if used:
+        quiz.deleted_at = datetime.now(UTC)
+    else:
+        await session.delete(quiz)
+    await session.commit()

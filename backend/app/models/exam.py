@@ -23,3 +23,5 @@ class Exam(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    # Set when it is deleted after being used: gone from every list, the history built on it kept.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)

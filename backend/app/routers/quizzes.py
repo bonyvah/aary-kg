@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from app.deps import Session, StaffUser, TeacherUser
 from app.repositories import quizzes as repo
@@ -32,3 +32,10 @@ async def get_quiz(quiz_id: uuid.UUID, user: StaffUser, session: Session) -> Qui
 @router.put("/{quiz_id}", response_model=QuizOut, response_model_by_alias=True)
 async def update_quiz(quiz_id: uuid.UUID, body: QuizIn, user: StaffUser, session: Session) -> QuizOut:
     return QuizOut.model_validate(await service.update(session, user, quiz_id, body))
+
+
+@router.delete("/{quiz_id}", status_code=204)
+async def delete_quiz(quiz_id: uuid.UUID, user: StaffUser, session: Session) -> Response:
+    """Owner only. Hard delete if it was never used, soft otherwise."""
+    await service.delete(session, user, quiz_id)
+    return Response(status_code=204)

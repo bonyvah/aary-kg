@@ -31,7 +31,7 @@ class LibraryQuizOut(CamelModel):
 async def _others(session: Session, user: TeacherUser, quiz_id: uuid.UUID) -> Quiz:
     """Another teacher's quiz. One's own quizzes are on the dashboard."""
     quiz = await repo.get(session, quiz_id)
-    if quiz is None or quiz.owner_id == user.id:
+    if quiz is None or quiz.owner_id == user.id or quiz.deleted_at is not None:
         raise ApiError(404, "QUIZ_NOT_FOUND")
     return quiz
 

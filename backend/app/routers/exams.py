@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from app.deps import Session, StaffUser, TeacherUser
 from app.models.exam import Exam
@@ -33,3 +33,10 @@ async def get_exam(exam_id: uuid.UUID, user: StaffUser, session: Session) -> Exa
 @router.put("/{exam_id}", response_model=ExamOut, response_model_by_alias=True)
 async def update_exam(exam_id: uuid.UUID, body: ExamIn, user: StaffUser, session: Session) -> ExamOut:
     return ExamOut.model_validate(await service.update(session, user, exam_id, body))
+
+
+@router.delete("/{exam_id}", status_code=204)
+async def delete_exam(exam_id: uuid.UUID, user: StaffUser, session: Session) -> Response:
+    """Owner only. Hard delete if it was never used, soft otherwise."""
+    await service.delete(session, user, exam_id)
+    return Response(status_code=204)

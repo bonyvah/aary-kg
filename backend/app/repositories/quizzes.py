@@ -13,7 +13,9 @@ async def get(session: AsyncSession, quiz_id: uuid.UUID) -> Quiz | None:
 
 async def list_for_owner(session: AsyncSession, owner_id: uuid.UUID) -> list[Quiz]:
     result = await session.execute(
-        select(Quiz).where(Quiz.owner_id == owner_id).order_by(Quiz.updated_at.desc())
+        select(Quiz)
+        .where(Quiz.owner_id == owner_id, Quiz.deleted_at.is_(None))
+        .order_by(Quiz.updated_at.desc())
     )
     return list(result.scalars())
 
@@ -22,7 +24,7 @@ async def list_others(session: AsyncSession, owner_id: uuid.UUID) -> list[Quiz]:
     """Everyone else's quizzes, newest first, with their owner."""
     result = await session.execute(
         select(Quiz)
-        .where(Quiz.owner_id != owner_id)
+        .where(Quiz.owner_id != owner_id, Quiz.deleted_at.is_(None))
         .options(selectinload(Quiz.owner))
         .order_by(Quiz.updated_at.desc())
     )

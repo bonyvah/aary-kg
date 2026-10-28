@@ -84,6 +84,7 @@ export function DocEditorScreen<D extends EditorDoc>({
           <Input
             hideLabel
             label={titleLabel}
+            placeholder={titleLabel}
             value={state.doc.title}
             maxLength={200}
             onChange={(event) => editor.setTitle(event.target.value)}

@@ -16,9 +16,9 @@ type ImageFrameProps = {
 };
 
 /**
- * Every quiz and question image sits in the same 16:9 frame, scaled to fit whole (never cropped) on a
- * flat dark fill, so pictures of any shape take the same room. A picture that fails to load shows the
- * empty frame.
+ * Every quiz and question image fills the same 16:9 frame, so pictures take the same room everywhere.
+ * Uploads are stored cut to 16:9; an older one of another shape is cut in the middle. A picture that
+ * fails to load shows the empty frame.
  */
 export function ImageFrame({ image, placeholder = false, className }: ImageFrameProps) {
   const [failed, setFailed] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export function ImageFrame({ image, placeholder = false, className }: ImageFrame
           decoding="async"
           draggable={false}
           onError={() => setFailed(src)}
-          className="absolute inset-0 size-full object-contain"
+          className="absolute inset-0 size-full object-cover"
         />
       ) : (
         <Icon icon={ImageGlyph} weight="fill" size={40} className="text-brand-light" />

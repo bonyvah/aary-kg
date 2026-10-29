@@ -1,13 +1,14 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Image as ImageGlyph } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { ImageFrame } from "@/components/ui/ImageFrame";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
-import { IMAGE_TYPES, MAX_IMAGE_BYTES, uploadImage } from "@/lib/api/images";
+import { IMAGE_TYPES, MAX_IMAGE_BYTES, uploadImage, type ImageFrameAt } from "@/lib/api/images";
+import { ImageCropper } from "./ImageCropper";
 
 type ImagePickerProps = {
   label: string;
@@ -15,7 +16,10 @@ type ImagePickerProps = {
   onChange: (image: string | null) => void;
 };
 
-/** An optional image: add one (uploaded at once), replace it or take it away. */
+/**
+ * An optional image: add one, replace it or take it away. A picked file is framed first (dragged into
+ * the 16:9 frame) and uploaded on «save», cut where it was placed.
+ */
 export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
   const t = useTranslations("staff.editor.image");
   const tc = useTranslations("common");
@@ -24,16 +28,29 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
   const errorId = useId();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<KnownApiCode | null>(null);
+  const [pending, setPending] = useState<{ file: File; src: string } | null>(null);
+  const [at, setAt] = useState<ImageFrameAt>({ x: 0.5, y: 0.5 });
 
-  async function pick(file: File | undefined) {
+  // The picked file is shown from memory until it is saved or dropped.
+  useEffect(() => (pending ? () => URL.revokeObjectURL(pending.src) : undefined), [pending]);
+
+  function pick(file: File | undefined) {
     if (!file) return;
     setError(null);
     // The server checks the same; this only saves sending a file it would refuse.
     if (!(IMAGE_TYPES as readonly string[]).includes(file.type)) return setError("IMAGE_UNSUPPORTED");
     if (file.size > MAX_IMAGE_BYTES) return setError("FILE_TOO_LARGE");
+    setAt({ x: 0.5, y: 0.5 });
+    setPending({ file, src: URL.createObjectURL(file) });
+  }
+
+  async function save() {
+    if (!pending) return;
+    setError(null);
     setBusy(true);
     try {
-      onChange((await uploadImage(file)).id);
+      onChange((await uploadImage(pending.file, at)).id);
+      setPending(null);
     } catch (failure) {
       setError(toKnownCode(failure));
     } finally {
@@ -46,8 +63,28 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
       <span id={labelId} className="text-body font-bold text-ink">
         {label}
       </span>
-      {image ? <ImageFrame image={image} className="w-full max-w-[360px] rounded-md" /> : null}
-      <div className="flex flex-wrap gap-3">
+      {pending ? (
+        <>
+          <ImageCropper
+            src={pending.src}
+            at={at}
+            onMove={setAt}
+            label={t("frame")}
+            className="w-full max-w-[360px] rounded-md"
+          />
+          <div className="flex flex-wrap gap-3">
+            <Button variant="success" disabled={busy} onClick={() => void save()}>
+              {busy ? t("uploading") : t("save")}
+            </Button>
+            <Button variant="neutral" disabled={busy} onClick={() => setPending(null)}>
+              {t("cancel")}
+            </Button>
+          </div>
+        </>
+      ) : image ? (
+        <ImageFrame image={image} className="w-full max-w-[360px] rounded-md" />
+      ) : null}
+      <div className={pending ? "hidden" : "flex flex-wrap gap-3"}>
         <Button
           variant="secondary"
           disabled={busy}
@@ -55,9 +92,9 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
           onClick={() => input.current?.click()}
         >
           <Icon icon={ImageGlyph} />
-          {busy ? t("uploading") : image ? t("replace") : t("add")}
+          {image ? t("replace") : t("add")}
         </Button>
-        {image && !busy ? (
+        {image ? (
           <Button variant="neutral" onClick={() => onChange(null)}>
             {t("remove")}
           </Button>
@@ -75,7 +112,7 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
         hidden
         tabIndex={-1}
         onChange={(event) => {
-          void pick(event.target.files?.[0]);
+          pick(event.target.files?.[0]);
           event.target.value = "";
         }}
       />

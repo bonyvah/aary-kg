@@ -101,7 +101,10 @@
     "staff.editor.import.errors.IMAGE_INVALID",
     "common.apiError.IMAGE_UNSUPPORTED",
     "common.apiError.IMAGES_NOT_CONFIGURED",
-    "common.apiError.IMAGE_UPLOAD_FAILED"
+    "common.apiError.IMAGE_UPLOAD_FAILED",
+    "staff.editor.image.save",
+    "staff.editor.image.cancel",
+    "staff.editor.image.frame"
   ],
   "app": {
     "name": "aary kg"
@@ -282,7 +285,10 @@
         "add": "Сүрөт кошуу",
         "replace": "Алмаштыруу",
         "remove": "Алып салуу",
-        "uploading": "Жүктөлүүдө…"
+        "uploading": "Жүктөлүүдө…",
+        "save": "Сактоо",
+        "cancel": "Жокко чыгаруу",
+        "frame": "Сүрөттүн көрүнгөн бөлүгү"
       },
       "emptyQuestion": "Жаңы суроо",
       "answerLabel": "Жооп: {shape}",

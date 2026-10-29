@@ -43,6 +43,8 @@ class CreateUserIn(CamelModel):
     role: Literal["teacher", "student"] = "teacher"
     # Required for a student, refused for a teacher.
     group_id: uuid.UUID | None = None
+    # Chosen by the admin, under the same rules as a password a person chooses. Blank: generated.
+    password: str = ""
 
 
 class MoveGroupIn(CamelModel):

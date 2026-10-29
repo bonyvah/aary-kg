@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import password_policy
 from app.errors import ApiError
 from app.models.group import Group
 from app.models.user import User
@@ -31,8 +32,9 @@ async def create_user(
     login: str,
     role: str,
     group_id: uuid.UUID | None = None,
+    password: str = "",
 ) -> tuple[User, str]:
-    """A teacher has no group; a student is in exactly one."""
+    """A teacher has no group; a student is in exactly one. A blank password is generated."""
     first_name, last_name = first_name.strip(), last_name.strip()
     login = login.strip().lower()
     if not first_name:
@@ -53,7 +55,12 @@ async def create_user(
         raise ApiError(400, "VALIDATION_ERROR", "groupId")
     else:
         group = None
-    password = generate_password()
+    if password:
+        password_policy.check(
+            password, first_name=first_name, last_name=last_name, login=login, field="password"
+        )
+    else:
+        password = generate_password()
     user = User(
         first_name=first_name,
         last_name=last_name,

@@ -50,6 +50,32 @@ async def test_create_user_validation(client):
         assert (r.status_code, r.json()) == (status, {"code": code, "field": field}), body
 
 
+async def test_create_user_with_a_chosen_password(client):
+    await admin_client(client)
+    body = {"firstName": "Улан", "lastName": "Касымов", "login": "ulan.k"}
+    r = await client.post("/admin/users", json={**body, "password": "tulpar-9421"})
+    assert r.status_code == 201 and r.json()["password"] == "tulpar-9421"
+    fresh = type(client)(transport=client._transport, base_url="http://test")
+    await login_as(fresh, "ulan.k", "tulpar-9421")
+    await fresh.aclose()
+
+
+async def test_a_chosen_password_follows_the_rules(client):
+    await admin_client(client)
+    cases = [
+        ("short1", "PASSWORD_TOO_SHORT"),
+        ("onlyletters", "PASSWORD_NEEDS_DIGIT"),
+        ("Ulan-2026-ok", "PASSWORD_CONTAINS_NAME"),
+        ("aida.b-77x", "PASSWORD_CONTAINS_LOGIN"),
+    ]
+    for password, code in cases:
+        r = await client.post(
+            "/admin/users",
+            json={"firstName": "Улан", "lastName": "Б", "login": "aida.b", "password": password},
+        )
+        assert (r.status_code, r.json()) == (400, {"code": code, "field": "password"}), password
+
+
 async def test_login_taken_is_case_insensitive(client):
     await admin_client(client)
     await client.post("/admin/users", json={"firstName": "A", "lastName": "B", "login": "ulan"})

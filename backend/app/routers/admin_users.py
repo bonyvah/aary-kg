@@ -19,7 +19,7 @@ async def list_users(_: AdminUser, session: Session) -> list[ManagedUser]:
 @router.post("", status_code=201, response_model=UserWithPassword, response_model_by_alias=True)
 async def create_user(body: CreateUserIn, _: AdminUser, session: Session) -> UserWithPassword:
     user, password = await service.create_user(
-        session, body.first_name, body.last_name, body.login, body.role, body.group_id
+        session, body.first_name, body.last_name, body.login, body.role, body.group_id, body.password
     )
     return UserWithPassword(user=ManagedUser.model_validate(user), password=password)
 

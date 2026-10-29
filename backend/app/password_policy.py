@@ -54,11 +54,11 @@ def _parts(value: str) -> set[str]:
     return {skeleton(piece) for piece in [value, *words]}
 
 
-def check(password: str, *, first_name: str, last_name: str, login: str) -> None:
-    """Raises ApiError(400, code, "newPassword") for the first rule the password breaks."""
+def check(password: str, *, first_name: str, last_name: str, login: str, field: str = "newPassword") -> None:
+    """Raises ApiError(400, code, field) for the first rule the password breaks."""
 
     def refuse(code: str) -> ApiError:
-        return ApiError(400, code, "newPassword")
+        return ApiError(400, code, field)
 
     if len(password) < MIN_LENGTH:
         raise refuse("PASSWORD_TOO_SHORT")

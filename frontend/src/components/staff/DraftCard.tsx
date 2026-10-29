@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import { listDrafts, type Draft, type DraftKind } from "@/lib/quizEditor/drafts";
 
 const HREF: Record<DraftKind, string> = { quiz: "/quizzes/manage/new", exam: "/exams/manage/new" };
@@ -29,11 +30,13 @@ export function DraftCard({ draft, kind }: { draft: Draft; kind: DraftKind }) {
   return (
     <div
       className={
-        "relative flex h-full min-h-[116px] flex-1 flex-col gap-2 rounded-lg border-2 border-draft-edge bg-draft p-6 text-on-draft " +
+        "relative flex h-full min-h-[116px] flex-1 flex-col gap-2 overflow-hidden rounded-lg border-2 border-draft-edge bg-draft p-6 text-on-draft " +
         "shadow-[0_4px_0_0_var(--draft-edge)] transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--draft-edge)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }
     >
+      {/* Quiz cards carry a cover band, so a quiz draft does too; exam sheets have no cover. */}
+      {kind === "quiz" ? <ImageFrame image={draft.doc.image} placeholder className="-mx-6 -mt-6 mb-2" /> : null}
       <span className="w-fit rounded-full border-2 border-draft-edge px-3 py-1 text-caption font-bold">{t("draft")}</span>
       <h2 className="line-clamp-2 text-h3 font-bold [overflow-wrap:anywhere]">
         <Link href={href} className="outline-none after:absolute after:inset-0 after:content-['']">

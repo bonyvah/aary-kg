@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import type { QuizSummary } from "@/types/quiz";
 
 /** The whole card is the link: the title is the link and its hit area is stretched over the card. */
@@ -11,11 +12,12 @@ export function QuizCard({ quiz }: { quiz: QuizSummary }) {
   return (
     <Card
       className={
-        "relative flex h-full min-h-[116px] flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
+        "relative flex h-full min-h-[116px] flex-col gap-2 overflow-hidden transition-[transform,box-shadow] duration-150 ease-out " +
         "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--border)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }
     >
+      <ImageFrame image={quiz.image} placeholder className="-mx-6 -mt-6 mb-2" />
       {quiz.status === "draft" ? (
         <div>
           <Badge>{t("draft")}</Badge>

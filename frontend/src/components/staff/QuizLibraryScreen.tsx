@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Books } from "@phosphor-icons/react/ssr";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { listLibrary, type LibraryQuizSummary } from "@/lib/api/quizzes";
 import { FilteredList } from "./FilteredList";
@@ -60,11 +61,12 @@ function LibraryCard({ quiz }: { quiz: LibraryQuizSummary }) {
   return (
     <Card
       className={
-        "relative flex h-full min-h-[116px] flex-1 flex-col gap-2 transition-[transform,box-shadow] duration-150 ease-out " +
+        "relative flex h-full min-h-[116px] flex-1 flex-col gap-2 overflow-hidden transition-[transform,box-shadow] duration-150 ease-out " +
         "hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--border)] " +
         "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-focus-ring"
       }
     >
+      <ImageFrame image={quiz.image} placeholder className="-mx-6 -mt-6 mb-2" />
       <h2 title={quiz.title} className="line-clamp-2 text-h3 font-bold [overflow-wrap:anywhere]">
         <Link href={`/quizzes/library/${quiz.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
           {quiz.title}

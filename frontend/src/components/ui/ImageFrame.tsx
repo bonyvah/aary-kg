@@ -11,7 +11,7 @@ type ImageFrameProps = {
   image: string | null | undefined;
   /** Draw the empty frame with an image mark when there is no image (cards, so they all keep one shape). */
   placeholder?: boolean;
-  /** Sizing from the screen: a width, a max width. The frame is always 16:9. */
+  /** Sizing and corners from the screen: a width, a max width, a radius. The frame is always 16:9. */
   className?: string;
 };
 
@@ -27,7 +27,7 @@ export function ImageFrame({ image, placeholder = false, className }: ImageFrame
   if (!shown && !placeholder && !image) return null;
 
   return (
-    <div className={cx("relative grid aspect-video place-items-center overflow-hidden rounded-md bg-brand-dark", className)}>
+    <div className={cx("relative grid aspect-video place-items-center overflow-hidden bg-brand-dark", className)}>
       {shown ? (
         // The bucket serves the final WebP, already sized: nothing for Next's image optimizer to do.
         // eslint-disable-next-line @next/next/no-img-element

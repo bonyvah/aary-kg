@@ -46,7 +46,7 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
       <span id={labelId} className="text-body font-bold text-ink">
         {label}
       </span>
-      {image ? <ImageFrame image={image} className="w-full max-w-[360px]" /> : null}
+      {image ? <ImageFrame image={image} className="w-full max-w-[360px] rounded-md" /> : null}
       <div className="flex flex-wrap gap-3">
         <Button
           variant="secondary"

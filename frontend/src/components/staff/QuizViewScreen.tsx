@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import { cx } from "@/lib/cx";
 import { copyLibraryQuiz, deleteQuiz, type LibraryQuiz } from "@/lib/api/quizzes";
 import { ConfirmModal } from "./ConfirmModal";
@@ -120,6 +121,8 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
         </div>
       </div>
 
+      <ImageFrame image={quiz.image} className="w-full max-w-[480px] rounded-md" />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-h3 font-bold">{t("questions", { count: quiz.questions.length })}</h2>
         <Button
@@ -156,28 +159,31 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
                   <Icon icon={CaretDown} className={cx("shrink-0 transition-transform duration-150", isOpen && "rotate-180")} />
                 </button>
                 {isOpen ? (
-                  <div id={panelId} className="grid gap-3 px-4 pb-4 sm:grid-cols-2 md:px-6 md:pb-6">
-                    {POSITIONS.map((position) => {
-                      const text = question.answers[position - 1] ?? "";
-                      if (text.trim() === "") return null;
-                      const { Shape, tone } = answerPositions[position];
-                      const correct = question.correct === position;
-                      return (
-                        <div
-                          key={position}
-                          className={cx("flex items-center gap-3 rounded-md p-3 shadow-[0_4px_0_0_var(--tile-e)]", tone)}
-                        >
-                          <Shape className="size-8 flex-none" />
-                          <span className="min-w-0 flex-1 text-body-lg font-bold [overflow-wrap:anywhere]">{text}</span>
-                          {correct ? (
-                            <>
-                              <Check width={28} height={28} className="flex-none" aria-hidden />
-                              <span className="sr-only">{t("correct")}</span>
-                            </>
-                          ) : null}
-                        </div>
-                      );
-                    })}
+                  <div id={panelId} className="flex flex-col gap-4 px-4 pb-4 md:px-6 md:pb-6">
+                    <ImageFrame image={question.image} className="w-full max-w-[480px] rounded-md" />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {POSITIONS.map((position) => {
+                        const text = question.answers[position - 1] ?? "";
+                        if (text.trim() === "") return null;
+                        const { Shape, tone } = answerPositions[position];
+                        const correct = question.correct === position;
+                        return (
+                          <div
+                            key={position}
+                            className={cx("flex items-center gap-3 rounded-md p-3 shadow-[0_4px_0_0_var(--tile-e)]", tone)}
+                          >
+                            <Shape className="size-8 flex-none" />
+                            <span className="min-w-0 flex-1 text-body-lg font-bold [overflow-wrap:anywhere]">{text}</span>
+                            {correct ? (
+                              <>
+                                <Check width={28} height={28} className="flex-none" aria-hidden />
+                                <span className="sr-only">{t("correct")}</span>
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : null}
               </Card>

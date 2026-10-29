@@ -7,6 +7,7 @@ import { FullscreenGate } from "@/components/game/FullscreenGate";
 import { TimerBar } from "@/components/game/TimerBar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import { useToast } from "@/components/ui/useToast";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { saveAnswer, sendSignal, submitStudentExam } from "@/lib/api/studentExams";
@@ -151,6 +152,7 @@ export function ExamTakingScreen({ exam, onEnded }: ExamTakingScreenProps) {
             <Badge>{t("counter", { current: index + 1, total: questions.length })}</Badge>
           </div>
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
+          <ImageFrame image={question.image} className="w-full max-w-[640px] rounded-md" />
         </div>
 
         <div className="grid gap-4 pb-2 sm:grid-cols-2">

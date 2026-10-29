@@ -6,6 +6,7 @@ import type { HostQuestion } from "@/lib/game/events";
 import { cx } from "@/lib/cx";
 import { AnswerTile, type AnswerPosition } from "./AnswerTile";
 import { CountdownRing } from "./CountdownRing";
+import { GameImage } from "./GameImage";
 import { TimerBar } from "./TimerBar";
 
 export const POSITIONS: readonly AnswerPosition[] = [1, 2, 3, 4];
@@ -28,7 +29,7 @@ export function HostQuestionHeader({ round, totalQuestions, answered }: HostQues
 }
 
 type HostQuestionScreenProps = {
-  question: Pick<HostQuestion, "index" | "text" | "answers" | "seconds" | "readSeconds" | "positions">;
+  question: Pick<HostQuestion, "index" | "text" | "image" | "answers" | "seconds" | "readSeconds" | "positions">;
   round: number;
   totalQuestions: number;
   secondsLeft: number;
@@ -39,8 +40,8 @@ type HostQuestionScreenProps = {
 };
 
 /**
- * The open question on the projector: the question, the clock and all four answers WITH their text.
- * While it is being read: only the question and the reading countdown.
+ * The open question on the projector: the question, its image, the clock and all four answers WITH their
+ * text. While it is being read: only the question, its image and the reading countdown.
  */
 export function HostQuestionScreen({ question, round, totalQuestions, secondsLeft, readingLeft, answered, total }: HostQuestionScreenProps) {
   const t = useTranslations("host.live");
@@ -49,6 +50,7 @@ export function HostQuestionScreen({ question, round, totalQuestions, secondsLef
     <div className="flex flex-1 flex-col gap-6">
       <HostQuestionHeader round={round} totalQuestions={totalQuestions} answered={{ count: answered, total }} />
       <h1 className="text-display font-black [overflow-wrap:anywhere]">{question.text}</h1>
+      <GameImage image={question.image} maxHeight="34dvh" />
       {readingLeft > 0 ? (
         <CountdownRing
           key={question.index}

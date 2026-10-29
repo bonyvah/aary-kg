@@ -4,6 +4,7 @@ import { cx } from "@/lib/cx";
 import type { PlayerQuestion } from "@/types/game";
 import { AnswerTile, lastTileSpan, type AnswerPosition } from "../AnswerTile";
 import { CountdownRing } from "../CountdownRing";
+import { GameImage } from "../GameImage";
 import { PlayerScreen } from "../PlayerScreen";
 import { TimerBar } from "../TimerBar";
 import { WaitingForOthers } from "./WaitingForOthers";
@@ -28,7 +29,7 @@ type QuestionScreenProps = {
 
 /**
  * Open question and, once an answer is locked, the waiting state. While it is being read: only the
- * question and the reading countdown. Shapes only, the answers are read on the host screen, unless the
+ * question, its image and the reading countdown. Shapes only, the answers are read on the host screen, unless the
  * host shows them on the players' screens too.
  */
 export function QuestionScreen({ question, secondsLeft, readingLeft, selected, onAnswer, onLeave }: QuestionScreenProps) {
@@ -48,6 +49,7 @@ export function QuestionScreen({ question, secondsLeft, readingLeft, selected, o
       ) : reading ? (
         <>
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
+          <GameImage image={question.image} maxHeight="28dvh" />
           <CountdownRing
             key={question.index}
             className="m-auto"
@@ -60,6 +62,7 @@ export function QuestionScreen({ question, secondsLeft, readingLeft, selected, o
         <>
           <TimerBar remaining={secondsLeft} total={question.seconds} unit={t("unit")} />
           <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{question.text}</h1>
+          <GameImage image={question.image} maxHeight="28dvh" />
           <div className={cx("mt-auto grid gap-4 pb-2", texts ? "grid-cols-1" : "grid-cols-2")}>
             {POSITIONS.filter(({ position }) => question.positions.includes(position)).map(({ position, shape }, index, shown) =>
               texts ? (

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { AnswerTile } from "@/components/game/AnswerTile";
 import { Badge } from "@/components/ui/Badge";
+import { ImageFrame } from "@/components/ui/ImageFrame";
 import { usedPositions } from "@/lib/studentExam";
 import type { StudentResult } from "@/types/studentExam";
 
@@ -22,6 +23,7 @@ export function ExamResult({ result }: { result: StudentResult }) {
               {question.counted ? null : <Badge variant="danger">{t("notCounted")}</Badge>}
             </div>
             <h2 className="text-h2 font-black [overflow-wrap:anywhere]">{question.text}</h2>
+            <ImageFrame image={question.image} className="w-full max-w-[480px] rounded-md" />
             <div className="grid gap-4 sm:grid-cols-2">
               {usedPositions(question.answers).map((position) => {
                 const mark =

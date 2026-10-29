@@ -15,6 +15,7 @@ import { answerKey, textKey, type EditorDoc } from "@/lib/quizEditor/reducer";
 import type { DocEditor } from "@/lib/quizEditor/useQuizEditor";
 import { AnswerEditor } from "./AnswerEditor";
 import { ConfirmModal } from "./ConfirmModal";
+import { ImagePicker } from "./ImagePicker";
 import { QuestionList } from "./QuestionList";
 import { QuestionOrder } from "./QuestionOrder";
 import { StaffMenu } from "./StaffMenu";
@@ -32,6 +33,8 @@ type DocEditorScreenProps<D extends EditorDoc> = {
   savedMessage: string;
   /** Step 1, beside the name: the exam's time limit. */
   setupFields?: ReactNode;
+  /** Step 1, under the name: the quiz's cover. */
+  cover?: ReactNode;
   /** Step 1: ways to fill the questions quickly (from material, from a quiz, JSON). */
   quickstart: ReactNode;
   /** Step 2, under the answers, before «remove question»: the quiz question's times. */
@@ -51,6 +54,7 @@ export function DocEditorScreen<D extends EditorDoc>({
   titleLabel,
   savedMessage,
   setupFields,
+  cover,
   quickstart,
   questionSettings,
   toast,
@@ -128,6 +132,7 @@ export function DocEditorScreen<D extends EditorDoc>({
             />
             {setupFields}
           </div>
+          {cover}
           <div className="flex flex-wrap gap-3">{quickstart}</div>
           <section className="flex flex-col gap-3" aria-labelledby="order-title">
             <h2 id="order-title" className="text-h3 font-bold">
@@ -262,6 +267,12 @@ function QuestionsStep<D extends EditorDoc>({
             maxLength={500}
             onChange={(event) => editor.setQuestionText(event.target.value)}
             error={state.errors.has(textKey(question.id)) ? required : undefined}
+          />
+          <ImagePicker
+            key={question.id}
+            label={t("questionImage")}
+            image={question.image}
+            onChange={(image) => editor.setQuestionImage(question.id, image)}
           />
           <div role="radiogroup" aria-label={t("correctGroup")} className="grid gap-4 pb-2 sm:grid-cols-2">
             {POSITIONS.map((position) => (

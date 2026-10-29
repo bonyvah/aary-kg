@@ -2,7 +2,7 @@ import type { Quiz, QuizSummary } from "@/types/quiz";
 import { apiFetch } from "./client";
 
 /** What the editor sends: the server makes the id and the status. */
-export type QuizInput = Pick<Quiz, "title" | "questions">;
+export type QuizInput = Pick<Quiz, "title" | "image" | "questions">;
 
 export const listQuizzes = () => apiFetch<QuizSummary[]>("/quizzes");
 
@@ -14,8 +14,15 @@ export const updateQuiz = (id: string, input: QuizInput) =>
   apiFetch<Quiz>(`/quizzes/${id}`, { method: "PUT", body: input });
 
 /** Another teacher's quiz in the library. */
-export type LibraryQuizSummary = { id: string; title: string; questionCount: number; ownerName: string; updatedAt: string };
-export type LibraryQuiz = Pick<Quiz, "id" | "title" | "questions"> & { ownerName: string };
+export type LibraryQuizSummary = {
+  id: string;
+  title: string;
+  image: string | null;
+  questionCount: number;
+  ownerName: string;
+  updatedAt: string;
+};
+export type LibraryQuiz = Pick<Quiz, "id" | "title" | "image" | "questions"> & { ownerName: string };
 
 export const listLibrary = () => apiFetch<LibraryQuizSummary[]>("/quiz-library");
 

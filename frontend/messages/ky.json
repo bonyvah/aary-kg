@@ -95,7 +95,17 @@
     "admin.errors.PASSWORD_NEEDS_LETTER",
     "admin.errors.PASSWORD_NEEDS_DIGIT",
     "admin.errors.PASSWORD_CONTAINS_NAME",
-    "admin.errors.PASSWORD_CONTAINS_LOGIN"
+    "admin.errors.PASSWORD_CONTAINS_LOGIN",
+    "staff.editor.cover",
+    "staff.editor.questionImage",
+    "staff.editor.image.add",
+    "staff.editor.image.replace",
+    "staff.editor.image.remove",
+    "staff.editor.image.uploading",
+    "staff.editor.import.errors.IMAGE_INVALID",
+    "common.apiError.IMAGE_UNSUPPORTED",
+    "common.apiError.IMAGES_NOT_CONFIGURED",
+    "common.apiError.IMAGE_UPLOAD_FAILED"
   ],
   "app": {
     "name": "aary kg"
@@ -266,6 +276,7 @@
     "editor": {
       "back": "Артка",
       "titleLabel": "Викторинанын аталышы",
+      "cover": "Мукаба",
       "save": "Сактоо",
       "saved": "Викторина сакталды.",
       "saveFailed": "Бош талааларды толтуруңуз.",
@@ -274,6 +285,13 @@
       "addQuestion": "Суроо кошуу",
       "removeQuestion": "Суроону өчүрүү",
       "questionLabel": "Суроо",
+      "questionImage": "Сүрөт",
+      "image": {
+        "add": "Сүрөт кошуу",
+        "replace": "Алмаштыруу",
+        "remove": "Алып салуу",
+        "uploading": "Жүктөлүүдө…"
+      },
       "emptyQuestion": "Жаңы суроо",
       "answerLabel": "Жооп: {shape}",
       "correctGroup": "Туура жооп",
@@ -316,7 +334,8 @@
           "ANSWER_TOO_LONG": "{question}-суроо: жооп 200 белгиден узун.",
           "CORRECT_INVALID": "{question}-суроо: «correct» жооптун номери болушу керек, 1ден баштап.",
           "SECONDS_INVALID": "{question}-суроо: «seconds» 5тен 300гө чейин болушу керек.",
-          "READ_SECONDS_INVALID": "{question}-суроо: «readSeconds» 3төн 10го чейин болушу керек."
+          "READ_SECONDS_INVALID": "{question}-суроо: «readSeconds» 3төн 10го чейин болушу керек.",
+          "IMAGE_INVALID": "{question}-суроо: «image» жүктөлгөн сүрөттүн id’си болушу керек."
         },
         "promptToAi": "ИИ үчүн суроо",
         "pickFile": ".json тандоо"
@@ -840,6 +859,9 @@
       "CANNOT_GRANT": "Азыр дагы бир аракет берүүгө болбойт.",
       "ATTEMPT_INACTIVE": "Аракет активдүү эмес болуп калган.",
       "UNSUPPORTED_FILE": "Мындай файл туура келбейт: PDF, Word, PowerPoint же текст керек.",
+      "IMAGE_UNSUPPORTED": "Мындай файл туура келбейт: JPEG, PNG, WebP же GIF сүрөт керек.",
+      "IMAGES_NOT_CONFIGURED": "Сүрөт жүктөө азырынча иштебейт.",
+      "IMAGE_UPLOAD_FAILED": "Сүрөт жүктөлгөн жок. Кайра аракет кылыңыз.",
       "FILE_TOO_LARGE": "Файл 10 МБдан чоң.",
       "PAYLOAD_TOO_LARGE": "Суроо-талап өтө чоң.",
       "MATERIAL_UNREADABLE": "Файлдан текст табылган жок. Тексти жок сканерлер окулбайт.",

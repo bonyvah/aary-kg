@@ -74,6 +74,10 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>, draft
       [],
     ),
     setCorrect: useCallback((position: AnswerPosition) => dispatch({ type: "CORRECT_CHANGED", position }), []),
+    setQuestionImage: useCallback(
+      (id: string, image: string | null) => dispatch({ type: "QUESTION_IMAGE_CHANGED", id, image }),
+      [],
+    ),
     changeQuestion: useCallback(
       (change: Partial<Omit<Question, "id" | "text" | "answers">>) => dispatch({ type: "QUESTION_CHANGED", change }),
       [],
@@ -108,8 +112,8 @@ export function useDocEditor<D extends EditorDoc>(doc: D, api: SaveApi<D>, draft
 export type DocEditor<D extends EditorDoc> = ReturnType<typeof useDocEditor<D>>;
 
 const QUIZ_API: SaveApi<Quiz> = {
-  create: (quiz) => createQuiz({ title: quiz.title, questions: quiz.questions }),
-  update: (quiz) => updateQuiz(quiz.id, { title: quiz.title, questions: quiz.questions }),
+  create: (quiz) => createQuiz({ title: quiz.title, image: quiz.image ?? null, questions: quiz.questions }),
+  update: (quiz) => updateQuiz(quiz.id, { title: quiz.title, image: quiz.image ?? null, questions: quiz.questions }),
   invalidCode: "QUIZ_INVALID",
   draft: "quiz",
   remove: deleteQuiz,

@@ -3,12 +3,12 @@ import type { BaseQuestion, QuizQuestion } from "@/types/quiz";
 type Exported = {
   title: string;
   minutes?: number;
-  questions: { text: string; answers: string[]; correct: number; seconds?: number; readSeconds?: number }[];
+  questions: { text: string; answers: string[]; correct: number; image?: string; seconds?: number; readSeconds?: number }[];
 };
 
 /**
  * A quiz or an exam sheet in the format the JSON import reads: blank answer slots left out and
- * `correct` counted among the answers that are kept. Quiz questions keep their times.
+ * `correct` counted among the answers that are kept. Quiz questions keep their times; images their id.
  */
 export function toExportJson(doc: { title: string; minutes?: number; questions: readonly (BaseQuestion | QuizQuestion)[] }): Exported {
   return {
@@ -20,6 +20,7 @@ export function toExportJson(doc: { title: string; minutes?: number; questions: 
         text: q.text,
         answers: kept.map((a) => a.text),
         correct: kept.findIndex((a) => a.position === q.correct) + 1,
+        ...(q.image ? { image: q.image } : {}),
         ...("seconds" in q ? { seconds: q.seconds, readSeconds: q.readSeconds } : {}),
       };
     }),

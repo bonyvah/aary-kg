@@ -11,6 +11,8 @@ export type BaseQuestion = {
   text: string;
   answers: AnswerTexts;
   correct: AnswerPosition;
+  /** An uploaded image (its id), shown with the question. */
+  image?: string | null;
 };
 
 export type QuizQuestion = BaseQuestion & {
@@ -24,8 +26,10 @@ export type Quiz = {
   id: string;
   title: string;
   status: QuizStatus;
+  /** The cover: an uploaded image's id, on the quiz's card and page. */
+  image?: string | null;
   questions: QuizQuestion[];
 };
 
 /** What the dashboard list needs: no questions. */
-export type QuizSummary = Pick<Quiz, "id" | "title" | "status"> & { questionCount: number };
+export type QuizSummary = Pick<Quiz, "id" | "title" | "status" | "image"> & { questionCount: number };

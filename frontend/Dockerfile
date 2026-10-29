@@ -13,7 +13,10 @@ COPY . .
 # Where the web app's /api proxy sends requests. Next resolves rewrites when it builds, so this is
 # fixed in the image: it is the backend's name on the compose network.
 ARG API_URL=http://backend:8000
+# The image bucket's public URL (Cloudflare R2), where browsers load quiz and question images.
+ARG NEXT_PUBLIC_IMAGES_URL=
 ENV API_URL=$API_URL \
+    NEXT_PUBLIC_IMAGES_URL=$NEXT_PUBLIC_IMAGES_URL \
     NEXT_OUTPUT=standalone
 # Not `pnpm build`: that first regenerates the design tokens from ../design-system, which is outside
 # this build context. src/styles/tokens.css is committed, and `pnpm lint` (run by CI) fails when it

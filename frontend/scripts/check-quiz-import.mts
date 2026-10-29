@@ -38,6 +38,9 @@ check("readSeconds outside 3 to 10", codes(JSON.stringify([{ ...question, readSe
 check("too long texts", codes(JSON.stringify([{ ...question, text: "x".repeat(501) }, { ...question, answers: ["a", "x".repeat(201)], correct: 1 }])) === "TEXT_TOO_LONG@1,ANSWER_TOO_LONG@2");
 check("title must be a string", codes(JSON.stringify({ title: 5, questions: [question] })) === "TITLE_INVALID");
 check("all or nothing: one bad question fails the import", !parseQuizJson(JSON.stringify([question, null]), 100).ok);
+const IMAGE = "f".repeat(64);
+check("an image is kept, none is null", (() => { const r = parseQuizJson(JSON.stringify([{ ...question, image: IMAGE }, question]), 100); return r.ok && r.questions[0]?.image === IMAGE && r.questions[1]?.image === null; })());
+check("an image is only an uploaded image's id", codes(JSON.stringify([{ ...question, image: "https://x.example/a.png" }, { ...question, image: 5 }])) === "IMAGE_INVALID@1,IMAGE_INVALID@2");
 
 // Adding the read questions to the editor.
 const imported = { type: "QUESTIONS_IMPORTED", title: "Math", questions: [{ ...question, correct: 2 as const, answers: ["3", "4", "5", "6"] as [string, string, string, string] }] } as const;
@@ -60,6 +63,10 @@ const filled = editorReducer(
 const added = editorReducer(filled, { type: "QUESTION_ADDED" });
 check("a new question starts with the reading time of the one before", added.doc.questions.length === 2 && added.doc.questions[1]?.readSeconds === 7);
 check("a new quiz reads for 3 seconds", blankQuiz().questions[0]?.readSeconds === 3);
+const pictured1 = editorReducer(filled, { type: "QUESTION_IMAGE_CHANGED", id: "question-1", image: "f".repeat(64) });
+const addedAfterImage = editorReducer(pictured1, { type: "QUESTION_ADDED" });
+check("a new question does not take the image of the one before", addedAfterImage.doc.questions[1]?.image === null && addedAfterImage.doc.questions[0]?.image === "f".repeat(64));
+check("an image goes to its own question even when another one is open", editorReducer(addedAfterImage, { type: "QUESTION_IMAGE_CHANGED", id: "question-1", image: null }).doc.questions.map((q) => q.image ?? null).join() === ",");
 
 // Reordering: a question moves to a place, the others keep their order.
 const three = editorReducer(twice, { ...imported, title: null });
@@ -77,6 +84,8 @@ const out = toExportJson(sparse);
 check("blank answers dropped, correct counted among the rest", JSON.stringify(out.questions[0]) === JSON.stringify({ text: "Q", answers: ["a", "c"], correct: 2, seconds: 30, readSeconds: 5 }));
 const back = parseQuizJson(JSON.stringify(out), 100);
 check("the import reads the export", back.ok && back.title === "Тарых" && back.questions[0]?.correct === 2 && back.questions[0]?.seconds === 30);
+const pictured = toExportJson({ ...sparse, questions: [{ ...sparse.questions[0]!, image: IMAGE }] });
+check("the export keeps a question's image", pictured.questions[0]?.image === IMAGE && !("image" in out.questions[0]!));
 check("file name from the title", fileName("Тарых: 7-класс!") === "Тарых-7-класс.json" && fileName("  ") === "quiz.json");
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);

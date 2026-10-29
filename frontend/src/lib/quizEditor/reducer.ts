@@ -13,7 +13,7 @@ export const MAX_READ_SECONDS = 10;
 export const MIN_FILLED_ANSWERS = 2;
 
 /** What the editor edits: a quiz, or an exam (one time limit, no time per question). */
-export type EditorDoc = { id: string; title: string; questions: BaseQuestion[] };
+export type EditorDoc = { id: string; title: string; image?: string | null; questions: BaseQuestion[] };
 type QuestionOf<D extends EditorDoc> = D["questions"][number];
 
 export type EditorState<D extends EditorDoc = Quiz> = {
@@ -37,6 +37,8 @@ export type EditorEvent<D extends EditorDoc = Quiz> =
   | { type: "QUESTION_TEXT_CHANGED"; text: string }
   | { type: "ANSWER_TEXT_CHANGED"; position: AnswerPosition; text: string }
   | { type: "CORRECT_CHANGED"; position: AnswerPosition }
+  /** A question's image: an uploaded image's id, or null to take it away. By id: an upload can end after another question was opened. */
+  | { type: "QUESTION_IMAGE_CHANGED"; id: string; image: string | null }
   /** Fields of the selected question besides its text and answers, e.g. a quiz question's times. */
   | { type: "QUESTION_CHANGED"; change: Partial<Omit<QuestionOf<D>, "id" | "text" | "answers">> }
   | { type: "QUESTION_ADDED" }
@@ -178,6 +180,11 @@ export function editorReducer<D extends EditorDoc>(state: EditorState<D>, event:
       });
     case "CORRECT_CHANGED":
       return updateSelected(state, (q) => ({ ...q, correct: event.position }));
+    case "QUESTION_IMAGE_CHANGED":
+      return {
+        ...state,
+        doc: { ...state.doc, questions: state.doc.questions.map((q) => (q.id === event.id ? { ...q, image: event.image } : q)) },
+      };
     case "QUESTION_CHANGED":
       return updateSelected(state, (q) => ({ ...q, ...event.change }));
     case "QUESTION_ADDED": {
@@ -187,7 +194,7 @@ export function editorReducer<D extends EditorDoc>(state: EditorState<D>, event:
       if (missing.length > 0) return { ...state, errors: new Set(missing), saveResult: "invalid" };
       const id = `question-${state.nextNumber}`;
       // The new question starts with the times (and any other settings) of the one before it.
-      const blank: QuestionOf<D> = { ...current, id, text: "", answers: ["", "", "", ""], correct: 1 };
+      const blank: QuestionOf<D> = { ...current, id, text: "", answers: ["", "", "", ""], correct: 1, image: null };
       return {
         ...state,
         doc: { ...state.doc, questions: [...state.doc.questions, blank] },
@@ -219,7 +226,7 @@ export function editorReducer<D extends EditorDoc>(state: EditorState<D>, event:
     case "QUESTIONS_IMPORTED": {
       if (event.questions.length === 0) return state;
       // The blank question a new quiz starts with is replaced, not left in front.
-      const kept = state.doc.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
+      const kept = state.doc.questions.filter((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== "") || q.image);
       const taken = new Set(kept.map((q) => q.id));
       let nextNumber = state.nextNumber;
       const added = event.questions.map((question) => {

@@ -19,6 +19,7 @@ import { useQuizEditor } from "@/lib/quizEditor/useQuizEditor";
 import { DEFAULT_READ_SECONDS, DEFAULT_SECONDS } from "@/lib/quizEditor/reducer";
 import type { Quiz, QuizQuestion } from "@/types/quiz";
 import { DocEditorScreen } from "./DocEditorScreen";
+import { ImagePicker } from "./ImagePicker";
 import { AiGenerateModal } from "./AiGenerateModal";
 import { ImportQuestionsModal } from "./ImportQuestionsModal";
 import { ImportQuizModal } from "./ImportQuizModal";
@@ -92,6 +93,7 @@ export function EditorScreen({ quiz, draftId }: { quiz: Quiz; draftId: string | 
       editor={editor}
       titleLabel={t("titleLabel")}
       savedMessage={t("saved")}
+      cover={<ImagePicker label={t("cover")} image={state.doc.image} onChange={(image) => editor.changeDoc({ image })} />}
       quickstart={
         <>
           <Button variant="secondary" onClick={() => setGenerating(true)}>

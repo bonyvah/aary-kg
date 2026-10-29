@@ -56,6 +56,8 @@ export type PlayerQuestion = {
   index: number;
   total: number;
   text: string;
+  /** An uploaded image (its id), shown with the text. Left out when the question has none. */
+  image?: string;
   seconds: number;
   /** How long it is read before its answers open: the length of the reading countdown. */
   readSeconds: number;

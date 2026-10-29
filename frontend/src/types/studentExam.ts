@@ -2,7 +2,7 @@ import type { AnswerPosition } from "@/components/game/AnswerTile";
 import type { Attendance, ExamSessionStatus } from "@/types/examSession";
 
 /** A question as the student gets it: never the correct answer. Blank answers are slots not used. */
-export type StudentQuestion = { id: string; text: string; answers: string[] };
+export type StudentQuestion = { id: string; text: string; answers: string[]; image?: string | null };
 
 export type StudentAttempt = {
   state: "in_progress" | "submitted";

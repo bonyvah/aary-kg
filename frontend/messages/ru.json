@@ -168,6 +168,7 @@
     "editor": {
       "back": "Назад",
       "titleLabel": "Название викторины",
+      "cover": "Обложка",
       "save": "Сохранить",
       "saved": "Викторина сохранена.",
       "saveFailed": "Заполните пустые поля.",
@@ -176,6 +177,13 @@
       "addQuestion": "Добавить вопрос",
       "removeQuestion": "Удалить вопрос",
       "questionLabel": "Вопрос",
+      "questionImage": "Изображение",
+      "image": {
+        "add": "Добавить изображение",
+        "replace": "Заменить",
+        "remove": "Убрать",
+        "uploading": "Загрузка…"
+      },
       "emptyQuestion": "Новый вопрос",
       "answerLabel": "Ответ: {shape}",
       "correctGroup": "Правильный ответ",
@@ -218,7 +226,8 @@
           "ANSWER_TOO_LONG": "Вопрос {question}: ответ длиннее 200 символов.",
           "CORRECT_INVALID": "Вопрос {question}: «correct» должен быть номером ответа, считая с 1.",
           "SECONDS_INVALID": "Вопрос {question}: «seconds» должно быть от 5 до 300.",
-          "READ_SECONDS_INVALID": "Вопрос {question}: «readSeconds» должно быть от 3 до 10."
+          "READ_SECONDS_INVALID": "Вопрос {question}: «readSeconds» должно быть от 3 до 10.",
+          "IMAGE_INVALID": "Вопрос {question}: «image» должно быть id загруженного изображения."
         },
         "promptToAi": "Запрос для ИИ",
         "pickFile": "Выбрать .json"
@@ -742,6 +751,9 @@
       "CANNOT_GRANT": "Сейчас нельзя дать ещё одну попытку.",
       "ATTEMPT_INACTIVE": "Попытка уже неактивна.",
       "UNSUPPORTED_FILE": "Такой файл не подходит: нужен PDF, Word, PowerPoint или текст.",
+      "IMAGE_UNSUPPORTED": "Такой файл не подходит: нужно изображение JPEG, PNG, WebP или GIF.",
+      "IMAGES_NOT_CONFIGURED": "Загрузка изображений пока не работает.",
+      "IMAGE_UPLOAD_FAILED": "Не удалось загрузить изображение. Попробуйте ещё раз.",
       "FILE_TOO_LARGE": "Файл больше 10 МБ.",
       "PAYLOAD_TOO_LARGE": "Слишком большой запрос.",
       "MATERIAL_UNREADABLE": "В файле не найден текст. Сканы без текста не читаются.",

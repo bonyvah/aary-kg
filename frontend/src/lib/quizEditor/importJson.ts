@@ -16,6 +16,8 @@ export const MAX_TEXT_LENGTH = 500;
 export const MAX_ANSWER_LENGTH = 200;
 const MIN_ANSWERS = 2;
 const ANSWER_SLOTS = 4;
+/** An uploaded image's id (backend/app/images.py): the only image a question can have. */
+const IMAGE_ID = /^[0-9a-f]{64}$/;
 
 /** A question from the pasted JSON, before the editor gives it an id. */
 export type ImportedQuestion = Omit<QuizQuestion, "id">;
@@ -35,7 +37,8 @@ export type ImportErrorCode =
   | "ANSWER_TOO_LONG"
   | "CORRECT_INVALID"
   | "SECONDS_INVALID"
-  | "READ_SECONDS_INVALID";
+  | "READ_SECONDS_INVALID"
+  | "IMAGE_INVALID";
 
 export type ImportResult =
   | { ok: true; title: string | null; questions: ImportedQuestion[] }
@@ -100,13 +103,16 @@ function parseQuestion(value: unknown, question: number, errors: ImportError[]):
     return fail("READ_SECONDS_INVALID");
   }
 
+  const image = value.image ?? null;
+  if (image !== null && (typeof image !== "string" || !IMAGE_ID.test(image))) return fail("IMAGE_INVALID");
+
   // A question with two or three answers leaves the last tiles empty, as the editor does.
   const padded = [...trimmed, "", "", ""].slice(0, ANSWER_SLOTS) as AnswerTexts;
-  return { text, answers: padded, correct: correct as AnswerPosition, seconds, readSeconds };
+  return { text, answers: padded, correct: correct as AnswerPosition, seconds, readSeconds, image };
 }
 
 /**
- * Reads quiz JSON pasted from a chat: `{ title?, questions: [{ text, answers, correct, seconds?, readSeconds? }] }`,
+ * Reads quiz JSON pasted from a chat: `{ title?, questions: [{ text, answers, correct, seconds?, readSeconds?, image? }] }`,
  * or the questions array alone. `room` is how many questions the quiz can still take.
  * All or nothing: one bad question and nothing is imported.
  */

@@ -73,7 +73,11 @@ export function clearDraft(kind: DraftKind, id: string): void {
   write(kind, store);
 }
 
-/** Whether a draft says anything yet: a title, or a question with some text. */
+/** Whether a draft says anything yet: a title, a cover, or a question with some text or an image. */
 export function hasContent(doc: EditorDoc): boolean {
-  return doc.title.trim() !== "" || doc.questions.some((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== ""));
+  return (
+    doc.title.trim() !== "" ||
+    Boolean(doc.image) ||
+    doc.questions.some((q) => q.text.trim() !== "" || q.answers.some((a) => a.trim() !== "") || q.image)
+  );
 }

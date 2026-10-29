@@ -81,11 +81,7 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
 
   return (
     <StaffShell topRight={<StaffMenu />}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
-          {props.library ? <p className="text-body-lg font-bold text-ink-muted">{props.quiz.ownerName}</p> : null}
-        </div>
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-3">
           <ButtonLink href={props.library ? "/quizzes/library" : "/dashboard"} variant="neutral">
             {t("back")}
@@ -118,6 +114,10 @@ export function QuizViewScreen(props: QuizViewScreenProps) {
               </ButtonLink>
             </>
           )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-1">
+          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{quiz.title}</h1>
+          {props.library ? <p className="text-body-lg font-bold text-ink-muted">{props.quiz.ownerName}</p> : null}
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { ImageFrame } from "@/components/ui/ImageFrame";
+import { Modal } from "@/components/ui/Modal";
 import { toKnownCode, type KnownApiCode } from "@/lib/api/client";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES, uploadImage, type ImageFrameAt } from "@/lib/api/images";
 import { ImageCropper } from "./ImageCropper";
@@ -17,8 +18,8 @@ type ImagePickerProps = {
 };
 
 /**
- * An optional image: add one, replace it or take it away. A picked file is framed first (dragged into
- * the 16:9 frame) and uploaded on «save», cut where it was placed.
+ * An optional image: add one, replace it or take it away. A picked file opens in a dialog to be framed
+ * (dragged in the 16:9 frame) and is uploaded on «save», cut where it was placed.
  */
 export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
   const t = useTranslations("staff.editor.image");
@@ -70,28 +71,8 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
       <span id={labelId} className="text-body font-bold text-ink">
         {label}
       </span>
-      {pending ? (
-        <>
-          <ImageCropper
-            src={preview}
-            at={at}
-            onMove={setAt}
-            label={t("frame")}
-            className="w-full max-w-[360px] rounded-md"
-          />
-          <div className="flex flex-wrap gap-3">
-            <Button variant="success" disabled={busy} onClick={() => void save()}>
-              {busy ? t("uploading") : t("save")}
-            </Button>
-            <Button variant="neutral" disabled={busy} onClick={() => setPending(null)}>
-              {t("cancel")}
-            </Button>
-          </div>
-        </>
-      ) : image ? (
-        <ImageFrame image={image} className="w-full max-w-[360px] rounded-md" />
-      ) : null}
-      <div className={pending ? "hidden" : "flex flex-wrap gap-3"}>
+      {image ? <ImageFrame image={image} className="w-full max-w-[360px] rounded-md" /> : null}
+      <div className="flex flex-wrap gap-3">
         <Button
           variant="secondary"
           disabled={busy}
@@ -107,11 +88,38 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
           </Button>
         ) : null}
       </div>
-      {error ? (
+      {error && !pending ? (
         <p id={errorId} role="alert" className="text-caption font-bold text-danger-text">
           {tc(`apiError.${error}`)}
         </p>
       ) : null}
+      <Modal
+        open={pending !== null}
+        onClose={() => {
+          if (!busy) setPending(null);
+        }}
+        title={label}
+        wide
+        actions={
+          <>
+            <Button variant="neutral" disabled={busy} onClick={() => setPending(null)}>
+              {t("cancel")}
+            </Button>
+            <Button variant="success" disabled={busy} onClick={() => void save()}>
+              {busy ? t("uploading") : t("save")}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <ImageCropper src={preview} at={at} onMove={setAt} label={t("frame")} className="w-full rounded-md" />
+          {error && pending ? (
+            <p role="alert" className="text-caption font-bold text-danger-text">
+              {tc(`apiError.${error}`)}
+            </p>
+          ) : null}
+        </div>
+      </Modal>
       <input
         ref={input}
         type="file"

@@ -36,7 +36,7 @@ async def upload(user: TeacherUser, file: Annotated[UploadFile, File()]) -> Imag
         # Decoding a big photo takes a moment: off the event loop.
         webp = await asyncio.to_thread(images.encode, data)
     except images.NotAnImage:
-        raise ApiError(415, "UNSUPPORTED_FILE", field="file") from None
+        raise ApiError(415, "IMAGE_UNSUPPORTED", field="file") from None
     try:
         return ImageOut(id=await images.store(webp))
     except (BotoCoreError, ClientError):

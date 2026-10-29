@@ -90,7 +90,7 @@ async def test_a_file_that_is_not_an_image_is_refused(as_user, bucket):
     c, _ = await as_user("ulan")
     r = await c.post("/images", files={"file": ("cat.png", b"<svg onload=alert(1)>", "image/png")})
     assert r.status_code == 415
-    assert r.json()["code"] == "UNSUPPORTED_FILE"
+    assert r.json()["code"] == "IMAGE_UNSUPPORTED"
 
 
 async def test_too_big_a_file_is_refused(as_user, bucket):

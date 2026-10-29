@@ -27,7 +27,7 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data:${IMAGES_URL ? ` ${originOf(IMAGES_URL)}` : ""}`,
+  `img-src 'self' data: blob:${IMAGES_URL ? ` ${originOf(IMAGES_URL)}` : ""}`,
   "font-src 'self' data:",
   "connect-src 'self' ws: wss:",
   "object-src 'none'",

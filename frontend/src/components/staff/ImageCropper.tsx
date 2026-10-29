@@ -6,8 +6,8 @@ import { cx } from "@/lib/cx";
 import type { ImageFrameAt } from "@/lib/api/images";
 
 type ImageCropperProps = {
-  /** The picked file, before upload (an object URL). */
-  src: string;
+  /** The picked file, before upload (an object URL). Null while it is being made: the empty frame. */
+  src: string | null;
   at: ImageFrameAt;
   onMove: (at: ImageFrameAt) => void;
   /** Translated name of the frame, for screen readers. */
@@ -92,17 +92,19 @@ export function ImageCropper({ src, at, onMove, label, className }: ImageCropper
       )}
     >
       {/* A local object URL, not a bucket file: nothing for Next's image optimizer to do. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        draggable={false}
-        onLoad={(event) =>
-          setNatural({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })
-        }
-        style={position}
-        className="pointer-events-none absolute inset-0 size-full object-cover object-(--at)"
-      />
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          onLoad={(event) =>
+            setNatural({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })
+          }
+          style={position}
+          className="pointer-events-none absolute inset-0 size-full object-cover object-(--at)"
+        />
+      ) : null}
     </div>
   );
 }

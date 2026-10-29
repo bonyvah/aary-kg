@@ -28,11 +28,18 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
   const errorId = useId();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<KnownApiCode | null>(null);
-  const [pending, setPending] = useState<{ file: File; src: string } | null>(null);
+  const [pending, setPending] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [at, setAt] = useState<ImageFrameAt>({ x: 0.5, y: 0.5 });
 
   // The picked file is shown from memory until it is saved or dropped.
-  useEffect(() => (pending ? () => URL.revokeObjectURL(pending.src) : undefined), [pending]);
+  // Made here, not on pick, so a cleanup never leaves a revoked URL on screen.
+  useEffect(() => {
+    if (!pending) return setPreview(null);
+    const url = URL.createObjectURL(pending);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pending]);
 
   function pick(file: File | undefined) {
     if (!file) return;
@@ -41,7 +48,7 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
     if (!(IMAGE_TYPES as readonly string[]).includes(file.type)) return setError("IMAGE_UNSUPPORTED");
     if (file.size > MAX_IMAGE_BYTES) return setError("FILE_TOO_LARGE");
     setAt({ x: 0.5, y: 0.5 });
-    setPending({ file, src: URL.createObjectURL(file) });
+    setPending(file);
   }
 
   async function save() {
@@ -49,7 +56,7 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
     setError(null);
     setBusy(true);
     try {
-      onChange((await uploadImage(pending.file, at)).id);
+      onChange((await uploadImage(pending, at)).id);
       setPending(null);
     } catch (failure) {
       setError(toKnownCode(failure));
@@ -66,7 +73,7 @@ export function ImagePicker({ label, image, onChange }: ImagePickerProps) {
       {pending ? (
         <>
           <ImageCropper
-            src={pending.src}
+            src={preview}
             at={at}
             onMove={setAt}
             label={t("frame")}

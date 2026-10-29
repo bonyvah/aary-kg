@@ -217,6 +217,23 @@ async def test_question_order_is_the_quiz_order(env):
     assert (await env.repo.get_game(plain.id)).order == list(range(8))
 
 
+async def test_a_questions_image_goes_to_both_screens_and_is_left_out_when_there_is_none(env):
+    quiz = make_quiz(2)
+    quiz["questions"][0]["image"] = "e" * 64
+    state = await env.engine.create_game("owner-1", quiz)
+    host = await connect(env, state.id, "host")
+    _, player = await env.engine.join(state.pin, "Aida")
+    feed = await connect(env, state.id, "player", player.id)
+    await env.engine.start(state.id)
+    await settle()
+    assert of(feed, "question.started")[0]["question"]["image"] == "e" * 64
+    assert of(host, "question.started")[0]["question"]["image"] == "e" * 64
+    for _ in range(3):  # close the question, the leaderboard, the next question
+        await env.engine.next(state.id)
+        await settle()
+    assert "image" not in of(feed, "question.started")[1]["question"]
+
+
 async def test_the_correct_answer_is_not_sent_before_the_reveal(env):
     state, host, _, feeds = await new_game(env)
     await env.engine.start(state.id)

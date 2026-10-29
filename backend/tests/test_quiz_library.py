@@ -8,7 +8,9 @@ async def test_a_teacher_sees_others_quizzes_and_copies_one(as_user):
     omur, _ = await as_user("omur")
     mine = (await ulan.post("/quizzes", json=quiz(title="Mine"))).json()["id"]
     theirs = (
-        await omur.post("/quizzes", json=quiz(title="Theirs", questions=[question("a"), question("b")]))
+        await omur.post(
+            "/quizzes", json=quiz(title="Theirs", image="d" * 64, questions=[question("a"), question("b")])
+        )
     ).json()
 
     listing = (await ulan.get("/quiz-library")).json()
@@ -18,12 +20,16 @@ async def test_a_teacher_sees_others_quizzes_and_copies_one(as_user):
 
     read = (await ulan.get(f"/quiz-library/{theirs['id']}")).json()
     assert (read["ownerName"], [q["id"] for q in read["questions"]]) == ("Omur", ["a", "b"])
+    assert read["image"] == listing[0]["image"] == "d" * 64
 
     r = await ulan.post(f"/quiz-library/{theirs['id']}/copy")
     assert r.status_code == 201
     copy = r.json()
     assert (
-        copy["id"] != theirs["id"] and copy["title"] == "Theirs" and copy["questions"] == theirs["questions"]
+        copy["id"] != theirs["id"]
+        and copy["title"] == "Theirs"
+        and copy["questions"] == theirs["questions"]
+        and copy["image"] == "d" * 64
     )
     assert {q["title"] for q in (await ulan.get("/quizzes")).json()} == {"Mine", "Theirs"}
 

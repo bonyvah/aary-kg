@@ -18,8 +18,10 @@ class Quiz(Base):
     title: Mapped[str] = mapped_column(String(200))
     # Only valid quizzes are saved, so this is always "ready" for now.
     status: Mapped[str] = mapped_column(String(10), default="ready")
-    # A quiz is one document: [{id, text, answers[4], correct 1-4, seconds}].
+    # A quiz is one document: [{id, text, answers[4], correct 1-4, seconds, image}].
     questions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    # The cover: an image id in the bucket (app/images.py), shown on the quiz's card and page.
+    image: Mapped[str | None] = mapped_column(String(64), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

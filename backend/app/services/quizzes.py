@@ -53,6 +53,7 @@ async def create(session: AsyncSession, owner: User, payload: QuizIn) -> Quiz:
         owner_id=owner.id,
         title=payload.title.strip(),
         status="ready",
+        image=payload.image,
         questions=_questions(payload),
     )
     session.add(quiz)
@@ -73,6 +74,7 @@ async def update(session: AsyncSession, user: User, quiz_id: uuid.UUID, payload:
     quiz = await get_editable(session, user, quiz_id)
     _check(payload)
     quiz.title = payload.title.strip()
+    quiz.image = payload.image
     quiz.questions = _questions(payload)
     await session.commit()
     return quiz

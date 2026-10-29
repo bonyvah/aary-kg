@@ -28,6 +28,7 @@ def _result(s: ExamSession, attempt: ExamAttempt | None, *, with_questions: bool
             id=q["id"],
             text=q["text"],
             answers=q["answers"],
+            image=q.get("image"),
             correct=q["correct"],
             chosen=attempt.answers.get(q["id"]),
             counted=service.counted(attempt, q["id"]),
@@ -66,7 +67,10 @@ def _out(s: ExamSession, student: User, *, with_questions: bool) -> StudentExamO
         attendance=service.attendance_of(s, student.id),  # type: ignore[arg-type]
         attempt=attempt_out,
         can_start=s.can_start(student.id),
-        questions=[StudentQuestionOut(id=q["id"], text=q["text"], answers=q["answers"]) for q in s.questions]
+        questions=[
+            StudentQuestionOut(id=q["id"], text=q["text"], answers=q["answers"], image=q.get("image"))
+            for q in s.questions
+        ]
         if running and with_questions
         else None,
         result=_result(s, attempt, with_questions=with_questions),

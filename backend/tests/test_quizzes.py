@@ -19,12 +19,12 @@ async def test_create_get_list_and_update(as_user):
     body = r.json()
     assert body["title"] == "Math" and body["status"] == "ready"
     # ids and order kept as the editor sent them; no reading time given: the shortest, 3 s
-    assert body["questions"][0] == {**question(), "readSeconds": 3}
+    assert body["questions"][0] == {**question(), "readSeconds": 3, "image": None}
     qid = body["id"]
 
     assert (await c.get(f"/quizzes/{qid}")).json() == body
     listing = (await c.get("/quizzes")).json()
-    assert listing == [{"id": qid, "title": "Math", "status": "ready", "questionCount": 1}]
+    assert listing == [{"id": qid, "title": "Math", "status": "ready", "image": None, "questionCount": 1}]
 
     two = quiz(title="Math 2", questions=[question("q1"), question("q2", correct=4, seconds=15)])
     r = await c.put(f"/quizzes/{qid}", json=two)
@@ -99,3 +99,30 @@ async def test_a_question_keeps_its_reading_time(as_user):
     c, _ = await as_user("ulan")
     r = await c.post("/quizzes", json=quiz(questions=[question(readSeconds=10)]))
     assert r.status_code == 201 and r.json()["questions"][0]["readSeconds"] == 10
+
+
+COVER = "a" * 64
+PICTURE = "b" * 64
+
+
+async def test_a_quiz_keeps_its_cover_and_its_questions_images(as_user):
+    c, _ = await as_user("ulan")
+    body = quiz(image=COVER, questions=[question("a", image=PICTURE), question("b")])
+    r = await c.post("/quizzes", json=body)
+    assert r.status_code == 201
+    saved = r.json()
+    assert saved["image"] == COVER
+    assert [q["image"] for q in saved["questions"]] == [PICTURE, None]
+    assert (await c.get("/quizzes")).json()[0]["image"] == COVER
+
+    # Saving without them takes them away.
+    r = await c.put(f"/quizzes/{saved['id']}", json=quiz())
+    assert r.json()["image"] is None and r.json()["questions"][0]["image"] is None
+
+
+async def test_an_image_is_only_an_uploaded_image_id(as_user):
+    c, _ = await as_user("ulan")
+    for bad in ("https://evil.example/cat.png", "../../secret", "A" * 64, "a" * 63, ""):
+        for body in (quiz(image=bad), quiz(questions=[question(image=bad)])):
+            r = await c.post("/quizzes", json=body)
+            assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR"), bad

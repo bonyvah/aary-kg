@@ -16,6 +16,7 @@ router = APIRouter(prefix="/quiz-library", tags=["quizzes"])
 class LibraryQuizSummary(CamelModel):
     id: uuid.UUID
     title: str
+    image: str | None
     question_count: int
     owner_name: str
     updated_at: datetime
@@ -24,6 +25,7 @@ class LibraryQuizSummary(CamelModel):
 class LibraryQuizOut(CamelModel):
     id: uuid.UUID
     title: str
+    image: str | None
     owner_name: str
     questions: list[Question]
 
@@ -43,6 +45,7 @@ async def library(user: TeacherUser, session: Session) -> list[LibraryQuizSummar
         LibraryQuizSummary(
             id=q.id,
             title=q.title,
+            image=q.image,
             question_count=len(q.questions),
             owner_name=q.owner.name,
             updated_at=q.updated_at,
@@ -54,7 +57,9 @@ async def library(user: TeacherUser, session: Session) -> list[LibraryQuizSummar
 @router.get("/{quiz_id}", response_model=LibraryQuizOut, response_model_by_alias=True)
 async def read(quiz_id: uuid.UUID, user: TeacherUser, session: Session) -> LibraryQuizOut:
     quiz = await _shared(session, quiz_id)
-    return LibraryQuizOut(id=quiz.id, title=quiz.title, owner_name=quiz.owner.name, questions=quiz.questions)
+    return LibraryQuizOut(
+        id=quiz.id, title=quiz.title, image=quiz.image, owner_name=quiz.owner.name, questions=quiz.questions
+    )
 
 
 @router.post("/{quiz_id}/copy", status_code=201, response_model=QuizOut, response_model_by_alias=True)
@@ -65,6 +70,7 @@ async def copy(quiz_id: uuid.UUID, user: TeacherUser, session: Session) -> QuizO
         owner_id=user.id,
         title=original.title,
         status="ready",
+        image=original.image,
         questions=[dict(q) for q in original.questions],
     )
     session.add(quiz)

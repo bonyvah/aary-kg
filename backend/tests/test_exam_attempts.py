@@ -85,7 +85,7 @@ async def test_the_student_sees_the_exam_starts_it_and_never_gets_the_correct_an
     body = r.json()
     assert body["attempt"]["state"] == "in_progress" and body["attempt"]["secondsLeft"] == 30 * 60
     assert [q["id"] for q in body["questions"]] == ["q1", "q2", "q3"]
-    assert all(set(q) == {"id", "text", "answers"} for q in body["questions"])
+    assert all(set(q) == {"id", "text", "answers", "image"} for q in body["questions"])
     assert "correct" not in r.text
 
     again = await student.post(f"/student/exams/{sid}/start")

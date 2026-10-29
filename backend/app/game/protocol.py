@@ -145,6 +145,9 @@ class PlayerQuestion(CamelModel):
     index: int  # 1-based
     total: int
     text: str
+    # The question's image (an id in the bucket), shown with the text on both screens. Left out
+    # when the question has none.
+    image: str | None = Field(default=None, exclude_if=lambda v: v is None)
     seconds: int
     read_seconds: int  # how long it is read before its answers open: the length of the countdown
     # Which of the four shapes have an answer. A question can have two or three: the rest are not shown.

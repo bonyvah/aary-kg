@@ -11,7 +11,9 @@ router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
 
 def _summary(quiz) -> QuizSummary:  # type: ignore[no-untyped-def]
-    return QuizSummary(id=quiz.id, title=quiz.title, status=quiz.status, question_count=len(quiz.questions))
+    return QuizSummary(
+        id=quiz.id, title=quiz.title, status=quiz.status, image=quiz.image, question_count=len(quiz.questions)
+    )
 
 
 @router.get("", response_model=list[QuizSummary], response_model_by_alias=True)

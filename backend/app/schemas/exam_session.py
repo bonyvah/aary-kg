@@ -111,6 +111,7 @@ class StudentQuestionOut(CamelModel):
     id: str
     text: str
     answers: list[str]
+    image: str | None = None
 
 
 class StudentAttemptOut(CamelModel):
@@ -127,6 +128,7 @@ class ResultQuestionOut(CamelModel):
     id: str
     text: str
     answers: list[str]
+    image: str | None = None
     correct: int
     # None: not answered.
     chosen: int | None

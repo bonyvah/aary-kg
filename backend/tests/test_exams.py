@@ -18,7 +18,7 @@ async def test_create_get_list_and_update(as_user):
     assert r.status_code == 201
     body = r.json()
     assert body["title"] == "Algebra" and body["minutes"] == 30
-    assert body["questions"] == [question()]  # no per-question time
+    assert body["questions"] == [{**question(), "image": None}]  # no per-question time
     eid = body["id"]
 
     assert (await c.get(f"/exams/{eid}")).json() == body
@@ -92,3 +92,10 @@ async def test_unknown_exam_is_404(as_user):
     c, _ = await as_user("ulan")
     r = await c.get("/exams/00000000-0000-0000-0000-000000000000")
     assert (r.status_code, r.json()["code"]) == (404, "EXAM_NOT_FOUND")
+
+
+async def test_exam_questions_have_images_but_the_sheet_has_no_cover(as_user):
+    c, _ = await as_user("ulan")
+    r = await c.post("/exams", json=exam(questions=[question(image="c" * 64)]))
+    assert r.status_code == 201
+    assert r.json()["questions"][0]["image"] == "c" * 64 and "image" not in r.json()

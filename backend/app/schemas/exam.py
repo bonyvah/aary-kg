@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 from pydantic import Field, StringConstraints, model_validator
 
 from app.schemas.base import CamelModel
-from app.schemas.quiz import Answer, Text
+from app.schemas.quiz import Answer, ImageId, Text
 
 MIN_MINUTES = 5
 MAX_MINUTES = 180
@@ -16,6 +16,7 @@ class ExamQuestion(CamelModel):
     text: Text
     answers: list[Answer] = Field(min_length=4, max_length=4)  # triangle, diamond, circle, square
     correct: Literal[1, 2, 3, 4]
+    image: ImageId | None = None
 
 
 class ExamIn(CamelModel):

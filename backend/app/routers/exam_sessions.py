@@ -153,6 +153,7 @@ def _attempt(s: ExamSession, attempt: ExamAttempt, number: int, events: list) ->
                 id=q["id"],
                 text=q["text"],
                 answers=q["answers"],
+                image=q.get("image"),
                 correct=q["correct"],
                 chosen=attempt.answers.get(q["id"]),
                 counted=exam_attempts.counted(attempt, q["id"]),

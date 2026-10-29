@@ -17,7 +17,7 @@ class Exam(Base):
     title: Mapped[str] = mapped_column(String(200))
     # The time limit of the whole exam. Questions have no time of their own.
     minutes: Mapped[int] = mapped_column(Integer)
-    # One document, like a quiz: [{id, text, answers[4], correct 1-4}].
+    # One document, like a quiz: [{id, text, answers[4], correct 1-4, image}]. No cover.
     questions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

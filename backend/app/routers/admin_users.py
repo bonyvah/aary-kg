@@ -11,9 +11,9 @@ router = APIRouter(prefix="/admin/users", tags=["admin"])
 
 
 @router.get("", response_model=list[ManagedUser], response_model_by_alias=True)
-async def list_users(actor: AdminUser, session: Session) -> list[ManagedUser]:
-    """Everybody except the admin asking: you manage others, not yourself."""
-    return [ManagedUser.model_validate(u) for u in await repo.list_all(session, exclude=actor.id)]
+async def list_users(_: AdminUser, session: Session) -> list[ManagedUser]:
+    """Teachers and students. No admin is listed, the one asking included."""
+    return [ManagedUser.model_validate(u) for u in await repo.list_managed(session)]
 
 
 @router.post("", status_code=201, response_model=UserWithPassword, response_model_by_alias=True)

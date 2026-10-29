@@ -15,10 +15,9 @@ async def get_by_login(session: AsyncSession, login: str) -> User | None:
     return result.scalar_one_or_none()
 
 
-async def list_all(session: AsyncSession, *, exclude: uuid.UUID | None = None) -> list[User]:
-    stmt = select(User).order_by(User.created_at, User.first_name, User.last_name)
-    if exclude is not None:
-        stmt = stmt.where(User.id != exclude)
+async def list_managed(session: AsyncSession) -> list[User]:
+    """Teachers and students: the accounts an admin manages. Admins are not listed."""
+    stmt = select(User).where(User.role != "admin").order_by(User.created_at, User.first_name, User.last_name)
     result = await session.execute(stmt)
     return list(result.scalars())
 

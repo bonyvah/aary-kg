@@ -5,14 +5,13 @@ from tests.conftest import make_user
 from tests.test_contests import make_contest
 
 
-async def test_the_users_list_leaves_out_the_admin_asking_but_shows_other_admins(as_user):
-    admin, me = await as_user("root", role="admin")
-    other_admin = await make_user("boss", role="admin")
+async def test_the_users_list_has_teachers_and_students_but_no_admin(as_user):
+    admin, _ = await as_user("root", role="admin")
+    await make_user("boss", role="admin")
     await make_user("ulan")
+    await make_user("aida", role="student")
     rows = (await admin.get("/admin/users")).json()
-    assert {r["login"] for r in rows} == {"boss", "ulan"}  # not "root": you manage others
-    assert str(me.id) not in {r["id"] for r in rows}
-    assert str(other_admin.id) in {r["id"] for r in rows}
+    assert {r["login"] for r in rows} == {"ulan", "aida"}  # neither "root" nor "boss"
 
 
 async def test_an_admin_can_only_create_teachers(as_user):

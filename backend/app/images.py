@@ -1,4 +1,4 @@
-"""Quiz and question images: checked, shrunk and re-encoded here, then kept in the R2 bucket.
+"""Quiz and question images: checked, cut to 16:9, shrunk and re-encoded here, then kept in the R2 bucket.
 
 Every upload is decoded and written again as WebP, so what the browsers get is always a plain
 image of a known size, whatever was sent (no metadata, no GPS position from a phone photo, no
@@ -24,6 +24,8 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_PIXELS = 50_000_000
 # The longest side once stored: sharp on a projector, light on a phone.
 MAX_SIDE = 1600
+# Every image is stored in the shape of the frame that shows it: it fills the frame, nothing is left over.
+RATIO = 16 / 9
 QUALITY = 82
 FORMATS = {"JPEG", "PNG", "WEBP", "GIF"}
 ID_PATTERN = r"^[0-9a-f]{64}$"
@@ -36,8 +38,13 @@ class NotAnImage(Exception):
     """Not a JPEG, PNG, WebP or GIF, or one that can't be decoded."""
 
 
-def encode(data: bytes) -> bytes:
-    """The upload as a WebP of at most MAX_SIDE pixels a side, turned upright. Raises NotAnImage."""
+def encode(data: bytes, x: float = 0.5, y: float = 0.5) -> bytes:
+    """
+    The upload as a 16:9 WebP of at most MAX_SIDE pixels a side, turned upright. Raises NotAnImage.
+
+    `x` and `y` (0 to 1) place the cut where the picture is too wide or too tall: 0 keeps the left
+    or top edge, 1 the right or bottom one, 0.5 the middle.
+    """
     try:
         with Image.open(io.BytesIO(data)) as source:
             if source.format not in FORMATS:
@@ -47,10 +54,22 @@ def encode(data: bytes) -> bytes:
             image = image.convert("RGBA" if _has_alpha(image) else "RGB")
     except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError, SyntaxError):
         raise NotAnImage from None
+    image = image.crop(_frame(image.width, image.height, x, y))
     image.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
     out = io.BytesIO()
     image.save(out, "WEBP", quality=QUALITY, method=4)
     return out.getvalue()
+
+
+def _frame(width: int, height: int, x: float, y: float) -> tuple[int, int, int, int]:
+    """The biggest 16:9 box inside width x height, slid to x, y."""
+    if width / height > RATIO:
+        cut = max(1, round(height * RATIO))
+        left = round((width - cut) * x)
+        return left, 0, left + cut, height
+    cut = max(1, round(width / RATIO))
+    top = round((height - cut) * y)
+    return 0, top, width, top + cut
 
 
 def _has_alpha(image: Image.Image) -> bool:

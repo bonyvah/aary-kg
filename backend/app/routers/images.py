@@ -2,7 +2,7 @@ import asyncio
 from typing import Annotated
 
 from botocore.exceptions import BotoCoreError, ClientError
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile
 
 from app import images
 from app.config import get_settings
@@ -22,8 +22,16 @@ class ImageOut(CamelModel):
 
 
 @router.post("", status_code=201, response_model=ImageOut, response_model_by_alias=True)
-async def upload(user: TeacherUser, file: Annotated[UploadFile, File()]) -> ImageOut:
-    """A JPEG, PNG, WebP or GIF of up to 10 MB, for a quiz cover or a question. Stored as WebP."""
+async def upload(
+    user: TeacherUser,
+    file: Annotated[UploadFile, File()],
+    x: Annotated[float, Form(ge=0, le=1)] = 0.5,
+    y: Annotated[float, Form(ge=0, le=1)] = 0.5,
+) -> ImageOut:
+    """
+    A JPEG, PNG, WebP or GIF of up to 10 MB, for a quiz cover or a question. Stored as a 16:9 WebP,
+    cut where the teacher placed the frame (`x`, `y`: 0 to 1, the middle when left out).
+    """
     settings = get_settings()
     if not settings.r2_endpoint:
         raise ApiError(503, "IMAGES_NOT_CONFIGURED")
@@ -34,7 +42,7 @@ async def upload(user: TeacherUser, file: Annotated[UploadFile, File()]) -> Imag
         raise ApiError(429, "RATE_LIMITED")
     try:
         # Decoding a big photo takes a moment: off the event loop.
-        webp = await asyncio.to_thread(images.encode, data)
+        webp = await asyncio.to_thread(images.encode, data, x, y)
     except images.NotAnImage:
         raise ApiError(415, "IMAGE_UNSUPPORTED", field="file") from None
     try:

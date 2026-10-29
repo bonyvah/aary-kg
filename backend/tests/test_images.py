@@ -21,23 +21,57 @@ def decoded(data: bytes) -> Image.Image:
 
 def test_any_accepted_format_becomes_webp():
     for fmt in ("PNG", "JPEG", "WEBP", "GIF"):
-        out = decoded(images.encode(picture(fmt=fmt)))
+        out = decoded(images.encode(picture(size=(160, 90), fmt=fmt)))
         assert out.format == "WEBP"
-        assert out.size == (40, 30)
+        assert out.size == (160, 90)
 
 
 def test_big_pictures_are_shrunk_to_the_longest_side():
-    out = decoded(images.encode(picture(size=(4000, 1000), fmt="JPEG")))
-    assert out.size == (images.MAX_SIDE, 400)
+    out = decoded(images.encode(picture(size=(4000, 2250), fmt="JPEG")))
+    assert out.size == (images.MAX_SIDE, 900)
 
 
 def test_a_phone_photo_is_turned_upright_and_loses_its_metadata():
     exif = Image.Exif()
     exif[0x0112] = 6  # orientation: rotated 90 degrees
     exif[0x010F] = "PhoneMaker"
-    out = decoded(images.encode(picture(size=(40, 30), fmt="JPEG", exif=exif.tobytes())))
-    assert out.size == (30, 40)
+    out = decoded(images.encode(picture(size=(320, 180), fmt="JPEG", exif=exif.tobytes())))
+    assert out.size == (180, 101)  # upright first, then cut to 16:9
     assert not out.getexif()
+
+
+def halves(size, first, second, *, across: bool) -> bytes:
+    """A picture in two colours: left and right halves when `across`, top and bottom otherwise."""
+    image = Image.new("RGB", size, second)
+    w, h = size
+    image.paste(first, (0, 0, w // 2, h) if across else (0, 0, w, h // 2))
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
+def test_every_picture_is_cut_to_16_9():
+    for size in [(400, 100), (100, 400), (300, 300), (160, 90)]:
+        w, h = decoded(images.encode(picture(size=size))).size
+        assert abs(w / h - 16 / 9) < 0.02, size
+
+
+def test_the_cut_follows_x_on_a_wide_picture():
+    wide = halves((800, 200), "red", "blue", across=True)
+    left = decoded(images.encode(wide, x=0)).convert("RGB")
+    right = decoded(images.encode(wide, x=1)).convert("RGB")
+    assert left.size == right.size == (356, 200)
+    assert left.getpixel((178, 100))[0] > 200  # all red
+    assert right.getpixel((178, 100))[2] > 200  # all blue
+
+
+def test_the_cut_follows_y_on_a_tall_picture():
+    tall = halves((200, 800), "red", "blue", across=False)
+    top = decoded(images.encode(tall, y=0)).convert("RGB")
+    bottom = decoded(images.encode(tall, y=1)).convert("RGB")
+    assert top.size == (200, 112)
+    assert top.getpixel((100, 56))[0] > 200
+    assert bottom.getpixel((100, 56))[2] > 200
 
 
 def test_transparency_is_kept():
@@ -77,6 +111,16 @@ async def test_a_teacher_uploads_an_image(as_user, bucket):
     r = await c.post("/images", files={"file": ("cat.jpg", picture(fmt="JPEG"), "image/jpeg")})
     assert r.status_code == 201, r.text
     assert list(bucket) == [r.json()["id"]]
+
+
+async def test_the_frame_is_sent_with_the_upload(as_user, bucket):
+    c, _ = await as_user("ulan")
+    wide = halves((800, 200), "red", "blue", across=True)
+    r = await c.post("/images", files={"file": ("w.png", wide, "image/png")}, data={"x": "1"})
+    assert r.status_code == 201, r.text
+    assert decoded(bucket[r.json()["id"]]).convert("RGB").getpixel((178, 100))[2] > 200
+    bad = await c.post("/images", files={"file": ("w.png", wide, "image/png")}, data={"x": "1.5"})
+    assert (bad.status_code, bad.json()["code"]) == (422, "VALIDATION_ERROR")
 
 
 async def test_only_teachers_upload(as_user, bucket):

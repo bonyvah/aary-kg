@@ -1,17 +1,44 @@
+import { passwordProblem, type PasswordProblem } from "@/lib/account";
 import { search } from "@/lib/search";
 import type { ManagedUser, UserRole } from "@/types/user";
 
 /** Stable codes of a failed «create user». The frontend turns them into translated text. */
-export type AdminErrorCode = "FIELD_REQUIRED" | "LOGIN_INVALID" | "LOGIN_TAKEN" | "GROUP_REQUIRED";
+export type AdminErrorCode =
+  | "FIELD_REQUIRED"
+  | "LOGIN_INVALID"
+  | "LOGIN_TAKEN"
+  | "GROUP_REQUIRED"
+  | PasswordProblem
+  | "PASSWORD_CONTAINS_NAME"
+  | "PASSWORD_CONTAINS_LOGIN";
+
+/** The codes the server answers with for a field of «create user». */
+export const NEW_USER_CODES: readonly AdminErrorCode[] = [
+  "FIELD_REQUIRED",
+  "LOGIN_INVALID",
+  "LOGIN_TAKEN",
+  "GROUP_REQUIRED",
+  "PASSWORD_TOO_SHORT",
+  "PASSWORD_TOO_LONG",
+  "PASSWORD_NEEDS_LETTER",
+  "PASSWORD_NEEDS_DIGIT",
+  "PASSWORD_CONTAINS_NAME",
+  "PASSWORD_CONTAINS_LOGIN",
+];
 
 /** The rule for a login, here and when changing it in the account settings. Same as the server's. */
 export const LOGIN_PATTERN = /^[a-z0-9][a-z0-9._-]{2,31}$/;
 
-export type NewUserField = "firstName" | "lastName" | "login" | "groupId";
+export type NewUserField = "firstName" | "lastName" | "login" | "groupId" | "password";
 
-/** What the server checks on «create user». Returns the first error per field. A student needs a group. */
+export const NEW_USER_FIELDS: readonly NewUserField[] = ["firstName", "lastName", "login", "groupId", "password"];
+
+/**
+ * What the server checks on «create user». Returns the first error per field. A student needs a group.
+ * A password is optional; the server also refuses one with the name or login in it.
+ */
 export function validateNewUser(
-  input: { firstName: string; lastName: string; login: string; groupId?: string | null; student?: boolean },
+  input: { firstName: string; lastName: string; login: string; groupId?: string | null; student?: boolean; password?: string },
   existing: readonly Pick<ManagedUser, "login">[],
 ): Partial<Record<NewUserField, AdminErrorCode>> {
   const errors: Partial<Record<NewUserField, AdminErrorCode>> = {};
@@ -22,16 +49,21 @@ export function validateNewUser(
   else if (!LOGIN_PATTERN.test(login)) errors.login = "LOGIN_INVALID";
   else if (existing.some((user) => user.login.toLowerCase() === login)) errors.login = "LOGIN_TAKEN";
   if (input.student && !input.groupId) errors.groupId = "GROUP_REQUIRED";
+  const problem = input.password ? passwordProblem(input.password) : null;
+  if (problem) errors.password = problem;
   return errors;
 }
 
 // No 0/O, 1/l/I: a password read off a screen must not be ambiguous.
 const PASSWORD_CHARS = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-/** A random password in three groups of four, e.g. `k7Tm-Qp3x-Zs9w`. Shown once, never stored in the UI. */
+/** A random password in three groups of four, e.g. `k7Tm-Qp3x-Zs9w`, with a digit in it like the server's. */
 export function generatePassword(random: (max: number) => number = randomIndex): string {
   const group = () => Array.from({ length: 4 }, () => PASSWORD_CHARS[random(PASSWORD_CHARS.length)]).join("");
-  return `${group()}-${group()}-${group()}`;
+  for (;;) {
+    const password = `${group()}-${group()}-${group()}`;
+    if (/[0-9]/.test(password)) return password;
+  }
 }
 
 function randomIndex(max: number): number {

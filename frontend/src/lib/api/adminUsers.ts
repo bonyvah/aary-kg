@@ -10,6 +10,8 @@ export type NewUser = {
   role: "teacher" | "student";
   /** Students only. */
   groupId: string | null;
+  /** Blank: the server generates one. */
+  password: string;
 };
 
 export const createUser = (input: NewUser) =>

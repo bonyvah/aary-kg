@@ -31,6 +31,7 @@ check("a 33 character login is LOGIN_INVALID", codes("A", "a".repeat(33)) === '{
 const passwords = Array.from({ length: 2000 }, () => generatePassword());
 check("passwords look like xxxx-xxxx-xxxx", passwords.every((p) => /^[A-Za-z2-9]{4}-[A-Za-z2-9]{4}-[A-Za-z2-9]{4}$/.test(p)));
 check("no ambiguous characters (0 O 1 l I)", passwords.every((p) => !/[0O1lI]/.test(p)));
+check("every password has a digit and passes the rules", passwords.every((p) => passwordProblem(p) === null));
 check("2000 passwords are all different", new Set(passwords).size === passwords.length);
 const counts = new Map<string, number>();
 for (const p of passwords) for (const ch of p.replace(/-/g, "")) counts.set(ch, (counts.get(ch) ?? 0) + 1);
@@ -73,6 +74,8 @@ check("a wrong answer line", line("edit_answer", { question: "q1", after: { corr
 check("rename line has both names", JSON.stringify(line("rename_player", { before: "a", after: "b" }).values) === '{"before":"a","after":"b"}');
 check("remove and clear lines", line("remove_player", {}).key === "remove_player" && line("clear_flag", { kind: "PASTE" }).values.kind === "PASTE");
 check("a student without a group is GROUP_REQUIRED", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", groupId: "", student: true }, existing)) === '{"groupId":"GROUP_REQUIRED"}');
+check("a chosen password is optional", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", password: "" }, existing)) === "{}");
+check("a chosen password follows the rules", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", password: "abcdefgh" }, existing)) === '{"password":"PASSWORD_NEEDS_DIGIT"}');
 check("a teacher needs no group", JSON.stringify(validateNewUser({ firstName: "A", lastName: "B", login: "abc", groupId: "" }, existing)) === "{}");
 
 const groups = [{ id: "g1", name: "10-А" }, { id: "g2", name: "9-Б" }];

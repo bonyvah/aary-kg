@@ -869,13 +869,21 @@
       "lastName": "Фамилия",
       "studentTitle": "Новый студент",
       "group": "Группа",
-      "groupPick": "Выберите группу"
+      "groupPick": "Выберите группу",
+      "password": "Пароль",
+      "generate": "Сгенерировать"
     },
     "errors": {
       "FIELD_REQUIRED": "Заполните поле.",
       "LOGIN_INVALID": "Логин: 3–32 символа, латиница, цифры, точка, дефис.",
       "LOGIN_TAKEN": "Этот логин занят.",
-      "GROUP_REQUIRED": "Выберите группу."
+      "GROUP_REQUIRED": "Выберите группу.",
+      "PASSWORD_TOO_SHORT": "Пароль короче 8 символов.",
+      "PASSWORD_TOO_LONG": "Пароль длиннее 128 символов.",
+      "PASSWORD_NEEDS_LETTER": "Добавьте хотя бы одну букву.",
+      "PASSWORD_NEEDS_DIGIT": "Добавьте хотя бы одну цифру.",
+      "PASSWORD_CONTAINS_NAME": "В пароле не должно быть имени или фамилии, даже латиницей.",
+      "PASSWORD_CONTAINS_LOGIN": "В пароле не должно быть логина."
     },
     "password": {
       "title": "Пароль готов",

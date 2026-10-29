@@ -9,7 +9,14 @@ import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import type { NewUser } from "@/lib/api/adminUsers";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
-import { validateNewUser, type AdminErrorCode, type NewUserField } from "@/lib/adminUsers";
+import {
+  generatePassword,
+  NEW_USER_CODES,
+  NEW_USER_FIELDS,
+  validateNewUser,
+  type AdminErrorCode,
+  type NewUserField,
+} from "@/lib/adminUsers";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 
@@ -35,6 +42,7 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
   const [lastName, setLastName] = useState("");
   const [login, setLogin] = useState("");
   const [groupId, setGroupId] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<NewUserField, AdminErrorCode>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,6 +54,7 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
       setLastName("");
       setLogin("");
       setGroupId("");
+      setPassword("");
       setErrors({});
       setFormError(null);
       setBusy(false);
@@ -54,10 +63,10 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const found = validateNewUser({ firstName, lastName, login, groupId, student }, existing);
+    const found = validateNewUser({ firstName, lastName, login, groupId, student, password }, existing);
     setErrors(found);
     setFormError(null);
-    if (found.firstName || found.lastName || found.login || found.groupId) return;
+    if (Object.keys(found).length > 0) return;
     setBusy(true);
     try {
       await onCreate({
@@ -66,11 +75,13 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
         login: login.trim().toLowerCase(),
         role: role ?? "teacher",
         groupId: student ? groupId : null,
+        password,
       });
     } catch (failure) {
       // The server checks the same rules: its answer for a field shows under that field.
-      const known: readonly string[] = ["FIELD_REQUIRED", "LOGIN_INVALID", "LOGIN_TAKEN", "GROUP_REQUIRED"];
-      if (failure instanceof ApiRequestError && known.includes(failure.code) && (failure.field === "firstName" || failure.field === "lastName" || failure.field === "login" || failure.field === "groupId")) {
+      const known: readonly string[] = NEW_USER_CODES;
+      const fields: readonly string[] = NEW_USER_FIELDS;
+      if (failure instanceof ApiRequestError && known.includes(failure.code) && failure.field && fields.includes(failure.field)) {
         setErrors({ [failure.field]: failure.code as AdminErrorCode });
       } else {
         setFormError(tc(`apiError.${toKnownCode(failure)}`));
@@ -136,6 +147,21 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
             ))}
           </Select>
         ) : null}
+        <div className="flex flex-col items-start gap-3">
+          <Input
+            label={t("password")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="new-password"
+            autoCapitalize="none"
+            spellCheck={false}
+            wrapperClassName="w-full"
+            error={errors.password ? te(errors.password) : undefined}
+          />
+          <Button variant="secondary" onClick={() => setPassword(generatePassword())}>
+            {t("generate")}
+          </Button>
+        </div>
         {formError ? (
           <p role="alert" className="text-caption font-bold text-danger-text">
             {formError}

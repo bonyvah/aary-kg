@@ -87,7 +87,15 @@
     "common.export.failed",
     "staff.examSession.attendance.submittedAt",
     "admin.tabs.teachers",
-    "admin.tabs.students"
+    "admin.tabs.students",
+    "admin.create.password",
+    "admin.create.generate",
+    "admin.errors.PASSWORD_TOO_SHORT",
+    "admin.errors.PASSWORD_TOO_LONG",
+    "admin.errors.PASSWORD_NEEDS_LETTER",
+    "admin.errors.PASSWORD_NEEDS_DIGIT",
+    "admin.errors.PASSWORD_CONTAINS_NAME",
+    "admin.errors.PASSWORD_CONTAINS_LOGIN"
   ],
   "app": {
     "name": "aary kg"
@@ -959,13 +967,21 @@
       "lastName": "Фамилиясы",
       "studentTitle": "Жаңы студент",
       "group": "Группа",
-      "groupPick": "Группаны тандаңыз"
+      "groupPick": "Группаны тандаңыз",
+      "password": "Сырсөз",
+      "generate": "Генерациялоо"
     },
     "errors": {
       "FIELD_REQUIRED": "Талааны толтуруңуз.",
       "LOGIN_INVALID": "Логин 3–32 белгиден турат: латын тамгалары, цифралар, чекит, сызыкча.",
       "LOGIN_TAKEN": "Бул логин ээленген.",
-      "GROUP_REQUIRED": "Группаны тандаңыз."
+      "GROUP_REQUIRED": "Группаны тандаңыз.",
+      "PASSWORD_TOO_SHORT": "Сырсөз 8 белгиден кыска.",
+      "PASSWORD_TOO_LONG": "Сырсөз 128 белгиден узун.",
+      "PASSWORD_NEEDS_LETTER": "Кеминде бир тамга кошуңуз.",
+      "PASSWORD_NEEDS_DIGIT": "Кеминде бир цифра кошуңуз.",
+      "PASSWORD_CONTAINS_NAME": "Сырсөздө аты же фамилиясы болбошу керек, латынча жазылса да.",
+      "PASSWORD_CONTAINS_LOGIN": "Сырсөздө логин болбошу керек."
     },
     "password": {
       "title": "Сырсөз даяр",

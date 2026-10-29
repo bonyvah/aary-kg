@@ -112,3 +112,21 @@ async def test_reset_password_changes_it(client):
     assert bad.status_code == 401
     await login_as(fresh, "ulan", new)
     await fresh.aclose()
+
+
+async def test_reset_to_a_chosen_password(client):
+    await admin_client(client)
+    u = await make_user("ulan", password="old-pass")
+    r = await client.post(f"/admin/users/{u.id}/reset-password", json={"password": "tulpar-9421"})
+    assert (r.status_code, r.json()) == (200, {"password": "tulpar-9421"})
+    fresh = type(client)(transport=client._transport, base_url="http://test")
+    await login_as(fresh, "ulan", "tulpar-9421")
+    await fresh.aclose()
+
+
+async def test_a_chosen_reset_password_follows_the_rules(client):
+    await admin_client(client)
+    u = await make_user("ulan")
+    for password, code in [("short1", "PASSWORD_TOO_SHORT"), ("ulan-2026-x", "PASSWORD_CONTAINS_NAME")]:
+        r = await client.post(f"/admin/users/{u.id}/reset-password", json={"password": password})
+        assert (r.status_code, r.json()) == (400, {"code": code, "field": "password"}), password

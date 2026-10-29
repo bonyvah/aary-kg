@@ -56,6 +56,11 @@ class UserWithPassword(CamelModel):
     password: str
 
 
+class ResetPasswordIn(CamelModel):
+    # Chosen by the admin, under the same rules as on create. Blank: generated.
+    password: str = ""
+
+
 class PasswordOut(CamelModel):
     password: str
 

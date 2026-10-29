@@ -4,7 +4,14 @@ from fastapi import APIRouter
 
 from app.deps import AdminUser, Session
 from app.repositories import users as repo
-from app.schemas.user import CreateUserIn, ManagedUser, MoveGroupIn, PasswordOut, UserWithPassword
+from app.schemas.user import (
+    CreateUserIn,
+    ManagedUser,
+    MoveGroupIn,
+    PasswordOut,
+    ResetPasswordIn,
+    UserWithPassword,
+)
 from app.services import users as service
 
 router = APIRouter(prefix="/admin/users", tags=["admin"])
@@ -40,5 +47,8 @@ async def move_to_group(user_id: uuid.UUID, body: MoveGroupIn, _: AdminUser, ses
 
 
 @router.post("/{user_id}/reset-password", response_model=PasswordOut, response_model_by_alias=True)
-async def reset_password(user_id: uuid.UUID, _: AdminUser, session: Session) -> PasswordOut:
-    return PasswordOut(password=await service.reset_password(session, user_id))
+async def reset_password(
+    user_id: uuid.UUID, _: AdminUser, session: Session, body: ResetPasswordIn | None = None
+) -> PasswordOut:
+    password = body.password if body else ""
+    return PasswordOut(password=await service.reset_password(session, user_id, password))

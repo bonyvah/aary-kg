@@ -115,10 +115,16 @@ def _not_an_admin(user: User) -> None:
         raise ApiError(403, "CANNOT_MANAGE_ADMIN")
 
 
-async def reset_password(session: AsyncSession, user_id: uuid.UUID) -> str:
+async def reset_password(session: AsyncSession, user_id: uuid.UUID, password: str = "") -> str:
+    """A blank password is generated."""
     user = await _get(session, user_id)
     _not_an_admin(user)
-    password = generate_password()
+    if password:
+        password_policy.check(
+            password, first_name=user.first_name, last_name=user.last_name, login=user.login, field="password"
+        )
+    else:
+        password = generate_password()
     user.password_hash = hash_password(password)
     user.token_version += 1  # every open session of this user ends
     await session.commit()

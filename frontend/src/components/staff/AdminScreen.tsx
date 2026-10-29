@@ -137,9 +137,9 @@ export function AdminScreen() {
     show("success", t("toast.moved"));
   }
 
-  async function resetPassword() {
+  async function resetPassword(chosen: string) {
     if (!editing) return;
-    const { password } = await api.resetPassword(editing.id);
+    const { password } = await api.resetPassword(editing.id, chosen);
     setRevealed({ name: editing.name, password });
   }
 

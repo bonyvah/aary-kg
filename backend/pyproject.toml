@@ -17,6 +17,8 @@ dependencies = [
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
   "python-multipart>=0.0.32",
+  "boto3>=1.43",
+  "pillow>=12.3",
 ]
 
 [dependency-groups]

@@ -20,6 +20,32 @@ services:
       interval: 1s
       timeout: 3s
       retries: 20
+  # Quiz and question images. Stands in for the Cloudflare R2 bucket: the same S3 calls.
+  # Console: http://localhost:9001 (minioadmin / minioadmin).
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  # Makes the bucket once, readable by anyone, as the R2 bucket is through its public URL.
+  minio-bucket:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - sh
+      - -c
+      - mc alias set local http://minio:9000 minioadmin minioadmin && mc mb --ignore-existing local/aary-images && mc anonymous set download local/aary-images
+    restart: "no"
 
   # The backend and the web app run from your source folders (bind mounts) and reload on every save.
   # The backend image is the production one; only the command and the mounted code differ.
@@ -35,6 +61,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-bucket:
+        condition: service_completed_successfully
     environment:
       AARY_ENV: dev
       AARY_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aary
@@ -44,6 +72,10 @@ services:
       # Add a tunnel origin (ngrok) in .env: AARY_ALLOWED_ORIGINS=http://localhost:3000,https://<x>.ngrok-free.dev
       AARY_ALLOWED_ORIGINS: ${AARY_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-3000}}
       AARY_TRUSTED_PROXY_HOPS: "0"
+      AARY_R2_ENDPOINT: http://minio:9000
+      AARY_R2_ACCESS_KEY_ID: minioadmin
+      AARY_R2_SECRET_ACCESS_KEY: minioadmin
+      AARY_R2_BUCKET: aary-images
     volumes:
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic
@@ -65,6 +97,7 @@ services:
     working_dir: /app
     environment:
       API_URL: http://backend:8000
+      NEXT_PUBLIC_IMAGES_URL: http://localhost:9000/aary-images
       NEXT_TELEMETRY_DISABLED: "1"
       # Files saved on the host do not send events into the container reliably everywhere.
       WATCHPACK_POLLING: "true"
@@ -87,6 +120,7 @@ services:
 
 volumes:
   pgdata:
+  miniodata:
   frontend_node_modules:
   frontend_next:
   frontend_corepack:

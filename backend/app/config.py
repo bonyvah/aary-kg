@@ -36,6 +36,15 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-5.4-mini"
     # Generations per teacher per day.
     ai_daily_limit: int = Field(default=20, ge=0, le=1000)
+    # Quiz and question images, in a Cloudflare R2 bucket (any S3-compatible store: MinIO in dev).
+    # The bucket is read publicly by the browsers; only the backend writes. Empty endpoint: uploads
+    # answer IMAGES_NOT_CONFIGURED.
+    r2_endpoint: str = ""  # https://<account id>.r2.cloudflarestorage.com
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = "aary-images"
+    # Uploads per teacher per day.
+    image_daily_limit: int = Field(default=300, ge=0, le=10000)
 
     @field_validator("database_url")
     @classmethod

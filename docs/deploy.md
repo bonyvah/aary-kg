@@ -57,6 +57,22 @@ Set inside the compose file, from the above: `AARY_ENV=production`, `AARY_COOKIE
 `AARY_DATABASE_URL`, `AARY_REDIS_URL`. Other backend settings (`AARY_JWT_TTL_MINUTES`,
 `AARY_REDIS_MAX_CONNECTIONS`) are in `backend/.env.example`.
 
+## Images (Cloudflare R2)
+
+Quiz covers and question images are kept in an R2 bucket. The backend writes them (as WebP,
+named by their hash, never changed); browsers read them straight from the bucket's public URL.
+
+1. Create a bucket, e.g. `aary-images`, and turn on public access (a custom domain, or the
+   `r2.dev` URL).
+2. Create an API token with *Object Read & Write* on that bucket.
+3. Backend: `AARY_R2_ENDPOINT=https://<account id>.r2.cloudflarestorage.com`,
+   `AARY_R2_ACCESS_KEY_ID`, `AARY_R2_SECRET_ACCESS_KEY`, `AARY_R2_BUCKET`.
+4. Web app, when it is built: `NEXT_PUBLIC_IMAGES_URL=<the public URL of the bucket>` (no trailing
+   slash). It also lets the pages load images from there (content security policy).
+
+Without `AARY_R2_ENDPOINT` uploads answer `IMAGES_NOT_CONFIGURED`; quizzes still work without
+images. In development docker compose runs MinIO in place of R2 (console on `localhost:9001`).
+
 ## What the proxy in front must do
 
 1. **Terminate HTTPS** and forward to the web app (`127.0.0.1:3000`). The session cookie is marked

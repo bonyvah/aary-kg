@@ -9,8 +9,8 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 # The biggest legitimate request is a quiz of 100 questions: well under this.
 MAX_BODY_BYTES = 256 * 1024
-# Except an uploaded teaching material (10 MB, plus the form around it).
-LARGE_BODY_PATHS = {"/ai/questions": 11 * 1024 * 1024}
+# Except an uploaded teaching material or image (10 MB, plus the form around it).
+LARGE_BODY_PATHS = {"/ai/questions": 11 * 1024 * 1024, "/images": 11 * 1024 * 1024}
 
 # Responses under these paths hold private data: no browser or proxy cache may keep them.
 PRIVATE_PREFIXES = (
@@ -24,6 +24,7 @@ PRIVATE_PREFIXES = (
     "/exam-sessions",
     "/student",
     "/ai",
+    "/images",
 )
 
 

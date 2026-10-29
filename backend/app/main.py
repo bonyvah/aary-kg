@@ -20,6 +20,7 @@ from app.routers import (
     exams,
     games,
     groups,
+    images,
     quiz_library,
     quizzes,
     student_exams,
@@ -47,6 +48,7 @@ app.include_router(groups.router)
 app.include_router(quizzes.router)
 app.include_router(quiz_library.router)
 app.include_router(ai.router)
+app.include_router(images.router)
 app.include_router(exams.router)
 app.include_router(exam_sessions.router)
 app.include_router(exam_sessions.admin_router)

@@ -845,16 +845,10 @@
     "columns": {
       "name": "Имя",
       "login": "Логин",
-      "role": "Роль",
       "group": "Группа",
       "status": "Статус",
       "created": "Создан",
       "actions": "Действия"
-    },
-    "roles": {
-      "admin": "Админ",
-      "teacher": "Учитель",
-      "student": "Студент"
     },
     "status": {
       "active": "Активен",
@@ -905,7 +899,8 @@
     },
     "tabsLabel": "Разделы",
     "tabs": {
-      "users": "Пользователи",
+      "teachers": "Учителя",
+      "students": "Студенты",
       "groups": "Группы",
       "exams": "Экзамены",
       "contests": "Конкурсы",
@@ -1061,11 +1056,6 @@
     },
     "filter": {
       "search": "Поиск по имени или логину",
-      "role": "Роль",
-      "allRoles": "Все роли",
-      "teachers": "Учителя",
-      "students": "Ученики",
-      "admins": "Администраторы",
       "group": "Группа",
       "allGroups": "Все группы",
       "nothingFound": "Никого не найдено"

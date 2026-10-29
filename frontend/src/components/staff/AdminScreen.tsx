@@ -46,13 +46,13 @@ type Pending = { kind: "disable"; user: ManagedUser } | null;
 // Rows per page in the tables.
 const TABLE_PAGE = 20;
 
-const TABS = ["users", "groups", "exams", "contests", "games"] as const;
+const TABS = ["teachers", "students", "groups", "exams", "contests", "games"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
-  const [tab, setTab] = useStoredTab<Tab>("aary.adminTab", TABS, "users");
+  const [tab, setStoredTab] = useStoredTab<Tab>("aary.adminTab", TABS, "teachers");
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
   const allExams = useResource(listAllExamSessions);
@@ -67,12 +67,19 @@ export function AdminScreen() {
   const [addingGroup, setAddingGroup] = useState(false);
   const [pending, setPending] = useState<Pending>(null);
   const locale = useLocale();
-  const [filter, setFilterState] = useState<UserFilter>({ query: "", role: "all", groupId: "" });
+  const [search, setSearch] = useState({ query: "", groupId: "" });
   const [usersPage, setUsersPage] = useState(1);
-  const setFilter = (change: (f: UserFilter) => UserFilter) => {
-    setFilterState(change);
+  const setFilter = (change: (f: typeof search) => typeof search) => {
+    setSearch(change);
     setUsersPage(1);
   };
+  // Each tab starts with an empty search.
+  const setTab = (next: Tab) => {
+    setStoredTab(next);
+    setFilter(() => ({ query: "", groupId: "" }));
+  };
+  const role: UserFilter["role"] | null = tab === "teachers" ? "teacher" : tab === "students" ? "student" : null;
+  const filter: UserFilter = { ...search, role: role ?? "teacher" };
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
 
@@ -181,6 +188,14 @@ export function AdminScreen() {
           <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
+        ) : tab === "teachers" ? (
+          <Button variant="success" onClick={() => setCreating("teacher")}>
+            {t("createTeacher")}
+          </Button>
+        ) : tab === "students" ? (
+          <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
+            {t("createStudent")}
+          </Button>
         ) : null}
       </div>
 
@@ -245,19 +260,7 @@ export function AdminScreen() {
             onChange={(event) => setFilter((f) => ({ ...f, query: event.target.value }))}
             wrapperClassName="w-full max-w-[360px]"
           />
-          <Select
-            hideLabel
-            label={t("filter.role")}
-            value={filter.role}
-            onChange={(event) => setFilter((f) => ({ ...f, role: event.target.value as UserFilter["role"], groupId: "" }))}
-            wrapperClassName="w-full max-w-[220px]"
-          >
-            <option value="all">{t("filter.allRoles")}</option>
-            <option value="teacher">{t("filter.teachers")}</option>
-            <option value="student">{t("filter.students")}</option>
-            <option value="admin">{t("filter.admins")}</option>
-          </Select>
-          {filter.role === "student" ? (
+          {role === "student" ? (
             <Select
               hideLabel
               label={t("filter.group")}
@@ -273,14 +276,6 @@ export function AdminScreen() {
               ))}
             </Select>
           ) : null}
-          <div className="ml-auto flex flex-wrap items-center gap-3">
-            <Button variant="success" onClick={() => setCreating("teacher")}>
-              {t("createTeacher")}
-            </Button>
-            <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
-              {t("createStudent")}
-            </Button>
-          </div>
         </div>
         {shown.length === 0 ? (
           <EmptyState icon={MagnifyingGlass} title={t("filter.nothingFound")} />
@@ -290,69 +285,59 @@ export function AdminScreen() {
             <tr>
               <Th>{t("columns.name")}</Th>
               <Th>{t("columns.login")}</Th>
-              <Th>{t("columns.role")}</Th>
-              <Th>{t("columns.group")}</Th>
+              {role === "student" ? <Th>{t("columns.group")}</Th> : null}
               <Th>{t("columns.status")}</Th>
               <Th>{t("columns.created")}</Th>
               <Th>{t("columns.actions")}</Th>
             </tr>
           </thead>
           <tbody>
-            {shown.map((user) => {
-              // Other admins are listed for information only: the server refuses any action on them.
-              const isAdminUser = user.role === "admin";
-              return (
-                <tr key={user.id}>
-                  <Td>
-                    <span className="min-w-0 wrap-break-word font-bold">{user.name}</span>
-                  </Td>
-                  <Td>{user.login}</Td>
-                  <Td>
-                    <Badge variant={user.role === "admin" ? "brand" : "neutral"}>{t(`roles.${user.role}`)}</Badge>
-                  </Td>
-                  <Td>{user.groupName ?? ""}</Td>
-                  <Td>
-                    <Badge variant={user.active ? "success" : "neutral"}>{t(user.active ? "status.active" : "status.disabled")}</Badge>
-                  </Td>
-                  <Td className="whitespace-nowrap">
-                    {dateTime(new Date(user.createdAt), { time: false })}
-                  </Td>
-                  <Td>
-                    {isAdminUser ? null : (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {user.active ? (
-                          <Button
-                            variant="danger"
-                            aria-label={`${t("actions.disable")}: ${user.name}`}
-                            title={`${t("actions.disable")}: ${user.name}`}
-                            onClick={() => setPending({ kind: "disable", user })}
-                          >
-                            <Icon icon={Prohibit} weight="bold" />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="secondary"
-                            aria-label={`${t("actions.enable")}: ${user.name}`}
-                            title={`${t("actions.enable")}: ${user.name}`}
-                            onClick={() => setActive(user, true)}
-                          >
-                            <Icon icon={CheckCircle} weight="bold" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="secondary"
-                          aria-label={`${t("actions.edit")}: ${user.name}`}
-                          title={`${t("actions.edit")}: ${user.name}`}
-                          onClick={() => void (user.role === "student" ? withGroups(() => setEditing(user)) : setEditing(user))}
-                        >
-                          <Icon icon={PencilSimple} weight="bold" />
-                        </Button>
-                      </div>
+            {shown.map((user) => (
+              <tr key={user.id}>
+                <Td>
+                  <span className="min-w-0 wrap-break-word font-bold">{user.name}</span>
+                </Td>
+                <Td>{user.login}</Td>
+                {role === "student" ? <Td>{user.groupName ?? ""}</Td> : null}
+                <Td>
+                  <Badge variant={user.active ? "success" : "neutral"}>{t(user.active ? "status.active" : "status.disabled")}</Badge>
+                </Td>
+                <Td className="whitespace-nowrap">
+                  {dateTime(new Date(user.createdAt), { time: false })}
+                </Td>
+                <Td>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {user.active ? (
+                      <Button
+                        variant="danger"
+                        aria-label={`${t("actions.disable")}: ${user.name}`}
+                        title={`${t("actions.disable")}: ${user.name}`}
+                        onClick={() => setPending({ kind: "disable", user })}
+                      >
+                        <Icon icon={Prohibit} weight="bold" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        aria-label={`${t("actions.enable")}: ${user.name}`}
+                        title={`${t("actions.enable")}: ${user.name}`}
+                        onClick={() => setActive(user, true)}
+                      >
+                        <Icon icon={CheckCircle} weight="bold" />
+                      </Button>
                     )}
-                  </Td>
-                </tr>
-              );
-            })}
+                    <Button
+                      variant="secondary"
+                      aria-label={`${t("actions.edit")}: ${user.name}`}
+                      title={`${t("actions.edit")}: ${user.name}`}
+                      onClick={() => void (user.role === "student" ? withGroups(() => setEditing(user)) : setEditing(user))}
+                    >
+                      <Icon icon={PencilSimple} weight="bold" />
+                    </Button>
+                  </div>
+                </Td>
+              </tr>
+            ))}
           </tbody>
         </Table>
         )}

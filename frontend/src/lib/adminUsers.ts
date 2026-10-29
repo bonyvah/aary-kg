@@ -43,16 +43,16 @@ function randomIndex(max: number): number {
   return (values[0] ?? 0) % max;
 }
 
-export type UserFilter = { query: string; role: UserRole | "all"; groupId: string };
+export type UserFilter = { query: string; role: Exclude<UserRole, "admin">; groupId: string };
 
-/** The users the admin is looking for: by role, for students by group ("" = any), then by name or login, best first. */
+/** The users on a tab: one role, for students by group ("" = any), then by name or login, best first. */
 export function filterUsers<U extends Pick<ManagedUser, "name" | "login" | "role" | "groupId">>(
   users: readonly U[],
   filter: UserFilter,
 ): U[] {
   const picked = users.filter(
     (user) =>
-      (filter.role === "all" || user.role === filter.role) &&
+      user.role === filter.role &&
       (filter.role !== "student" || filter.groupId === "" || user.groupId === filter.groupId),
   );
   return search(picked, filter.query, (user) => [user.name, user.login]);

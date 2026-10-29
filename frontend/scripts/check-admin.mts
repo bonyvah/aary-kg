@@ -116,10 +116,10 @@ const people = [
   { name: "Айзада К", login: "aizada", role: "student" as const, groupId: "g1" },
   { name: "Бакыт Т", login: "bakyt", role: "student" as const, groupId: "g2" },
 ];
-const found = (query: string, role: "all" | "teacher" | "student" | "admin", groupId = "") => filterUsers(people, { query, role, groupId }).map((u) => u.login).join();
-check("search by name or login", found("айз", "all") === "aizada" && found("BAK", "all") === "bakyt");
+const found = (query: string, role: "teacher" | "student", groupId = "") => filterUsers(people, { query, role, groupId }).map((u) => u.login).join();
+check("search by name or login", found("айз", "student") === "aizada" && found("BAK", "student") === "bakyt" && found("aib", "student") === "");
 check("filter by role", found("", "student") === "aizada,bakyt" && found("", "teacher") === "aibek");
-check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "all", "g2") === "aibek,aizada,bakyt");
+check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "teacher", "g2") === "aibek");
 
 // Quiz questions copied into an exam.
 const quizQuestion = { id: "q7", text: "2 + 2?", answers: ["3", "4", "", ""] as [string, string, string, string], correct: 2 as const, seconds: 20, readSeconds: 5 };

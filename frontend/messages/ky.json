@@ -85,7 +85,9 @@
     "common.export.xlsx",
     "common.export.pdf",
     "common.export.failed",
-    "staff.examSession.attendance.submittedAt"
+    "staff.examSession.attendance.submittedAt",
+    "admin.tabs.teachers",
+    "admin.tabs.students"
   ],
   "app": {
     "name": "aary kg"
@@ -933,16 +935,10 @@
     "columns": {
       "name": "Аты-жөнү",
       "login": "Логин",
-      "role": "Ролу",
       "group": "Группа",
       "status": "Абалы",
       "created": "Түзүлгөн",
       "actions": "Аракеттер"
-    },
-    "roles": {
-      "admin": "Админ",
-      "teacher": "Мугалим",
-      "student": "Студент"
     },
     "status": {
       "active": "Активдүү",
@@ -993,7 +989,8 @@
     },
     "tabsLabel": "Бөлүмдөр",
     "tabs": {
-      "users": "Колдонуучулар",
+      "teachers": "Мугалимдер",
+      "students": "Студенттер",
       "groups": "Группалар",
       "exams": "Экзамендер",
       "contests": "Конкурстар",
@@ -1149,11 +1146,6 @@
     },
     "filter": {
       "search": "Аты же логин боюнча издөө",
-      "role": "Ролу",
-      "allRoles": "Бардык ролдор",
-      "teachers": "Мугалимдер",
-      "students": "Окуучулар",
-      "admins": "Администраторлор",
       "group": "Группа",
       "allGroups": "Бардык группалар",
       "nothingFound": "Эч ким табылган жок"

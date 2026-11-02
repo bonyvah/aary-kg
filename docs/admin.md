@@ -4,17 +4,23 @@ Decided with the owner: an admin runs the platform, they don't use it.
 
 | | admin | teacher | host of the game |
 |---|---|---|---|
-| Create, disable teachers, reset passwords | yes, role `teacher` only | no | no |
-| Other admins | listed, no actions (`CANNOT_MANAGE_ADMIN`) | n/a | n/a |
-| The acting admin | not in their own list | n/a | n/a |
+| Create, disable teachers and students, reset passwords | yes, roles `teacher` and `student` only | no | no |
+| Student groups: create, rename, delete an empty one, move a student | yes | no | n/a |
+| Admins (others and the acting one) | not listed anywhere; refused with `CANNOT_MANAGE_ADMIN` | n/a | n/a |
 | Create quizzes, edit quiz questions and answers | no | yes (own) | yes |
-| Host a game | no | yes (own quizzes) | yes |
+| Host a game | no | yes (any teacher's quiz, from the bazar too) | yes |
+| Write exam sheets, run exams | no | yes (own) | n/a |
+| See every exam | yes, read-only (`GET /admin/exam-sessions`) | own only | n/a |
+| Take an exam attempt out of the count | yes (kept and shown, logged) | no | n/a |
 | Create a contest | no | yes | n/a |
 | See and manage every contest | yes | own only | n/a |
 | See every finished game | yes (`GET /admin/games`) | own only | read-only report |
 | Correct a finished game's data | yes | no | no, sees a note that an admin did |
 
-Avatars exist only for players. Staff are shown by name.
+Avatars exist only for players. Staff and students are shown by name.
+
+The admin area has a tab each for teachers, students and groups. A student is always in exactly one
+group (`GROUP_REQUIRED`); a group with students in it can't be deleted (`GROUP_NOT_EMPTY`).
 
 ## Correcting a finished game
 
@@ -33,16 +39,19 @@ host's report shows how many corrections were made.
 
 ## Accounts: names, login, password
 
-- A teacher has a **first name** and a **last name** (both required). Lists and messages show them as
+- A teacher or student has a **first name** and a **last name** (both required). Lists and messages show them as
   "first last". Accounts that existed before were split on the first space.
 - Everybody (admins too) can change their own **login** and **password** from the name button in
   the top bar. Both ask for the current password again; wrong guesses are rate limited (8 per 15
-  minutes, then `RATE_LIMITED`). Changing the password signs the teacher out everywhere else.
+  minutes, then `RATE_LIMITED`). Changing the password signs the person out everywhere else.
 - A chosen password needs 8 to 128 characters, at least one letter (any alphabet) and one digit.
   No capital or special character is required.
 - It must not contain the first name, last name or login (`PASSWORD_CONTAINS_NAME`,
   `PASSWORD_CONTAINS_LOGIN`). The comparison ignores alphabet and spelling: «Айжан», «Aizhan»,
   «ayzhan» and «AIJAN» are the same, and ө/ү/ң match o/u/n (or ö/ü/ng). Compound names are checked
   word by word; parts shorter than 3 letters are skipped. See `backend/app/password_policy.py`.
-- The password an admin generates or resets is random and not checked against this rule, and teachers
-  are not forced to change it. They can, in the settings.
+- When creating an account or resetting its password, the admin types one or presses «generate»;
+  left blank, the server generates one. A typed one follows the rules above (field `password`).
+  A generated one is random (`xxxx-xxxx-xxxx`, always with a digit). The new password is shown once.
+- A reset signs the person out everywhere. Nobody is forced to change a password they were given;
+  they can, in the settings.

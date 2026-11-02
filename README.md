@@ -24,7 +24,7 @@ The interface is available in Kyrgyz and Russian.
 ### Exams
 - A teacher writes an exam sheet (by hand, from a quiz or from teaching material) and starts it for student groups, with attendance.
 - Students sign in and take it against the server's clock, in full screen. After the close they see their score and the correct answers.
-- The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins see every exam read-only.
+- The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins see every exam read-only, except that they can take an attempt out of the count (logged).
 
 ### Contests
 - A teacher creates a contest and invites juries (other teachers).

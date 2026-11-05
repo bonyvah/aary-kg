@@ -4,7 +4,6 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { useStoredTab } from "@/lib/useStoredTab";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
@@ -25,7 +24,7 @@ import { listAllContests } from "@/lib/api/contests";
 import { listAllExamSessions } from "@/lib/api/examSessions";
 import { toKnownCode } from "@/lib/api/client";
 import type { KnownApiCode } from "@/lib/api/client";
-import { CheckCircle, MagnifyingGlass, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
+import { MagnifyingGlass, PencilSimple, Prohibit, WarningCircle } from "@phosphor-icons/react";
 import type { Group } from "@/types/group";
 import type { ManagedUser } from "@/types/user";
 import { AdminExamsTable } from "./AdminExamsTable";
@@ -127,11 +126,11 @@ export function AdminScreen() {
     show("success", t("toast.studentsAdded", { count: created.length }));
   }
 
-  async function setActive(user: ManagedUser, active: boolean) {
+  async function disable(user: ManagedUser) {
     try {
-      const updated = await api.setUserActive(user.id, active);
+      const updated = await api.setUserActive(user.id, false);
       setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
-      show("success", t(active ? "toast.enabled" : "toast.disabled"));
+      show("success", t("toast.disabled"));
     } catch (error) {
       fail(error);
     }
@@ -154,7 +153,7 @@ export function AdminScreen() {
   async function confirmPending() {
     if (!pending) return;
     setPending(null);
-    return setActive(pending.user, false);
+    return disable(pending.user);
   }
 
   async function copyPassword() {
@@ -169,9 +168,9 @@ export function AdminScreen() {
 
   const matching = users ? filterUsers(users, filter) : [];
   const { items: shown, page: userPage, pages: userPages } = pageOf(matching, usersPage, TABLE_PAGE);
-  // The groups that have students, for the group filter, sorted by name.
+  // The groups that have listed (not disabled) students, for the group filter, sorted by name.
   const studentGroups = Array.from(
-    new Map((users ?? []).filter((u) => u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
+    new Map((users ?? []).filter((u) => u.active && u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
   ).sort((a, b) => a[1].localeCompare(b[1], locale));
 
   return (
@@ -299,7 +298,6 @@ export function AdminScreen() {
               <Th>{t("columns.name")}</Th>
               <Th>{t("columns.login")}</Th>
               {role === "student" ? <Th>{t("columns.group")}</Th> : null}
-              <Th>{t("columns.status")}</Th>
               <Th>{t("columns.created")}</Th>
               <Th>{t("columns.actions")}</Th>
             </tr>
@@ -312,33 +310,19 @@ export function AdminScreen() {
                 </Td>
                 <Td>{user.login}</Td>
                 {role === "student" ? <Td>{user.groupName ?? ""}</Td> : null}
-                <Td>
-                  <Badge variant={user.active ? "success" : "neutral"}>{t(user.active ? "status.active" : "status.disabled")}</Badge>
-                </Td>
                 <Td className="whitespace-nowrap">
                   {dateTime(new Date(user.createdAt), { time: false })}
                 </Td>
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
-                    {user.active ? (
-                      <Button
-                        variant="danger"
-                        aria-label={`${t("actions.disable")}: ${user.name}`}
-                        title={`${t("actions.disable")}: ${user.name}`}
-                        onClick={() => setPending({ kind: "disable", user })}
-                      >
-                        <Icon icon={Prohibit} weight="bold" />
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="secondary"
-                        aria-label={`${t("actions.enable")}: ${user.name}`}
-                        title={`${t("actions.enable")}: ${user.name}`}
-                        onClick={() => setActive(user, true)}
-                      >
-                        <Icon icon={CheckCircle} weight="bold" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="danger"
+                      aria-label={`${t("actions.disable")}: ${user.name}`}
+                      title={`${t("actions.disable")}: ${user.name}`}
+                      onClick={() => setPending({ kind: "disable", user })}
+                    >
+                      <Icon icon={Prohibit} weight="bold" />
+                    </Button>
                     <Button
                       variant="secondary"
                       aria-label={`${t("actions.edit")}: ${user.name}`}

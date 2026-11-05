@@ -98,13 +98,17 @@ function randomIndex(max: number): number {
 
 export type UserFilter = { query: string; role: Exclude<UserRole, "admin">; groupId: string };
 
-/** The users on a tab: one role, for students by group ("" = any), then by name or login, best first. */
-export function filterUsers<U extends Pick<ManagedUser, "name" | "login" | "role" | "groupId">>(
+/**
+ * The users on a tab: one role, for students by group ("" = any), then by name or login, best first.
+ * Disabled accounts are not listed: disabling is how an admin removes someone.
+ */
+export function filterUsers<U extends Pick<ManagedUser, "name" | "login" | "role" | "groupId" | "active">>(
   users: readonly U[],
   filter: UserFilter,
 ): U[] {
   const picked = users.filter(
     (user) =>
+      user.active &&
       user.role === filter.role &&
       (filter.role !== "student" || filter.groupId === "" || user.groupId === filter.groupId),
   );

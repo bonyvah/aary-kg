@@ -966,7 +966,7 @@
       "answers": "Жооптор",
       "correct": "Туура жооп",
       "count": "{count, plural, one {# ойноочу} other {# ойноочу}}",
-      "leaderboard": "Подиум",
+      "leaderboard": "",
       "winner": "Жеңүүчү!",
       "crown": "Жеңүүчү",
       "viewReport": "Отчётту көрүү",

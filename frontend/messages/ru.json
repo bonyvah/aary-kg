@@ -837,7 +837,7 @@
       "answers": "Ответы",
       "correct": "Правильный ответ",
       "count": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
-      "leaderboard": "Подиум",
+      "leaderboard": "",
       "winner": "Победитель!",
       "crown": "Победитель",
       "viewReport": "Открыть отчёт",

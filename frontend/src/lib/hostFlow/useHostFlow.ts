@@ -8,6 +8,7 @@ import type { HostEvent, HostMessage, Ruling, Scoring } from "@/lib/game/events"
 import { openGameSocket, type GameSocket } from "@/lib/game/socket";
 import type { Quiz } from "@/types/quiz";
 import { readHostGame, writeHostGame, type HostGame } from "./hostGame";
+import { readHostSettings, saveHostSettings, settingsToApply } from "./hostSettings";
 import { hostReducer, initialHostState } from "./reducer";
 
 /**
@@ -47,6 +48,11 @@ export function useHostFlow(quiz: Quiz) {
           heard = true;
           dispatch({ type: "SERVER", event });
           if (event.type === "error") setRefused(event.code);
+          // A lobby starts with the checkboxes this host used last.
+          if (event.type === "host.state" && event.phase === "lobby") {
+            const saved = settingsToApply(readHostSettings(), event.settings);
+            if (saved) socket.current?.send(saved);
+          }
           if (event.type === "game.closed") {
             // Quit: nothing was kept, so there is no podium or report to stay for.
             remember(null);
@@ -113,8 +119,20 @@ export function useHostFlow(quiz: Quiz) {
       setAttempt((n) => n + 1);
     }, []),
     start: useCallback(() => send({ type: "start" }), [send]),
-    setShowAnswers: useCallback((showAnswers: boolean) => send({ type: "settings", showAnswers }), [send]),
-    setScoring: useCallback((scoring: Scoring) => send({ type: "settings", scoring }), [send]),
+    setShowAnswers: useCallback(
+      (showAnswers: boolean) => {
+        saveHostSettings({ showAnswers });
+        send({ type: "settings", showAnswers });
+      },
+      [send],
+    ),
+    setScoring: useCallback(
+      (scoring: Scoring) => {
+        saveHostSettings({ scoring });
+        send({ type: "settings", scoring });
+      },
+      [send],
+    ),
     /** The host's «continue»: close the question, show the leaderboard, go to the next question or the end. */
     advance: useCallback(() => {
       // Says which screen the button was on, so a double click doesn't skip the next one.

@@ -2,6 +2,7 @@
 // Run: pnpm check:host
 import { hostReducer, initialHostState, type HostFlowEvent, type HostState } from "../src/lib/hostFlow/reducer.ts";
 import type { HostEvent, HostQuestion, ServerStanding } from "../src/lib/game/events.ts";
+import { parseHostSettings, settingsToApply } from "../src/lib/hostFlow/hostSettings.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -54,6 +55,15 @@ check("the podium keeps the suspected cheaters the server lists", fresh({ phase:
 check("snapshot on the leaderboard and at the end", fresh({ phase: "leaderboard", standings: [row("a", 1, 5)] }).phase === "leaderboard" && fresh({ phase: "ended", standings: [row("a", 1, 5)] }).phase === "podium");
 check("a second host screen replacing this one ends this one", run([server({ type: "replaced" })], playing).replaced === true);
 check("refused commands change nothing on screen", run([server({ type: "error", code: "NO_PLAYERS" })], lobby) === lobby);
+
+const server0 = { showAnswers: false, scoring: "speed" } as const;
+check("nothing saved: the lobby keeps the server's settings", settingsToApply(null, server0) === null);
+check("saved the same as the server: nothing to send", settingsToApply({ showAnswers: false, scoring: "speed" }, server0) === null);
+check("saved answers-on and flat scoring reach a new lobby", JSON.stringify(settingsToApply({ showAnswers: true, scoring: "flat" }, server0)) === JSON.stringify({ type: "settings", showAnswers: true, scoring: "flat" }));
+check("only the checkbox saved is sent", JSON.stringify(settingsToApply({ showAnswers: true }, server0)) === JSON.stringify({ type: "settings", showAnswers: true }));
+check("a saved «off» turns it off too", JSON.stringify(settingsToApply({ scoring: "speed" }, { showAnswers: false, scoring: "flat" })) === JSON.stringify({ type: "settings", scoring: "speed" }));
+check("saved settings are read back", JSON.stringify(parseHostSettings('{"showAnswers":true,"scoring":"flat"}')) === JSON.stringify({ showAnswers: true, scoring: "flat" }));
+check("broken or foreign saved values are dropped", parseHostSettings("not json") === null && parseHostSettings(null) === null && JSON.stringify(parseHostSettings('{"showAnswers":"yes","scoring":"hard"}')) === "{}");
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);
 process.exit(failed === 0 ? 0 : 1);

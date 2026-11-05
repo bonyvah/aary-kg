@@ -1,5 +1,6 @@
 {
   "_todo_review": [
+    "host.live.answers",
     "staff.editor.ai.open",
     "staff.editor.ai.title",
     "staff.editor.ai.cancel",
@@ -961,6 +962,7 @@
       "answered": "{count} / {total} жооп берди",
       "unit": "сек",
       "continue": "Улантуу",
+      "answers": "Жооптор",
       "correct": "Туура жооп",
       "count": "{count, plural, one {# ойноочу} other {# ойноочу}}",
       "leaderboard": "Подиум",

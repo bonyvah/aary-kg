@@ -4,14 +4,14 @@ import { answerPositions, type AnswerPosition } from "@/components/game/AnswerTi
 import { Check, Cross } from "@/components/icons";
 import { Badge } from "@/components/ui/Badge";
 import { cx } from "@/lib/cx";
-import type { GameReport, ReportAnswer, ReportPlayer, ReportQuestion } from "@/types/report";
+import type { GivenAnswer, ReportAnswer, ReportPlayer, ReportQuestion } from "@/types/report";
 
 function isPosition(value: number): value is AnswerPosition {
   return value >= 1 && value <= 4;
 }
 
 /** One answer of a question: its shape and color, its text, and a check when it is the right one. */
-function AnswerChip({ question, position, mark }: { question: ReportQuestion; position: number; mark?: boolean }) {
+function AnswerChip({ question, position, mark }: { question: Pick<ReportQuestion, "answers">; position: number; mark?: boolean }) {
   const t = useTranslations("staff.report.answers");
   if (!isPosition(position)) return null;
   const { Shape, tone } = answerPositions[position];
@@ -80,8 +80,13 @@ export function PlayerAnswers({ player, questions }: { player: ReportPlayer; que
   );
 }
 
-/** One question: its answers with the right one marked, then every player and what they chose. */
-export function QuestionAnswers({ question, players }: { question: ReportQuestion; players: GameReport["players"] }) {
+type QuestionAnswersProps = {
+  question: Pick<ReportQuestion, "id" | "answers" | "correct">;
+  players: ReadonlyArray<Pick<ReportPlayer, "id" | "nickname" | "character"> & { answers: ReadonlyArray<GivenAnswer | ReportAnswer> }>;
+};
+
+/** One question: its answers with the right one marked, then every player and what they chose. Time and points only when the answers carry them. */
+export function QuestionAnswers({ question, players }: QuestionAnswersProps) {
   const t = useTranslations("staff.report.answers");
   return (
     <div className="flex flex-col gap-4">
@@ -107,7 +112,7 @@ export function QuestionAnswers({ question, players }: { question: ReportQuestio
                     <AnswerChip question={question} position={answer.position} />
                   </div>
                   <Verdict correct={answer.correct} />
-                  <Timing answer={answer} />
+                  {"ms" in answer ? <Timing answer={answer} /> : null}
                 </>
               ) : (
                 <span className="flex-[2] text-body text-ink-muted">{t("none")}</span>

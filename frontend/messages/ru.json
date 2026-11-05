@@ -834,6 +834,7 @@
       "answered": "Ответили: {count} из {total}",
       "unit": "сек",
       "continue": "Продолжить",
+      "answers": "Ответы",
       "correct": "Правильный ответ",
       "count": "{count, plural, one {# игрок} few {# игрока} many {# игроков} other {# игрока}}",
       "leaderboard": "Подиум",

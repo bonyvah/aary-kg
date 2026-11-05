@@ -18,6 +18,9 @@ export type ReportAnswer = {
   correct: boolean;
 };
 
+/** A player's answer without time and points: all the host's live dialog shows. */
+export type GivenAnswer = Pick<ReportAnswer, "question" | "position" | "correct">;
+
 export type ReportPlayer = {
   id: string;
   nickname: string;

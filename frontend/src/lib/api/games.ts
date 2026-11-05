@@ -1,5 +1,5 @@
 import type { Character } from "@/components/game/avatar/characters";
-import type { GameReport } from "@/types/report";
+import type { GameReport, GivenAnswer, ReportQuestion } from "@/types/report";
 import { apiFetch } from "./client";
 
 /** A player's side: no account. Both calls need only the PIN. */
@@ -21,6 +21,16 @@ export const createNextGame = (gameId: string, quizId: string) =>
 /** One minute, one game: the first message on the host socket. */
 export const getHostTicket = (gameId: string) =>
   apiFetch<{ ticket: string }>(`/games/${gameId}/host-ticket`, { method: "POST" }).then((r) => r.ticket);
+
+export type LiveAnswers = {
+  /** Only the questions that have closed. */
+  questions: Array<Pick<ReportQuestion, "id" | "text" | "answers" | "correct">>;
+  /** Best first. */
+  players: Array<{ id: string; nickname: string; character: Character; answers: GivenAnswer[] }>;
+};
+
+/** During a game, for its host: what the players answered so far. */
+export const getLiveAnswers = (gameId: string) => apiFetch<LiveAnswers>(`/games/${gameId}/answers`);
 
 export type GameSummary = {
   id: string;

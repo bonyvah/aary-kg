@@ -86,6 +86,13 @@ export default async function run(browser, t) {
   t.ok("when everyone has answered the question closes by itself", true);
   await host.locator('[aria-label="Правильный ответ"]').first().waitFor({ timeout: 8000 });
   t.ok("the host sees the counts and the right answer", true);
+  await host.getByRole("button", { name: "Ответы" }).click();
+  const answersDialog = host.getByRole("dialog", { name: "Ответы" });
+  await answersDialog.getByText("Неверно").first().waitFor({ timeout: 8000 });
+  const firstAnswers = await answersDialog.innerText();
+  t.ok("the host's dialog shows who was right and who was wrong", /Верно/.test(firstAnswers) && /Неверно/.test(firstAnswers));
+  t.ok("the host's dialog shows no time and no points", !/сек\.|очк\./.test(firstAnswers));
+  await answersDialog.getByRole("button", { name: "Закрыть" }).click();
   await p2.reload();
   await waitText(p2, "Неверно");
   t.ok("a refresh on the results screen restores it, with the tap remembered", true);
@@ -119,6 +126,13 @@ export default async function run(browser, t) {
   await waitText(host, "Победитель");
   await waitText(p1, "Победитель");
   t.ok("host and players reach the podium", true);
+  await host.getByRole("button", { name: "Ответы" }).click();
+  await answersDialog.getByText("3 из 3").waitFor({ timeout: 8000 });
+  await answersDialog.getByRole("button", { name: "Предыдущая страница" }).click();
+  await answersDialog.getByText("Не ответил").waitFor({ timeout: 8000 });
+  t.ok("on the podium the dialog goes back through the questions, with who did not answer", true);
+  t.ok("the dialog says nothing about who left their screen", !/Переключил|Подозр/.test(await answersDialog.innerText()));
+  await answersDialog.getByRole("button", { name: "Закрыть" }).click();
   t.ok("the questions came in the quiz order", asked.join() === "1,2,3", asked.join());
   t.ok("the winner sees their place", /на 1-м месте/.test(await text(p1)));
 

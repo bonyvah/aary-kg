@@ -14,6 +14,7 @@ import { knownCode } from "@/lib/api/client";
 import { useHostFlow } from "@/lib/hostFlow/useHostFlow";
 import type { Quiz } from "@/types/quiz";
 import { CheatersPanel } from "./CheatersPanel";
+import { HostAnswersButton } from "./HostAnswersButton";
 import { HostCountsScreen } from "./HostCountsScreen";
 import { HostLeaderboardScreen } from "./HostLeaderboardScreen";
 import { HostLobbyScreen } from "./HostLobbyScreen";
@@ -143,9 +144,12 @@ export function HostFlow({ quiz }: { quiz: Quiz }) {
         {showContinue ? (
           <div className="flex flex-col items-center gap-3 pb-4">
             {waitingForRulings ? <p className="text-body-lg text-ink-muted">{tcheat("resolveFirst")}</p> : null}
-            <Button variant="accent" size="lg" disabled={waitingForRulings} onClick={flow.advance}>
-              {t("continue")}
-            </Button>
+            <div className="flex flex-wrap justify-center gap-4">
+              {state.phase === "question" ? null : <HostAnswersButton gameId={state.gameId} />}
+              <Button variant="accent" size="lg" disabled={waitingForRulings} onClick={flow.advance}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
         ) : null}
       </main>

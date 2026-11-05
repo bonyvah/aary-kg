@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import type { Standing } from "@/types/game";
+import { HostAnswersButton } from "./HostAnswersButton";
 import { NextGameModal } from "./NextGameModal";
 import { Podium } from "./Podium";
 
@@ -28,6 +29,7 @@ export function HostPodiumScreen({ gameId, standings, onNextGame }: HostPodiumSc
         <Button variant="accent" size="lg" onClick={() => setPicking(true)}>
           {t("nextGame")}
         </Button>
+        <HostAnswersButton gameId={gameId} />
         <ButtonLink href={`/reports/${gameId}`} variant="secondary" size="lg">
           {t("viewReport")}
         </ButtonLink>

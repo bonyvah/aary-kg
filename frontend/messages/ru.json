@@ -1098,6 +1098,7 @@
       "submit": "{count, plural, one {Добавить # студента} few {Добавить # студентов} many {Добавить # студентов} other {Добавить # студентов}}",
       "removeRow": "Убрать строку {number}",
       "password": "Пароль для всех",
+      "loginTaken": "{login} занят: {name}",
       "errors": {
         "UNSUPPORTED_FILE": "Такой файл не подходит: нужен Word (.docx), Excel (.xlsx) или текст.",
         "AI_NOT_CONFIGURED": "Чтение списка не настроено.",

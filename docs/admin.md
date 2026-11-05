@@ -24,6 +24,8 @@ pasted text goes to OpenAI, so **their names leave the server**, and comes back 
 first name, last name and login. Nothing is saved until the admin has corrected it and chosen the
 group and the one password they all get (typed, never generated; it follows the rules below). Up to
 200 students at a time, all added or none. Word's old `.doc` and Excel's old `.xls` are refused.
+A login already in use gets a number (`bek.asanov2`), and its row says whose it is: it may be the
+same student, already here.
 
 The admin area has a tab each for teachers, students and groups. A student is always in exactly one
 group (`GROUP_REQUIRED`); a group with students in it can't be deleted (`GROUP_NOT_EMPTY`).

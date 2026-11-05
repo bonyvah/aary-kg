@@ -119,6 +119,7 @@
     "admin.bulk.submit",
     "admin.bulk.removeRow",
     "admin.bulk.password",
+    "admin.bulk.loginTaken",
     "admin.bulk.errors.UNSUPPORTED_FILE",
     "admin.bulk.errors.AI_NOT_CONFIGURED",
     "admin.bulk.errors.AI_FAILED",
@@ -1226,6 +1227,7 @@
       "submit": "{count, plural, other {# студентти кошуу}}",
       "removeRow": "{number}-сапты алып салуу",
       "password": "Баарына бир сырсөз",
+      "loginTaken": "{login} бош эмес: {name}",
       "errors": {
         "UNSUPPORTED_FILE": "Мындай файл туура келбейт: Word (.docx), Excel (.xlsx) же текст керек.",
         "AI_NOT_CONFIGURED": "Тизмени окуу жөндөлгөн эмес.",

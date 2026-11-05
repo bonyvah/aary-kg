@@ -18,7 +18,7 @@ import {
   type AdminErrorCode,
   type StudentRowField,
 } from "@/lib/adminUsers";
-import { createStudents, parseStudents, type StudentRow } from "@/lib/api/adminUsers";
+import { createStudents, parseStudents, type ProposedStudent } from "@/lib/api/adminUsers";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { MAX_TOTAL_BYTES } from "@/lib/api/ai";
 import type { Group } from "@/types/group";
@@ -30,7 +30,7 @@ const LOGIN_LENGTH = 32;
 // Said differently here: the common text for these codes is about quiz questions.
 const OWN_ERRORS = ["UNSUPPORTED_FILE", "AI_NOT_CONFIGURED", "AI_FAILED"] as const;
 
-type Row = StudentRow & { key: number };
+type Row = ProposedStudent & { key: number };
 type RowErrors = Partial<Record<StudentRowField, AdminErrorCode>>;
 
 type BulkStudentsModalProps = {
@@ -83,7 +83,9 @@ export function BulkStudentsModal({ existing, groups, onClose, onAdded }: BulkSt
   }
 
   function change(key: number, field: StudentRowField, value: string) {
-    setRows((current) => (current ?? []).map((row) => (row.key === key ? { ...row, [field]: value } : row)));
+    // The note on a numbered login is about the proposal: a login typed over it is the admin's own.
+    const note = field === "login" ? { takenLogin: null, takenBy: null } : {};
+    setRows((current) => (current ?? []).map((row) => (row.key === key ? { ...row, ...note, [field]: value } : row)));
     setRowErrors((current) => ({ ...current, [key]: { ...current[key], [field]: undefined } }));
   }
 
@@ -297,6 +299,11 @@ export function BulkStudentsModal({ existing, groups, onClose, onAdded }: BulkSt
                           autoCapitalize={field === "login" ? "none" : undefined}
                           spellCheck={false}
                           onChange={(event) => change(row.key, field, event.target.value)}
+                          helper={
+                            field === "login" && row.takenLogin
+                              ? t("loginTaken", { login: row.takenLogin, name: row.takenBy ?? "" })
+                              : undefined
+                          }
                           error={code ? te(code) : undefined}
                         />
                       </Td>

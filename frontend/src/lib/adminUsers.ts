@@ -54,6 +54,27 @@ export function validateNewUser(
   return errors;
 }
 
+export type StudentRowField = "firstName" | "lastName" | "login";
+
+/** The rules of «create user» for each row of a student list. A login repeated in the list is taken. */
+export function validateStudentRows(
+  rows: readonly Record<StudentRowField, string>[],
+  existing: readonly Pick<ManagedUser, "login">[],
+): Partial<Record<StudentRowField, AdminErrorCode>>[] {
+  const taken = [...existing];
+  return rows.map((row) => {
+    const errors = validateNewUser(row, taken);
+    taken.push({ login: row.login });
+    return errors;
+  });
+}
+
+/** Which row and field a server issue is about: `students.3.login`. Null for anything else. */
+export function studentRowIssue(field: string): { index: number; field: StudentRowField } | null {
+  const match = /^students\.(\d+)\.(firstName|lastName|login)$/.exec(field);
+  return match ? { index: Number(match[1]), field: match[2] as StudentRowField } : null;
+}
+
 // No 0/O, 1/l/I: a password read off a screen must not be ambiguous.
 const PASSWORD_CHARS = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

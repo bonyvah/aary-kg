@@ -3,7 +3,7 @@
 import { passwordProblem } from "../src/lib/account.ts";
 import { describeEdit, parseWhole } from "../src/lib/adminGame.ts";
 import { homePath, redirectFor } from "../src/lib/staffRoutes.ts";
-import { filterUsers, generatePassword, validateNewUser } from "../src/lib/adminUsers.ts";
+import { filterUsers, generatePassword, studentRowIssue, validateNewUser, validateStudentRows } from "../src/lib/adminUsers.ts";
 import { validateGroupName } from "../src/lib/groups.ts";
 import { PRESENT, targetStudents, toggle } from "../src/lib/examSessions.ts";
 import { clock, usedPositions } from "../src/lib/studentExam.ts";
@@ -27,6 +27,15 @@ check("capitals are lowered, so they are fine", codes("A", "New.User") === "{}")
 check("spaces and cyrillic are LOGIN_INVALID", codes("A", "бек зат") === '{"login":"LOGIN_INVALID"}');
 check("a taken login is LOGIN_TAKEN, case does not matter", codes("A", "AIZHAN.M") === '{"login":"LOGIN_TAKEN"}' && codes("A", "ulan.e") === '{"login":"LOGIN_TAKEN"}');
 check("a 33 character login is LOGIN_INVALID", codes("A", "a".repeat(33)) === '{"login":"LOGIN_INVALID"}' && codes("A", "a".repeat(32)) === "{}");
+
+const row = (login: string, firstName = "Бек", lastName = "Асанов") => ({ firstName, lastName, login });
+check("good student rows pass", JSON.stringify(validateStudentRows([row("bek.asanov"), row("bek.asanov2")], existing)) === "[{},{}]");
+check("a blank login in a row is FIELD_REQUIRED", JSON.stringify(validateStudentRows([row("")], existing)) === '[{"login":"FIELD_REQUIRED"}]');
+check("a login taken outside the list is LOGIN_TAKEN", JSON.stringify(validateStudentRows([row("AIZHAN.M")], existing)) === '[{"login":"LOGIN_TAKEN"}]');
+check("a login repeated in the list is LOGIN_TAKEN on the second row", JSON.stringify(validateStudentRows([row("bek.a"), row("BEK.A")], existing)) === '[{},{"login":"LOGIN_TAKEN"}]');
+check("a missing name is on its own row", JSON.stringify(validateStudentRows([row("bek.a"), row("ulan.b", "Улан", " ")], existing)) === '[{},{"lastName":"FIELD_REQUIRED"}]');
+check("a server issue names its row and field", JSON.stringify(studentRowIssue("students.3.login")) === '{"index":3,"field":"login"}');
+check("other fields are not row issues", studentRowIssue("password") === null && studentRowIssue("students.1.password") === null);
 
 const passwords = Array.from({ length: 2000 }, () => generatePassword());
 check("passwords look like xxxx-xxxx-xxxx", passwords.every((p) => /^[A-Za-z2-9]{4}-[A-Za-z2-9]{4}-[A-Za-z2-9]{4}$/.test(p)));

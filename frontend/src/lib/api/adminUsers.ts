@@ -17,6 +17,21 @@ export type NewUser = {
 export const createUser = (input: NewUser) =>
   apiFetch<{ user: ManagedUser; password: string }>("/admin/users", { method: "POST", body: input });
 
+/** One person read from an admin's list. A login the model got wrong comes blank. */
+export type StudentRow = { firstName: string; lastName: string; login: string };
+
+/** A student list from a file or pasted text. Nothing is saved: the admin reviews it first. */
+export function parseStudents(file: File | null, text: string) {
+  const form = new FormData();
+  if (file) form.set("file", file);
+  else form.set("text", text);
+  return apiFetch<StudentRow[]>("/admin/users/bulk/parse", { method: "POST", body: form });
+}
+
+/** All of them or none, in one group, with the one password the admin chose. */
+export const createStudents = (input: { groupId: string; password: string; students: readonly StudentRow[] }) =>
+  apiFetch<ManagedUser[]>("/admin/users/bulk", { method: "POST", body: input });
+
 export const moveToGroup = (id: string, groupId: string) =>
   apiFetch<ManagedUser>(`/admin/users/${id}/group`, { method: "PUT", body: { groupId } });
 

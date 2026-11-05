@@ -104,7 +104,27 @@
     "common.apiError.IMAGE_UPLOAD_FAILED",
     "staff.editor.image.save",
     "staff.editor.image.cancel",
-    "staff.editor.image.frame"
+    "staff.editor.image.frame",
+    "admin.bulk.open",
+    "admin.bulk.title",
+    "admin.bulk.pickFile",
+    "admin.bulk.fileKinds",
+    "admin.bulk.removeFile",
+    "admin.bulk.pasteLabel",
+    "admin.bulk.read",
+    "admin.bulk.reading",
+    "admin.bulk.back",
+    "admin.bulk.cancel",
+    "admin.bulk.submit",
+    "admin.bulk.removeRow",
+    "admin.bulk.password",
+    "admin.bulk.errors.UNSUPPORTED_FILE",
+    "admin.bulk.errors.AI_NOT_CONFIGURED",
+    "admin.bulk.errors.AI_FAILED",
+    "admin.toast.studentsAdded",
+    "common.apiError.LIST_TOO_LONG",
+    "common.apiError.NO_STUDENTS_FOUND",
+    "common.apiError.STUDENTS_INVALID"
   ],
   "app": {
     "name": "aary kg"
@@ -868,7 +888,10 @@
       "AI_NOT_CONFIGURED": "Суроо түзүү жөндөлгөн эмес.",
       "AI_LIMIT": "Бүгүнкү лимит бүттү. Эртең аракет кылыңыз.",
       "AI_FAILED": "Суроолорду түзүү мүмкүн болгон жок. Кайра аракет кылыңыз.",
-      "TOO_MANY_FILES": "10 файлдан ашпасын."
+      "TOO_MANY_FILES": "10 файлдан ашпасын.",
+      "LIST_TOO_LONG": "Тизме өтө узун: бир жолу 200 студенттен ашпасын.",
+      "NO_STUDENTS_FOUND": "Тизмеден студенттер табылган жок.",
+      "STUDENTS_INVALID": "Тизмедеги каталарды оңдоңуз."
     },
     "toDashboard": "Башкы бетке",
     "filters": {
@@ -1021,7 +1044,8 @@
       "disabled": "Мугалим өчүрүлдү.",
       "copied": "Сырсөз көчүрүлдү.",
       "copyFailed": "Көчүрүү мүмкүн болбоду. Сырсөздү кол менен белгилеп алыңыз.",
-      "moved": "Студент башка группага которулду."
+      "moved": "Студент башка группага которулду.",
+      "studentsAdded": "{count, plural, other {# студент кошулду.}}"
     },
     "tabsLabel": "Бөлүмдөр",
     "tabs": {
@@ -1185,6 +1209,26 @@
       "group": "Группа",
       "allGroups": "Бардык группалар",
       "nothingFound": "Эч ким табылган жок"
+    },
+    "bulk": {
+      "open": "Тизме менен кошуу",
+      "title": "Студенттер тизме менен",
+      "pickFile": "Файл тандоо",
+      "fileKinds": "Word, Excel же текст",
+      "removeFile": "{name} файлын алып салуу",
+      "pasteLabel": "Же тизмени чаптаңыз",
+      "read": "Окуу",
+      "reading": "Тизме окулууда…",
+      "back": "Артка",
+      "cancel": "Жокко чыгаруу",
+      "submit": "{count, plural, other {# студентти кошуу}}",
+      "removeRow": "{number}-сапты алып салуу",
+      "password": "Баарына бир сырсөз",
+      "errors": {
+        "UNSUPPORTED_FILE": "Мындай файл туура келбейт: Word (.docx), Excel (.xlsx) же текст керек.",
+        "AI_NOT_CONFIGURED": "Тизмени окуу жөндөлгөн эмес.",
+        "AI_FAILED": "Тизмени окуу мүмкүн болгон жок. Кайра аракет кылыңыз."
+      }
     }
   },
   "contest": {

@@ -33,6 +33,7 @@ import { AdminGamesTable } from "./AdminGamesTable";
 import { AdminGroups } from "./AdminGroups";
 import { FilteredList } from "./FilteredList";
 import { ConfirmModal } from "./ConfirmModal";
+import { BulkStudentsModal } from "./BulkStudentsModal";
 import { ContestsTable } from "./ContestsTable";
 import { CreateUserModal } from "./CreateUserModal";
 import { EditUserModal } from "./EditUserModal";
@@ -62,6 +63,7 @@ export function AdminScreen() {
   const [users, setUsers] = useState<readonly ManagedUser[] | null>(null);
   const [loadError, setLoadError] = useState<KnownApiCode | null>(null);
   const [creating, setCreating] = useState<NewUser["role"] | null>(null);
+  const [addingList, setAddingList] = useState(false);
   const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [groups, setGroups] = useState<readonly Group[]>([]);
   const [addingGroup, setAddingGroup] = useState(false);
@@ -117,6 +119,12 @@ export function AdminScreen() {
     setCreating(null);
     setRevealed({ name: created.user.name, password: created.password });
     show("success", t("toast.created"));
+  }
+
+  function studentsAdded(created: readonly ManagedUser[]) {
+    setUsers((current) => [...(current ?? []), ...created]);
+    setAddingList(false);
+    show("success", t("toast.studentsAdded", { count: created.length }));
   }
 
   async function setActive(user: ManagedUser, active: boolean) {
@@ -193,9 +201,14 @@ export function AdminScreen() {
             {t("createTeacher")}
           </Button>
         ) : tab === "students" ? (
-          <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
-            {t("createStudent")}
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="secondary" onClick={() => void withGroups(() => setAddingList(true))}>
+              {t("bulk.open")}
+            </Button>
+            <Button variant="success" onClick={() => void withGroups(() => setCreating("student"))}>
+              {t("createStudent")}
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -347,6 +360,9 @@ export function AdminScreen() {
       </div>
 
       <CreateUserModal role={creating} existing={users ?? []} groups={groups} onClose={() => setCreating(null)} onCreate={createUser} />
+      {addingList ? (
+        <BulkStudentsModal existing={users ?? []} groups={groups} onClose={() => setAddingList(false)} onAdded={studentsAdded} />
+      ) : null}
       <EditUserModal
         user={editing}
         groups={groups}

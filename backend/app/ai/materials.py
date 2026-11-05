@@ -66,8 +66,8 @@ def _pptx(data: bytes) -> str:
         for shape in slide.shapes:
             if shape.has_text_frame:
                 parts.append(shape.text_frame.text)
-        if slide.has_notes_slide:
-            parts.append(slide.notes_slide.notes_text_frame.text)
+        if slide.has_notes_slide and (notes := slide.notes_slide.notes_text_frame) is not None:
+            parts.append(notes.text)
     return "\n".join(parts)
 
 

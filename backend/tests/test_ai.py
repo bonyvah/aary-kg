@@ -175,3 +175,15 @@ async def test_several_files_make_one_material_within_10_mb(as_user, fake_ai, mo
     assert (r.status_code, r.json()["code"]) == (413, "FILE_TOO_LARGE")
     many = [("files", (f"{n}.txt", LESSON.encode(), "text/plain")) for n in range(11)]
     assert (await c.post("/ai/questions", data=form, files=many)).json()["code"] == "TOO_MANY_FILES"
+
+
+def test_a_pptx_notes_slide_without_a_notes_placeholder_is_still_read():
+    from pptx import Presentation
+
+    deck = Presentation(io.BytesIO(_pptx(LESSON)))
+    notes = deck.slides[0].notes_slide
+    notes.notes_placeholder._element.getparent().remove(notes.notes_placeholder._element)
+    out = io.BytesIO()
+    deck.save(out)
+
+    assert "Фотосинтез" in materials.text_of("pptx", out.getvalue())

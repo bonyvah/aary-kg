@@ -192,12 +192,13 @@ async def _get(session: AsyncSession, user_id: uuid.UUID) -> User:
     return user
 
 
-async def set_active(session: AsyncSession, actor: User, user_id: uuid.UUID, active: bool) -> User:
+async def disable(session: AsyncSession, actor: User, user_id: uuid.UUID) -> User:
+    """For good: there is no way back, and a disabled account is not listed to the admin."""
     user = await _get(session, user_id)
-    if user.id == actor.id and not active:
+    if user.id == actor.id:
         raise ApiError(400, "CANNOT_DISABLE_SELF")
     _not_an_admin(user)
-    user.active = active
+    user.active = False
     await session.commit()
     return user
 

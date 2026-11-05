@@ -32,7 +32,6 @@ async def test_another_admin_cannot_be_disabled_or_reset(as_user):
     boss = await make_user("boss", role="admin")
     for path in (
         f"/admin/users/{boss.id}/disable",
-        f"/admin/users/{boss.id}/enable",
         f"/admin/users/{boss.id}/reset-password",
     ):
         r = await admin.post(path)
@@ -55,7 +54,6 @@ async def test_regular_users_are_still_managed_normally(as_user):
     admin, _ = await as_user("root", role="admin")
     ulan = await make_user("ulan")
     assert (await admin.post(f"/admin/users/{ulan.id}/disable")).json()["active"] is False
-    assert (await admin.post(f"/admin/users/{ulan.id}/enable")).json()["active"] is True
     assert "password" in (await admin.post(f"/admin/users/{ulan.id}/reset-password")).json()
 
 

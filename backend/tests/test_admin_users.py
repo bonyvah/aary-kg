@@ -91,11 +91,12 @@ async def test_bad_role_is_validation_error(client):
     assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR")
 
 
-async def test_disable_enable_and_not_self(client):
+async def test_disable_for_good_and_not_self(client):
     admin = await admin_client(client)
     u = await make_user("ulan")
     assert (await client.post(f"/admin/users/{u.id}/disable")).json()["active"] is False
-    assert (await client.post(f"/admin/users/{u.id}/enable")).json()["active"] is True
+    # there is no way back
+    assert (await client.post(f"/admin/users/{u.id}/enable")).status_code == 404
     r = await client.post(f"/admin/users/{admin.id}/disable")
     assert (r.status_code, r.json()["code"]) == (400, "CANNOT_DISABLE_SELF")
     missing = await client.post("/admin/users/00000000-0000-0000-0000-000000000000/disable")

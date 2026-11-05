@@ -95,12 +95,7 @@ async def create_students(body: CreateStudentsIn, _: AdminUser, session: Session
 
 @router.post("/{user_id}/disable", response_model=ManagedUser, response_model_by_alias=True)
 async def disable(user_id: uuid.UUID, actor: AdminUser, session: Session) -> ManagedUser:
-    return ManagedUser.model_validate(await service.set_active(session, actor, user_id, False))
-
-
-@router.post("/{user_id}/enable", response_model=ManagedUser, response_model_by_alias=True)
-async def enable(user_id: uuid.UUID, actor: AdminUser, session: Session) -> ManagedUser:
-    return ManagedUser.model_validate(await service.set_active(session, actor, user_id, True))
+    return ManagedUser.model_validate(await service.disable(session, actor, user_id))
 
 
 @router.put("/{user_id}/group", response_model=ManagedUser, response_model_by_alias=True)

@@ -38,8 +38,7 @@ export const createStudents = (input: { groupId: string; password: string; stude
 export const moveToGroup = (id: string, groupId: string) =>
   apiFetch<ManagedUser>(`/admin/users/${id}/group`, { method: "PUT", body: { groupId } });
 
-export const setUserActive = (id: string, active: boolean) =>
-  apiFetch<ManagedUser>(`/admin/users/${id}/${active ? "enable" : "disable"}`, { method: "POST" });
+export const disableUser = (id: string) => apiFetch<ManagedUser>(`/admin/users/${id}/disable`, { method: "POST" });
 
 /** The new password is in the answer and nowhere else: show it once. Blank: the server generates one. */
 export const resetPassword = (id: string, password: string) =>

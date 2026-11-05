@@ -128,7 +128,7 @@ export function AdminScreen() {
 
   async function disable(user: ManagedUser) {
     try {
-      const updated = await api.setUserActive(user.id, false);
+      const updated = await api.disableUser(user.id);
       setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
       show("success", t("toast.disabled"));
     } catch (error) {

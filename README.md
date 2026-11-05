@@ -23,6 +23,7 @@ The interface is available in Kyrgyz and Russian.
 
 ### Exams
 - A teacher writes an exam sheet (by hand, from a quiz or from teaching material) and starts it for student groups, with attendance.
+- An admin adds students one by one or from a list: a Word or Excel file or pasted text, read by OpenAI into first name, last name and login whatever the order of the names. The admin corrects the proposal, picks the group and one password for all of them.
 - Students sign in and take it against the server's clock, in full screen. After the close they see their score and the correct answers.
 - The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins see every exam read-only, except that they can take an attempt out of the count (logged).
 
@@ -66,7 +67,7 @@ The server is authoritative. The client is never trusted.
 | Database       | PostgreSQL, SQLAlchemy 2.0 (async), Alembic         |
 | Live state     | Redis (game state, PIN TTL, pub/sub, rate limits)  |
 | Images         | Cloudflare R2 (MinIO in local dev), stored as WebP  |
-| Questions from material | OpenAI                                     |
+| Questions from material, student lists | OpenAI                      |
 | i18n           | next-intl, Kyrgyz and Russian only                  |
 | Auth           | JWT for admin/teacher, game-scoped token for players|
 | Font / icons   | Montserrat (latin + cyrillic + cyrillic-ext), Phosphor + custom SVG |
@@ -86,7 +87,7 @@ make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova # first time: prints a password
 
 The admin only manages: sign in at `/login`, create a teacher (Admin area, Teachers tab), then sign in as that teacher to build quizzes and host games. Students go in a group (Groups tab first, then the Students tab).
 
-Images work out of the box: MinIO stands in for R2 (console at http://localhost:9001, `minioadmin` / `minioadmin`). Questions from material need `OPENAI_API_KEY` in `backend/.env`.
+Images work out of the box: MinIO stands in for R2 (console at http://localhost:9001, `minioadmin` / `minioadmin`). Questions from material and student lists need `OPENAI_API_KEY` in `backend/.env`.
 
 Then open http://localhost:3000. `make help` lists the rest: `make logs`, `make status`, `make down`,
 `make test`, `make check`, `make e2e`. Without Docker, start your own Postgres and Redis (the URLs

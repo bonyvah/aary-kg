@@ -161,6 +161,14 @@ async def create_students(
         await session.commit()
     except IntegrityError:  # a create raced past the check above
         await session.rollback()
+        taken = await repo.all_logins(session)
+        issues = [
+            {"code": "LOGIN_TAKEN", "field": f"students.{index}.login"}
+            for index, (_, _, login) in enumerate(cleaned)
+            if login in taken
+        ]
+        if issues:
+            raise ApiError(400, "STUDENTS_INVALID", issues=issues) from None
         raise ApiError(409, "LOGIN_TAKEN") from None
     return users
 

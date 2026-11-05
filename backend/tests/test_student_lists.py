@@ -8,6 +8,7 @@ from openpyxl import Workbook
 from app.ai import students
 from app.ai.questions import AiFailed
 from app.config import get_settings
+from app.repositories import users as users_repo
 from tests.conftest import login_as, make_user
 
 STUDENT = {"firstName": "Адилет", "lastName": "Бакыт уулу", "login": "adilet.bakyt"}
@@ -244,6 +245,27 @@ async def test_every_bad_row_is_listed_and_nobody_is_added(client):
         {"code": "LOGIN_TAKEN", "field": "students.3.login"},
     ]
     assert [u["login"] for u in (await client.get("/admin/users")).json()] == ["taken.login"]
+
+
+async def test_a_login_taken_in_a_race_is_marked_on_its_row(client, monkeypatch):
+    await admin(client)
+    group_id = await group(client)
+    await make_user("adilet.bakyt")
+    real = users_repo.all_logins
+    answers = [set()]
+
+    # The first look misses the login, as if the other create had not finished yet.
+    async def all_logins(session):
+        return answers.pop() if answers else await real(session)
+
+    monkeypatch.setattr(users_repo, "all_logins", all_logins)
+    other = {"firstName": "Бек", "lastName": "Асанов", "login": "bek.asanov"}
+    body = {"groupId": group_id, "password": "tulpar-9421", "students": [other, STUDENT]}
+    r = await client.post("/admin/users/bulk", json=body)
+    assert r.status_code == 400
+    assert r.json()["code"] == "STUDENTS_INVALID"
+    assert r.json()["issues"] == [{"code": "LOGIN_TAKEN", "field": "students.1.login"}]
+    assert [u["login"] for u in (await client.get("/admin/users")).json()] == ["adilet.bakyt"]
 
 
 async def test_the_list_has_a_limit(client):

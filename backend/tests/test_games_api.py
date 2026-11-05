@@ -284,3 +284,23 @@ async def test_a_game_that_ended_is_not_a_guess(client, as_user):
     for _ in range(FAILED_PIN_LIMIT + 5):
         assert (await join(client, game["pin"], "Late")).json()["code"] == "GAME_ENDED"
     assert (await client.get(f"/games/pin/{game['pin']}")).json()["code"] == "GAME_ENDED"
+
+
+# --- what the players answered ------------------------------------------------------------------
+
+
+async def test_the_host_reads_the_answers_of_their_live_game(client, as_user):
+    host, _, _, game = await make_game(as_user)
+    r = await host.get(f"/games/{game['gameId']}/answers")
+    assert r.status_code == 200, r.text
+    assert r.json() == {"questions": [], "players": []}
+
+
+async def test_nobody_else_reads_the_answers_of_a_live_game(client, as_user):
+    _, _, _, game = await make_game(as_user)
+    assert (await client.get(f"/games/{game['gameId']}/answers")).status_code == 401
+    other, _ = await as_user("other")
+    r = await other.get(f"/games/{game['gameId']}/answers")
+    assert (r.status_code, r.json()["code"]) == (404, "GAME_NOT_FOUND")
+    r = await other.get(f"/games/{'x' * 65}/answers")
+    assert (r.status_code, r.json()["code"]) == (404, "GAME_NOT_FOUND")

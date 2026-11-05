@@ -863,3 +863,54 @@ async def test_quitting_mid_game_keeps_nothing_and_closes_everyone(env):
     with pytest.raises(GameError) as e:
         await env.engine.quit(state.id)  # already over
     assert e.value.code == "INVALID_STATE"
+
+
+# --- what the players answered (the host's dialog) --------------------------------------------
+
+
+async def test_answers_of_closed_questions_show_who_was_right_and_who_did_not_answer(env):
+    state, _, (aida, bek), _ = await new_game(env, players=("Aida", "Bek"))
+    await env.engine.start(state.id)
+    await play_round(env, state, [(aida, 1)])  # right; Bek never answers, the host closes it
+
+    answers = await env.engine.answers(state.id, state.owner_id)
+
+    assert [q.id for q in answers.questions] == ["q1"]
+    assert answers.questions[0].correct == 1
+    by_name = {x.nickname: x for x in answers.players}
+    assert [(a.question, a.position, a.correct) for a in by_name["Aida"].answers] == [("q1", 1, True)]
+    assert by_name["Bek"].answers == []
+
+
+async def test_answers_never_show_the_open_question(env):
+    state, _, (aida, bek), _ = await new_game(env, players=("Aida", "Bek"))
+    await env.engine.start(state.id)
+    assert (await env.engine.answers(state.id, state.owner_id)).questions == []
+
+    await play_round(env, state, [(aida, 1), (bek, 2)])
+    await env.engine.next(state.id)  # question 2 is open: its right answer is still a secret
+
+    answers = await env.engine.answers(state.id, state.owner_id)
+    assert [q.id for q in answers.questions] == ["q1"]
+
+
+async def test_answers_are_for_the_owner_of_the_game_only(env):
+    state, *_ = await new_game(env)
+    with pytest.raises(GameError) as e:
+        await env.engine.answers(state.id, "someone-else")
+    assert e.value.code == "GAME_NOT_FOUND"
+
+
+async def test_answers_leave_out_removed_players_and_say_nothing_about_suspicions(env):
+    state, _, (aida, bek), _ = await new_game(env, players=("Aida", "Bek"))
+    await env.engine.start(state.id)
+    await env.engine.answer(state.id, aida.id, 1)
+    await env.engine.answer(state.id, bek.id, 2)  # everybody answered: it closes
+    await env.repo.add_signal(state.id, aida.id, "TAB_BLUR")  # Aida stays a suspect
+    await env.engine.rule(state.id, bek.id, "kick")
+
+    answers = await env.engine.answers(state.id, state.owner_id)
+
+    assert [x.nickname for x in answers.players] == ["Aida"]
+    dumped = answers.model_dump_json(by_alias=True)
+    assert "flags" not in dumped and "TAB_BLUR" not in dumped and "cheaters" not in dumped

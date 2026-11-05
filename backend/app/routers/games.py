@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request
 
 from app.deps import AdminUser, Session, StaffUser, TeacherUser
 from app.errors import ApiError
-from app.game import ratelimit
+from app.game import protocol, ratelimit
 from app.game.models import GameError
 from app.game.runtime import get_engine
 from app.netutil import client_ip
@@ -89,6 +89,14 @@ async def host_ticket(game_id: str, user: StaffUser) -> HostTicketOut:
     state = await get_engine().repo.get_game(game_id) if len(game_id) <= 64 else None
     owner = state.owner_id if state else None
     return HostTicketOut(ticket=auth_service.host_ticket(user, owner, game_id))
+
+
+@router.get("/{game_id}/answers", response_model=protocol.HostAnswers, response_model_by_alias=True)
+async def live_answers(game_id: str, user: StaffUser) -> protocol.HostAnswers:
+    """The host, during a game: what the players answered on the questions that have closed."""
+    if len(game_id) > 64:
+        raise ApiError(404, "GAME_NOT_FOUND")
+    return await get_engine().answers(game_id, str(user.id))
 
 
 @router.get("/pin/{pin}", status_code=204)

@@ -296,6 +296,31 @@ class HostGameEnded(_Out):
     cheaters: list[Cheater] = []
 
 
+class HostAnswer(CamelModel):
+    question: str  # id of the question
+    position: int  # 1 to 4: the answer the player chose
+    correct: bool
+
+
+class HostAnswersPlayer(PlayerPublic):
+    answers: list[HostAnswer]  # only the questions the player answered
+
+
+class HostAnswersQuestion(CamelModel):
+    id: str
+    text: str
+    answers: list[str]
+    correct: int  # 1 to 4: the position of the right answer
+
+
+class HostAnswers(CamelModel):
+    """What the players answered so far, for the host's dialog (GET, not an event). Only questions
+    that have closed, and nothing about suspicions: the rulings have their own panel."""
+
+    questions: list[HostAnswersQuestion]
+    players: list[HostAnswersPlayer]  # best first
+
+
 class Ping(_Out):
     type: Literal["ping"] = "ping"
     n: int

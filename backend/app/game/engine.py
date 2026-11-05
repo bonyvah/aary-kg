@@ -399,6 +399,38 @@ class GameEngine:
             await self.audit(game_id, "game.quit", at=state.finished_ms, round=state.round)
             await self._emit(game_id, "all", p.Closed())
 
+    async def answers(self, game_id: str, owner_id: str) -> p.HostAnswers:
+        """Host: what each player answered on the questions that have closed. The open question stays
+        out: its right answer is not known to anybody until it closes."""
+        state = await self.repo.get_game(game_id)
+        if state is None or state.owner_id != owner_id:
+            raise GameError("GAME_NOT_FOUND")
+        closed = range(state.round if state.phase == "question" else state.round + 1)
+        quiz = await self.repo.get_quiz(game_id)
+        questions = [self._question(quiz, state, rnd) for rnd in closed]
+        results = [await self.repo.get_results(game_id, rnd) for rnd in closed]
+        return p.HostAnswers(
+            questions=[
+                p.HostAnswersQuestion(id=q["id"], text=q["text"], answers=q["answers"], correct=q["correct"])
+                for q in questions
+            ],
+            players=[
+                p.HostAnswersPlayer(
+                    id=s.id,
+                    nickname=s.nickname,
+                    character=s.character,
+                    answers=[
+                        p.HostAnswer(
+                            question=q["id"], position=r[s.id]["position"], correct=r[s.id]["correct"]
+                        )
+                        for q, r in zip(questions, results, strict=True)
+                        if s.id in r
+                    ],
+                )
+                for s in self._standings(state, await self.repo.get_players(game_id))
+            ],
+        )
+
     # --- transitions (the game lock is held) ----------------------------------------------------
 
     async def _begin_question(self, state: GameState, quiz: dict[str, Any], rnd: int) -> None:

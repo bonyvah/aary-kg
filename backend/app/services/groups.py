@@ -62,10 +62,14 @@ async def rename(session: AsyncSession, group_id: uuid.UUID, name: str) -> Group
 
 
 async def delete(session: AsyncSession, group_id: uuid.UUID) -> None:
-    """Only an empty group: its students are moved to another one first."""
+    """Only an empty group: its students are moved to another one first.
+
+    Disabled students don't count: they are taken out of it and left without a group.
+    """
     group = await _get(session, group_id)
     if await repo.student_count(session, group.id):
         raise ApiError(409, "GROUP_NOT_EMPTY")
+    await repo.detach_disabled(session, group.id)
     await session.delete(group)
     try:
         await session.commit()

@@ -1,3 +1,4 @@
+import itertools
 import re
 import uuid
 
@@ -10,6 +11,7 @@ from app.models.group import Group
 from app.models.user import User
 from app.repositories import groups as groups_repo
 from app.repositories import users as repo
+from app.schemas.user import ProposedStudent
 from app.security import generate_password, hash_password
 
 # Same rule as frontend/src/lib/adminUsers.ts
@@ -25,6 +27,24 @@ async def _student_group(session: AsyncSession, group_id: uuid.UUID | None) -> G
     return group
 
 
+def _problems(first_name: str, last_name: str, login: str) -> list[tuple[str, str]]:
+    """Everything wrong with cleaned names and a login, as (code, field), without asking the database."""
+    problems: list[tuple[str, str]] = []
+    if not first_name:
+        problems.append(("FIELD_REQUIRED", "firstName"))
+    elif len(first_name) > 60:
+        problems.append(("VALIDATION_ERROR", "firstName"))
+    if not last_name:
+        problems.append(("FIELD_REQUIRED", "lastName"))
+    elif len(last_name) > 60:
+        problems.append(("VALIDATION_ERROR", "lastName"))
+    if not login:
+        problems.append(("FIELD_REQUIRED", "login"))
+    elif not LOGIN_RE.match(login):
+        problems.append(("LOGIN_INVALID", "login"))
+    return problems
+
+
 async def create_user(
     session: AsyncSession,
     first_name: str,
@@ -37,16 +57,8 @@ async def create_user(
     """A teacher has no group; a student is in exactly one. A blank password is generated."""
     first_name, last_name = first_name.strip(), last_name.strip()
     login = login.strip().lower()
-    if not first_name:
-        raise ApiError(400, "FIELD_REQUIRED", "firstName")
-    if not last_name:
-        raise ApiError(400, "FIELD_REQUIRED", "lastName")
-    if len(first_name) > 60 or len(last_name) > 60:
-        raise ApiError(400, "VALIDATION_ERROR", "firstName" if len(first_name) > 60 else "lastName")
-    if not login:
-        raise ApiError(400, "FIELD_REQUIRED", "login")
-    if not LOGIN_RE.match(login):
-        raise ApiError(400, "LOGIN_INVALID", "login")
+    for code, field in _problems(first_name, last_name, login):
+        raise ApiError(400, code, field)
     if await repo.get_by_login(session, login):
         raise ApiError(409, "LOGIN_TAKEN", "login")
     if role == "student":
@@ -76,6 +88,81 @@ async def create_user(
         await session.rollback()
         raise ApiError(409, "LOGIN_TAKEN", "login") from None
     return user, password
+
+
+def _free_login(login: str, taken: set[str]) -> str:
+    """The login, or with the first number that makes it free. Stays within the 32 characters."""
+    if login not in taken:
+        return login
+    for number in itertools.count(2):
+        suffix = str(number)
+        candidate = login[: 32 - len(suffix)] + suffix
+        if candidate not in taken:
+            return candidate
+    raise AssertionError
+
+
+async def propose_students(session: AsyncSession, read: list[dict[str, str]]) -> list[ProposedStudent]:
+    """What the model read, with logins that are valid and free. An invalid one is left blank."""
+    taken = await repo.all_logins(session)
+    proposed: list[ProposedStudent] = []
+    for student in read:
+        login = student["login"].strip().lower()
+        login = _free_login(login, taken) if LOGIN_RE.match(login) else ""
+        if login:
+            taken.add(login)
+        proposed.append(
+            ProposedStudent(first_name=student["first_name"], last_name=student["last_name"], login=login)
+        )
+    return proposed
+
+
+async def create_students(
+    session: AsyncSession, group_id: uuid.UUID | None, password: str, students: list[ProposedStudent]
+) -> list[User]:
+    """All of them or none, in one group, with the one password the admin chose."""
+    group = await _student_group(session, group_id)
+    if not password:
+        raise ApiError(400, "FIELD_REQUIRED", "password")
+    taken = await repo.all_logins(session)
+    issues: list[dict[str, str]] = []
+    cleaned: list[tuple[str, str, str]] = []
+    for index, student in enumerate(students):
+        first_name, last_name = student.first_name.strip(), student.last_name.strip()
+        login = student.login.strip().lower()
+        problems = _problems(first_name, last_name, login)
+        if login in taken:
+            problems.append(("LOGIN_TAKEN", "login"))
+        taken.add(login)
+        issues.extend({"code": code, "field": f"students.{index}.{field}"} for code, field in problems)
+        cleaned.append((first_name, last_name, login))
+    if issues:
+        raise ApiError(400, "STUDENTS_INVALID", issues=issues)
+    for first_name, last_name, login in cleaned:
+        password_policy.check(
+            password, first_name=first_name, last_name=last_name, login=login, field="password"
+        )
+    # One hash for one password: hashing it again per student would hold the request for minutes.
+    password_hash = hash_password(password)
+    users = [
+        User(
+            first_name=first_name,
+            last_name=last_name,
+            login=login,
+            role="student",
+            group=group,
+            password_hash=password_hash,
+        )
+        for first_name, last_name, login in cleaned
+    ]
+    for user in users:
+        repo.add(session, user)
+    try:
+        await session.commit()
+    except IntegrityError:  # a create raced past the check above
+        await session.rollback()
+        raise ApiError(409, "LOGIN_TAKEN") from None
+    return users
 
 
 async def _get(session: AsyncSession, user_id: uuid.UUID) -> User:

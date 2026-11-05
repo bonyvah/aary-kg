@@ -22,6 +22,11 @@ async def list_managed(session: AsyncSession) -> list[User]:
     return list(result.scalars())
 
 
+async def all_logins(session: AsyncSession) -> set[str]:
+    """Every login in use, admins' too."""
+    return set((await session.execute(select(User.login))).scalars())
+
+
 async def count(session: AsyncSession) -> int:
     return (await session.execute(select(func.count()).select_from(User))).scalar_one()
 

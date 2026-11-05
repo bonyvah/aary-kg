@@ -2,8 +2,9 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import field_serializer
+from pydantic import Field, field_serializer
 
+from app.ai.students import MAX_STUDENTS
 from app.schemas.base import CamelModel
 
 UserRole = Literal["admin", "teacher", "student"]
@@ -45,6 +46,20 @@ class CreateUserIn(CamelModel):
     group_id: uuid.UUID | None = None
     # Chosen by the admin, under the same rules as a password a person chooses. Blank: generated.
     password: str = ""
+
+
+class ProposedStudent(CamelModel):
+    # Read from the admin's list, for them to review. The login may be blank: the model's wasn't valid.
+    first_name: str
+    last_name: str
+    login: str
+
+
+class CreateStudentsIn(CamelModel):
+    group_id: uuid.UUID | None = None
+    # The same for all of them, chosen by the admin: required here.
+    password: str = ""
+    students: list[ProposedStudent] = Field(min_length=1, max_length=MAX_STUDENTS)
 
 
 class MoveGroupIn(CamelModel):

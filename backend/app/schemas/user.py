@@ -48,18 +48,24 @@ class CreateUserIn(CamelModel):
     password: str = ""
 
 
-class ProposedStudent(CamelModel):
-    # Read from the admin's list, for them to review. The login may be blank: the model's wasn't valid.
+class NewStudent(CamelModel):
     first_name: str
     last_name: str
     login: str
+
+
+class ProposedStudent(NewStudent):
+    # Read from the admin's list, for them to review. The login may be blank: the model's wasn't valid.
+    # Set when the login got a number: the one the model chose, and whose it is. It may be this student.
+    taken_login: str | None = None
+    taken_by: str | None = None
 
 
 class CreateStudentsIn(CamelModel):
     group_id: uuid.UUID | None = None
     # The same for all of them, chosen by the admin: required here.
     password: str = ""
-    students: list[ProposedStudent] = Field(min_length=1, max_length=MAX_STUDENTS)
+    students: list[NewStudent] = Field(min_length=1, max_length=MAX_STUDENTS)
 
 
 class MoveGroupIn(CamelModel):

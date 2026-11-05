@@ -27,6 +27,12 @@ async def all_logins(session: AsyncSession) -> set[str]:
     return set((await session.execute(select(User.login))).scalars())
 
 
+async def login_holders(session: AsyncSession) -> dict[str, str]:
+    """Every login in use, admins' too, with the name of whoever has it."""
+    rows = await session.execute(select(User.login, User.first_name, User.last_name))
+    return {login: f"{first_name} {last_name}" for login, first_name, last_name in rows}
+
+
 async def count(session: AsyncSession) -> int:
     return (await session.execute(select(func.count()).select_from(User))).scalar_one()
 

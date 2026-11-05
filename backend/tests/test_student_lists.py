@@ -115,7 +115,7 @@ async def test_pasted_text_gives_a_proposal(client, fake_ai):
     await admin(client)
     r = await client.post("/admin/users/bulk/parse", data={"text": "Бакыт уулу Адилет"})
     assert r.status_code == 200, r.text
-    assert r.json() == [STUDENT]
+    assert r.json() == [{**STUDENT, "takenLogin": None, "takenBy": None}]
     assert sent == ["Бакыт уулу Адилет"]
     assert (await client.get("/admin/users")).json() == []  # nothing saved
 
@@ -132,7 +132,8 @@ async def test_a_file_gives_a_proposal(client, fake_ai):
 async def test_taken_logins_get_a_number_and_invalid_ones_are_blank(client, fake_ai):
     _, answer = fake_ai
     await admin(client)
-    await make_user("bek.asanov")
+    user = await make_user("bek.asanov")
+    holder = f"{user.first_name} {user.last_name}"
     answer[:] = [
         {"first_name": "Бек", "last_name": "Асанов", "login": "Bek.Asanov"},
         {"first_name": "Бек", "last_name": "Асанов", "login": "bek.asanov"},
@@ -140,6 +141,23 @@ async def test_taken_logins_get_a_number_and_invalid_ones_are_blank(client, fake
     ]
     r = await client.post("/admin/users/bulk/parse", data={"text": "x"})
     assert [s["login"] for s in r.json()] == ["bek.asanov2", "bek.asanov3", ""]
+    assert [(s["takenLogin"], s["takenBy"]) for s in r.json()] == [
+        ("bek.asanov", holder),
+        ("bek.asanov", holder),
+        (None, None),
+    ]
+
+
+async def test_a_login_repeated_in_the_list_names_the_row_before_it(client, fake_ai):
+    _, answer = fake_ai
+    await admin(client)
+    answer[:] = [
+        {"first_name": "Бек", "last_name": "Асанов", "login": "bek.asanov"},
+        {"first_name": "Бекзат", "last_name": "Асанов", "login": "bek.asanov"},
+    ]
+    r = await client.post("/admin/users/bulk/parse", data={"text": "x"})
+    assert [s["login"] for s in r.json()] == ["bek.asanov", "bek.asanov2"]
+    assert [s["takenBy"] for s in r.json()] == [None, "Бек Асанов"]
 
 
 @pytest.mark.parametrize(

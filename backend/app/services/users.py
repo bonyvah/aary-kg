@@ -1,6 +1,7 @@
 import itertools
 import re
 import uuid
+from collections.abc import Container
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,7 @@ from app.models.group import Group
 from app.models.user import User
 from app.repositories import groups as groups_repo
 from app.repositories import users as repo
-from app.schemas.user import ProposedStudent
+from app.schemas.user import NewStudent, ProposedStudent
 from app.security import generate_password, hash_password
 
 # Same rule as frontend/src/lib/adminUsers.ts
@@ -90,7 +91,7 @@ async def create_user(
     return user, password
 
 
-def _free_login(login: str, taken: set[str]) -> str:
+def _free_login(login: str, taken: Container[str]) -> str:
     """The login, or with the first number that makes it free. Stays within the 32 characters."""
     if login not in taken:
         return login
@@ -103,22 +104,33 @@ def _free_login(login: str, taken: set[str]) -> str:
 
 
 async def propose_students(session: AsyncSession, read: list[dict[str, str]]) -> list[ProposedStudent]:
-    """What the model read, with logins that are valid and free. An invalid one is left blank."""
-    taken = await repo.all_logins(session)
+    """What the model read, with logins that are valid and free. An invalid one is left blank.
+
+    A login that got a number says whose it was: it may be the same person, already here.
+    """
+    holders = await repo.login_holders(session)
     proposed: list[ProposedStudent] = []
     for student in read:
-        login = student["login"].strip().lower()
-        login = _free_login(login, taken) if LOGIN_RE.match(login) else ""
-        if login:
-            taken.add(login)
+        first_name, last_name = student["first_name"], student["last_name"]
+        chosen = student["login"].strip().lower()
+        login = _free_login(chosen, holders) if LOGIN_RE.match(chosen) else ""
+        numbered = bool(login) and login != chosen
         proposed.append(
-            ProposedStudent(first_name=student["first_name"], last_name=student["last_name"], login=login)
+            ProposedStudent(
+                first_name=first_name,
+                last_name=last_name,
+                login=login,
+                taken_login=chosen if numbered else None,
+                taken_by=holders[chosen] if numbered else None,
+            )
         )
+        if login:
+            holders[login] = f"{first_name} {last_name}"
     return proposed
 
 
 async def create_students(
-    session: AsyncSession, group_id: uuid.UUID | None, password: str, students: list[ProposedStudent]
+    session: AsyncSession, group_id: uuid.UUID | None, password: str, students: list[NewStudent]
 ) -> list[User]:
     """All of them or none, in one group, with the one password the admin chose."""
     group = await _student_group(session, group_id)

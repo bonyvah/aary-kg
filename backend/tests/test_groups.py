@@ -61,6 +61,30 @@ async def test_a_group_with_students_is_not_deleted(as_user):
     assert (r.status_code, r.json()["code"]) == (404, "GROUP_NOT_FOUND")
 
 
+async def test_disabled_students_are_not_counted_and_do_not_block_delete(as_user):
+    admin, _ = await as_user("root", role="admin")
+    group = (await _create(admin, "10-А")).json()
+    active = await make_user("aizada", role="student")
+    gone = await make_user("bakyt", role="student")
+    async with SessionLocal() as s:
+        await s.execute(update(User).where(User.id.in_([active.id, gone.id])).values(group_id=group["id"]))
+        await s.commit()
+    assert (await admin.post(f"/admin/users/{gone.id}/disable")).status_code == 200
+    assert (await admin.get("/admin/groups")).json()[0]["studentCount"] == 1
+    r = await admin.put(f"/admin/groups/{group['id']}", json={"name": "11-А"})
+    assert r.json()["studentCount"] == 1
+    # The active one still blocks it.
+    r = await admin.delete(f"/admin/groups/{group['id']}")
+    assert (r.status_code, r.json()["code"]) == (409, "GROUP_NOT_EMPTY")
+    assert (await admin.post(f"/admin/users/{active.id}/disable")).status_code == 200
+    assert (await admin.get("/admin/groups")).json()[0]["studentCount"] == 0
+    # Only disabled ones left: it goes, and they are left without a group.
+    assert (await admin.delete(f"/admin/groups/{group['id']}")).status_code == 204
+    async with SessionLocal() as s:
+        for user_id in (active.id, gone.id):
+            assert (await s.get(User, user_id)).group_id is None
+
+
 async def test_teachers_see_groups_but_do_not_change_them(as_user):
     admin, _ = await as_user("root", role="admin")
     teacher, _ = await as_user("ulan")

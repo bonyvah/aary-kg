@@ -169,9 +169,9 @@ export function AdminScreen() {
 
   const matching = users ? filterUsers(users, filter) : [];
   const { items: shown, page: userPage, pages: userPages } = pageOf(matching, usersPage, TABLE_PAGE);
-  // The groups that have students, for the group filter, sorted by name.
+  // The groups that have listed (not disabled) students, for the group filter, sorted by name.
   const studentGroups = Array.from(
-    new Map((users ?? []).filter((u) => u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
+    new Map((users ?? []).filter((u) => u.active && u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
   ).sort((a, b) => a[1].localeCompare(b[1], locale));
 
   return (

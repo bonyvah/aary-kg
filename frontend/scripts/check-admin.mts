@@ -124,13 +124,16 @@ check("best match first", search(["Алгебранын негиздери", "А
 
 // Users management filter.
 const people = [
-  { name: "Айбек Ч", login: "aibek", role: "teacher" as const, groupId: null },
-  { name: "Айзада К", login: "aizada", role: "student" as const, groupId: "g1" },
-  { name: "Бакыт Т", login: "bakyt", role: "student" as const, groupId: "g2" },
+  { name: "Айбек Ч", login: "aibek", role: "teacher" as const, groupId: null, active: true },
+  { name: "Айзада К", login: "aizada", role: "student" as const, groupId: "g1", active: true },
+  { name: "Бакыт Т", login: "bakyt", role: "student" as const, groupId: "g2", active: true },
+  { name: "Айбек Т", login: "aibek.t", role: "teacher" as const, groupId: null, active: false },
+  { name: "Бакыт С", login: "bakyt.s", role: "student" as const, groupId: "g2", active: false },
 ];
 const found = (query: string, role: "teacher" | "student", groupId = "") => filterUsers(people, { query, role, groupId }).map((u) => u.login).join();
 check("search by name or login", found("айз", "student") === "aizada" && found("BAK", "student") === "bakyt" && found("aib", "student") === "");
 check("filter by role", found("", "student") === "aizada,bakyt" && found("", "teacher") === "aibek");
+check("disabled accounts are not listed", found("", "teacher") === "aibek" && found("бакыт", "student") === "bakyt");
 check("group filter only for students", found("", "student", "g2") === "bakyt" && found("", "teacher", "g2") === "aibek");
 
 // Quiz questions copied into an exam.

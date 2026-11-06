@@ -17,7 +17,8 @@ type FilteredListProps<T> = {
   empty: ReactNode;
   /** Beside the search, e.g. a link to more of the same; shown even when the list is empty. */
   actions?: ReactNode;
-  children: (page: T[]) => ReactNode;
+  /** `first`: the row number of the page's first item. */
+  children: (page: T[], first: number) => ReactNode;
 };
 
 /** A list with its filters above (search, host, days) and pages below. */
@@ -45,7 +46,7 @@ export function FilteredList<T>({ items, fields, pageSize, empty, actions, child
         dates={fields.date !== undefined}
         actions={actions}
       />
-      {list.items.length > 0 ? children(list.items) : <EmptyState icon={MagnifyingGlass} title={t("nothingFound")} />}
+      {list.items.length > 0 ? children(list.items, list.first) : <EmptyState icon={MagnifyingGlass} title={t("nothingFound")} />}
       <Pagination page={list.page} pages={list.pages} onChange={list.setPage} />
     </div>
   );

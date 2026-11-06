@@ -155,6 +155,7 @@ check("by host", ids({ host: "Айжан" }) === "b,c");
 check("by days, both ends included", ids({ from: "2026-10-05", to: "2026-10-09" }) === "b,c" && ids({ to: "2026-10-01" }) === "a");
 check("search with the others", ids({ query: "тарых", host: "Айжан" }) === "c");
 const paged = pageOf([1, 2, 3, 4, 5], 2, 2);
+check("row numbers go on across pages", paged.first === 3 && pageOf([1, 2, 3], 1, 2).first === 1 && pageOf([1, 2, 3], 9, 2).first === 3 && pageOf([], 1, 2).first === 1);
 check("pages", paged.items.join() === "3,4" && paged.pages === 3 && pageOf([1, 2, 3], 9, 2).page === 2 && pageOf([], 1, 5).pages === 1);
 
 console.log(failed === 0 ? "\nall checks passed" : `\n${failed} checks FAILED`);

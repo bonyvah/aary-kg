@@ -2,12 +2,12 @@ import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { ClockCounterClockwise } from "@phosphor-icons/react/ssr";
 import type { GameSummary } from "@/lib/api/games";
 
 /** Every finished game of everyone, for admins. A row opens the game to read and correct. */
-export function AdminGamesTable({ games }: { games: readonly GameSummary[] }) {
+export function AdminGamesTable({ games, first = 1 }: { games: readonly GameSummary[]; first?: number }) {
   const t = useTranslations("admin.games");
   const format = useFormatter();
   const dateTime = useDateTime();
@@ -20,6 +20,7 @@ export function AdminGamesTable({ games }: { games: readonly GameSummary[] }) {
     <Table className="min-w-[760px]">
       <thead>
         <tr>
+          <RowNumberTh />
           <Th>{t("quiz")}</Th>
           <Th>{t("host")}</Th>
           <Th>{t("finished")}</Th>
@@ -27,8 +28,9 @@ export function AdminGamesTable({ games }: { games: readonly GameSummary[] }) {
         </tr>
       </thead>
       <tbody>
-        {games.map((game) => (
+        {games.map((game, index) => (
           <tr key={game.id}>
+            <RowNumberTd number={first + index} />
             <Td className="font-bold">
               <Link
                 href={`/admin/games/${game.id}`}

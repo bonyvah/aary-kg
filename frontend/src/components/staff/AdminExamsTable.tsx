@@ -2,13 +2,13 @@ import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { Exam } from "@phosphor-icons/react/ssr";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { useDateTime } from "@/lib/useDateTime";
 import type { ExamSessionSummary } from "@/types/examSession";
 import { ExamSessionStatusBadge } from "./ExamSessionStatusBadge";
 
 /** Every exam of every teacher, for admins. A row opens the exam to read. */
-export function AdminExamsTable({ exams }: { exams: readonly ExamSessionSummary[] }) {
+export function AdminExamsTable({ exams, first = 1 }: { exams: readonly ExamSessionSummary[]; first?: number }) {
   const t = useTranslations("admin.exams");
   const format = useFormatter();
   const dateTime = useDateTime();
@@ -19,6 +19,7 @@ export function AdminExamsTable({ exams }: { exams: readonly ExamSessionSummary[
     <Table className="min-w-[760px]">
       <thead>
         <tr>
+          <RowNumberTh />
           <Th>{t("title")}</Th>
           <Th>{t("teacher")}</Th>
           <Th>{t("groups")}</Th>
@@ -28,8 +29,9 @@ export function AdminExamsTable({ exams }: { exams: readonly ExamSessionSummary[
         </tr>
       </thead>
       <tbody>
-        {exams.map((exam) => (
+        {exams.map((exam, index) => (
           <tr key={exam.id}>
+            <RowNumberTd number={first + index} />
             <Td className="font-bold">
               <Link
                 href={`/exam-sessions/${exam.id}`}

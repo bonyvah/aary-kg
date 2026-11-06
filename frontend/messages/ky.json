@@ -1,5 +1,6 @@
 {
   "_todo_review": [
+    "common.rowNumber",
     "host.live.answers",
     "staff.editor.ai.open",
     "staff.editor.ai.title",
@@ -764,6 +765,7 @@
     }
   },
   "common": {
+    "rowNumber": "№",
     "months": {
       "1": "Январь",
       "2": "Февраль",

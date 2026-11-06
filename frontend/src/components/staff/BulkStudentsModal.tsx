@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { passwordProblem } from "@/lib/account";
 import {
   NEW_USER_CODES,
@@ -274,6 +274,7 @@ export function BulkStudentsModal({ existing, groups, onClose, onAdded }: BulkSt
           <Table className="min-w-[640px]">
             <thead>
               <tr>
+                <RowNumberTh />
                 <Th>{tf("lastName")}</Th>
                 <Th>{tf("firstName")}</Th>
                 <Th className="w-2/5">{tf("login")}</Th>
@@ -285,6 +286,7 @@ export function BulkStudentsModal({ existing, groups, onClose, onAdded }: BulkSt
             <tbody>
               {rows.map((row, index) => (
                 <tr key={row.key}>
+                  <RowNumberTd number={index + 1} />
                   {(["lastName", "firstName", "login"] as const).map((field) => {
                     const code = rowErrors[row.key]?.[field];
                     return (

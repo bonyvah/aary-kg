@@ -41,8 +41,9 @@ export function hostsOf<T>(items: readonly T[], host: (item: T) => string, local
 }
 
 /** One page of a list. Pages count from 1; a page past the end shows the last one. */
-export function pageOf<T>(items: readonly T[], page: number, size: number): { items: T[]; page: number; pages: number } {
+export function pageOf<T>(items: readonly T[], page: number, size: number): { items: T[]; page: number; pages: number; first: number } {
   const pages = Math.max(1, Math.ceil(items.length / size));
   const current = Math.min(Math.max(1, page), pages);
-  return { items: items.slice((current - 1) * size, current * size), page: current, pages };
+  // `first`: the row number of the page's first item, so that numbers go on across pages.
+  return { items: items.slice((current - 1) * size, current * size), page: current, pages, first: (current - 1) * size + 1 };
 }

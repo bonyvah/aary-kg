@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { LATE_OPTIONS, MAX_LATE_MINUTES, MIN_LATE_MINUTES, toggle } from "@/lib/examSessions";
 import type { AttemptState, AttendanceChange } from "@/types/examSession";
 
@@ -32,6 +32,7 @@ export function AttendanceTable({ rows, onChange, disabled = false, extra }: Att
     <Table>
       <thead>
         <tr>
+          <RowNumberTh />
           <Th>{t("student")}</Th>
           <Th>{t("group")}</Th>
           <Th>{t("absent")}</Th>
@@ -40,7 +41,7 @@ export function AttendanceTable({ rows, onChange, disabled = false, extra }: Att
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => {
+        {rows.map((row, index) => {
           const minutes = row.lateMinutes ?? LATE_OPTIONS[0];
           const options = Array.from(new Set([...LATE_OPTIONS, minutes]))
             .sort((a, b) => a - b)
@@ -49,6 +50,7 @@ export function AttendanceTable({ rows, onChange, disabled = false, extra }: Att
           const locked = disabled || (row.attemptState !== undefined && row.attemptState !== "none");
           return (
             <tr key={row.studentId}>
+              <RowNumberTd number={index + 1} />
               <Td className="font-bold [overflow-wrap:anywhere]">{row.name}</Td>
               <Td className="text-ink-muted">{row.groupName ?? ""}</Td>
               <Td className="py-1">

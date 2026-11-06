@@ -13,7 +13,7 @@ import { pageOf } from "@/lib/listFilter";
 import { Pagination } from "@/components/ui/Pagination";
 import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { Tabs, panelId, tabId } from "@/components/ui/Tabs";
 import { useToast } from "@/components/ui/useToast";
 import * as api from "@/lib/api/adminUsers";
@@ -167,7 +167,7 @@ export function AdminScreen() {
   }
 
   const matching = users ? filterUsers(users, filter) : [];
-  const { items: shown, page: userPage, pages: userPages } = pageOf(matching, usersPage, TABLE_PAGE);
+  const { items: shown, page: userPage, pages: userPages, first: firstUser } = pageOf(matching, usersPage, TABLE_PAGE);
   // The groups that have listed (not disabled) students, for the group filter, sorted by name.
   const studentGroups = Array.from(
     new Map((users ?? []).filter((u) => u.active && u.groupId && u.groupName).map((u) => [u.groupId as string, u.groupName as string])),
@@ -223,7 +223,7 @@ export function AdminScreen() {
                 pageSize={TABLE_PAGE}
                 empty={<AdminGamesTable games={[]} />}
               >
-                {(page) => <AdminGamesTable games={page} />}
+                {(page, first) => <AdminGamesTable games={page} first={first} />}
               </FilteredList>
             )}
           </ResourceView>
@@ -236,7 +236,7 @@ export function AdminScreen() {
                 pageSize={TABLE_PAGE}
                 empty={<AdminExamsTable exams={[]} />}
               >
-                {(page) => <AdminExamsTable exams={page} />}
+                {(page, first) => <AdminExamsTable exams={page} first={first} />}
               </FilteredList>
             )}
           </ResourceView>
@@ -249,7 +249,7 @@ export function AdminScreen() {
                 pageSize={TABLE_PAGE}
                 empty={<ContestsTable contests={[]} />}
               >
-                {(page) => <ContestsTable contests={page} />}
+                {(page, first) => <ContestsTable contests={page} first={first} />}
               </FilteredList>
             )}
           </ResourceView>
@@ -295,6 +295,7 @@ export function AdminScreen() {
         <Table className="min-w-[960px]">
           <thead>
             <tr>
+              <RowNumberTh />
               <Th>{t("columns.name")}</Th>
               <Th>{t("columns.login")}</Th>
               {role === "student" ? <Th>{t("columns.group")}</Th> : null}
@@ -303,8 +304,9 @@ export function AdminScreen() {
             </tr>
           </thead>
           <tbody>
-            {shown.map((user) => (
+            {shown.map((user, index) => (
               <tr key={user.id}>
+                <RowNumberTd number={firstUser + index} />
                 <Td>
                   <span className="min-w-0 wrap-break-word font-bold">{user.name}</span>
                 </Td>

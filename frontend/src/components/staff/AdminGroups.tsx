@@ -6,7 +6,7 @@ import { PencilSimple, Trash, UsersThree } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import * as api from "@/lib/api/groups";
 import { toKnownCode } from "@/lib/api/client";
 import { useDateTime } from "@/lib/useDateTime";
@@ -78,6 +78,7 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
             <Table className="min-w-[640px]">
               <thead>
                 <tr>
+                  <RowNumberTh />
                   <Th>{t("columns.name")}</Th>
                   <Th className="text-right">{t("columns.students")}</Th>
                   <Th>{t("columns.created")}</Th>
@@ -85,8 +86,9 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                 </tr>
               </thead>
               <tbody>
-                {groups.map((group) => (
+                {groups.map((group, index) => (
                   <tr key={group.id}>
+                    <RowNumberTd number={index + 1} />
                     <Td>
                       <span className="min-w-0 wrap-break-word font-bold">{group.name}</span>
                     </Td>

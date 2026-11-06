@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
 import { closeExamSession, decide, grantAttempt, setAttendance } from "@/lib/api/examSessions";
@@ -170,6 +170,7 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
       <Table>
         <thead>
           <tr>
+            <RowNumberTh />
             <Th>{ta("student")}</Th>
             <Th>{ta("group")}</Th>
             <Th>{ta("title")}</Th>
@@ -181,8 +182,9 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
           </tr>
         </thead>
         <tbody>
-          {session.students.map((row) => (
+          {session.students.map((row, index) => (
             <tr key={row.studentId}>
+              <RowNumberTd number={index + 1} />
               <Td className="font-bold [overflow-wrap:anywhere]">{row.name}</Td>
               <Td className="text-ink-muted">{row.groupName ?? ""}</Td>
               <Td>

@@ -2,6 +2,8 @@
 // Run: pnpm check:surveys
 import { blankQuestion, blankSheet, findIssues, maxChars, nextId, withKind, withLimitMode } from "../src/lib/surveyEditor.ts";
 import { redirectFor } from "../src/lib/staffRoutes.ts";
+import { issuesOf, toPayload, toggle } from "../src/lib/surveyAnswer.ts";
+import type { SurveyQuestion } from "../src/types/survey.ts";
 
 let failed = 0;
 const check = (name: string, ok: boolean, detail = "") => {
@@ -35,6 +37,29 @@ check("limit modes: none has no number, the others keep theirs or start at 1", J
 check("the superadmin can't write or start surveys", redirectFor("superadmin", "/admin/surveys/sheets/new") === "/admin" && redirectFor("superadmin", "/admin/surveys/new") === "/admin" && redirectFor("superadmin", "/admin/surveys/x") === null);
 check("an admin can", redirectFor("admin", "/admin/surveys/sheets/new") === null && redirectFor("admin", "/admin/surveys/new") === null);
 check("a teacher and a student can't", redirectFor("teacher", "/admin/surveys/x") === "/dashboard" && redirectFor("student", "/admin/surveys/x") === "/student");
+
+const qs: SurveyQuestion[] = [
+  { id: "s", kind: "single", text: "?", required: true, choices: ["a", "b"] },
+  { id: "min", kind: "multi", text: "?", required: true, choices: ["a", "b", "c"], limit: { mode: "min", n: 2 } },
+  { id: "max", kind: "multi", text: "?", required: false, choices: ["a", "b", "c"], limit: { mode: "max", n: 1 } },
+  { id: "o", kind: "open", text: "?", required: true, maxWords: 2 },
+  { id: "opt", kind: "open", text: "?", required: false, maxWords: 100 },
+];
+const issues = (draft: Record<string, readonly number[] | string>, submitting: boolean) =>
+  [...issuesOf(qs, draft, submitting)].map(([k, c]) => `${k}=${c}`).join();
+check("nothing is wrong while typing an empty survey", issues({}, false) === "");
+check("on sending, the mandatory ones are missing", issues({}, true) === "s=ANSWER_REQUIRED,min=ANSWER_REQUIRED,o=ANSWER_REQUIRED", issues({}, true));
+check("a limit passed shows at once", issues({ max: [1, 2], o: "x".repeat(13) }, false) === "max=TOO_MANY,o=TOO_LONG");
+check("too few shows only on sending", issues({ min: [1] }, false) === "" && issues({ s: [1], min: [1], o: "hi" }, true) === "min=TOO_FEW");
+check("a blank text is no answer", issues({ s: [2], min: [1, 3], o: "   " }, true) === "o=ANSWER_REQUIRED");
+const single = qs[0] as SurveyQuestion;
+const multiQ = qs[1] as SurveyQuestion;
+check("a single choice takes the one clicked", toggle(single, [1], 2).join() === "2");
+check("a multiple select adds and removes in order", toggle(multiQ, [3], 1).join() === "1,3" && toggle(multiQ, [1, 3], 3).join() === "1");
+check(
+  "the payload has answered questions only, a single choice as a number, texts trimmed",
+  JSON.stringify(toPayload(qs, { s: [2], min: [1, 3], max: [], o: "  hi ", opt: " " })) === '{"s":2,"min":[1,3],"o":"hi"}',
+);
 
 if (failed > 0) {
   console.log(`\n${failed} failed`);

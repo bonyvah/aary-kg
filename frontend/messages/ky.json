@@ -203,7 +203,29 @@
     "admin.surveys.results.cancel",
     "admin.surveys.results.answered",
     "admin.surveys.results.questionAnswered",
-    "common.apiError.SURVEY_NO_STUDENTS"
+    "common.apiError.SURVEY_NO_STUDENTS",
+    "student.survey.title",
+    "student.survey.back",
+    "student.survey.meta",
+    "student.survey.state.open",
+    "student.survey.state.answered",
+    "student.survey.state.closed",
+    "student.survey.answered",
+    "student.survey.closed",
+    "student.survey.required",
+    "student.survey.send",
+    "student.survey.cancel",
+    "student.survey.fix",
+    "student.survey.confirmTitle",
+    "student.survey.confirmBody",
+    "student.survey.errors.ANSWER_REQUIRED",
+    "student.survey.errors.TOO_FEW",
+    "student.survey.errors.TOO_MANY",
+    "student.survey.errors.TOO_LONG",
+    "student.survey.errors.ANSWER_INVALID",
+    "common.apiError.SURVEY_CLOSED",
+    "common.apiError.SURVEY_ALREADY_ANSWERED",
+    "common.apiError.SURVEY_ANSWER_INVALID"
   ],
   "app": {
     "name": "aary kg"
@@ -974,7 +996,10 @@
       "STUDENTS_INVALID": "Тизмедеги каталарды оңдоңуз.",
       "SURVEY_NOT_FOUND": "Сурамжылоо табылган жок.",
       "SURVEY_INVALID": "Сурамжылоо барагы туура толтурулган жок.",
-      "SURVEY_NO_STUDENTS": "Тандалган группаларда студент жок."
+      "SURVEY_NO_STUDENTS": "Тандалган группаларда студент жок.",
+      "SURVEY_CLOSED": "Сурамжылоо жабылган.",
+      "SURVEY_ALREADY_ANSWERED": "Бул сурамжылоого жооп бергенсиз.",
+      "SURVEY_ANSWER_INVALID": "Белгиленген суроолорду оңдоңуз."
     },
     "toDashboard": "Башкы бетке",
     "filters": {
@@ -1591,6 +1616,31 @@
         "notCounted": "Эсептелген жок"
       },
       "startAgain": "Кайра баштоо"
+    },
+    "survey": {
+      "title": "Сурамжылоолор",
+      "back": "Артка",
+      "meta": "{count, plural, one {# суроо} other {# суроо}}",
+      "state": {
+        "open": "Жооп күтүүдө",
+        "answered": "Жооп берилди",
+        "closed": "Жабык"
+      },
+      "answered": "Жообуңуз жөнөтүлдү. Рахмат!",
+      "closed": "Сурамжылоо жабык.",
+      "required": "Милдеттүү суроо",
+      "send": "Жөнөтүү",
+      "cancel": "Жокко чыгаруу",
+      "fix": "Белгиленген суроолорду оңдоңуз.",
+      "confirmTitle": "Жоопторду жөнөтөсүзбү?",
+      "confirmBody": "Жөнөткөндөн кийин жоопторду өзгөртүүгө болбойт.",
+      "errors": {
+        "ANSWER_REQUIRED": "Бул суроого жооп бериңиз.",
+        "TOO_FEW": "Кеминде {n} тандаңыз.",
+        "TOO_MANY": "{n} ашык тандабаңыз.",
+        "TOO_LONG": "{max} сөздөн ашпашы керек.",
+        "ANSWER_INVALID": "Бул жооп туура эмес."
+      }
     }
   }
 }

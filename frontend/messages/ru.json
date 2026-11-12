@@ -768,7 +768,10 @@
       "STUDENTS_INVALID": "Исправьте ошибки в списке.",
       "SURVEY_NOT_FOUND": "Опрос не найден.",
       "SURVEY_INVALID": "Бланк опроса заполнен неверно.",
-      "SURVEY_NO_STUDENTS": "В выбранных группах нет студентов."
+      "SURVEY_NO_STUDENTS": "В выбранных группах нет студентов.",
+      "SURVEY_CLOSED": "Опрос уже закрыт.",
+      "SURVEY_ALREADY_ANSWERED": "Вы уже ответили на этот опрос.",
+      "SURVEY_ANSWER_INVALID": "Исправьте отмеченные вопросы."
     },
     "toDashboard": "На главную",
     "filters": {
@@ -1385,6 +1388,31 @@
         "notCounted": "Не засчитан"
       },
       "startAgain": "Начать заново"
+    },
+    "survey": {
+      "title": "Опросы",
+      "back": "Назад",
+      "meta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+      "state": {
+        "open": "Ждёт ответа",
+        "answered": "Отвечено",
+        "closed": "Закрыт"
+      },
+      "answered": "Ответ отправлен. Спасибо!",
+      "closed": "Опрос закрыт.",
+      "required": "Обязательный вопрос",
+      "send": "Отправить",
+      "cancel": "Отмена",
+      "fix": "Исправьте отмеченные вопросы.",
+      "confirmTitle": "Отправить ответы?",
+      "confirmBody": "После отправки изменить ответы нельзя.",
+      "errors": {
+        "ANSWER_REQUIRED": "Ответьте на этот вопрос.",
+        "TOO_FEW": "Выберите не меньше {n}.",
+        "TOO_MANY": "Выберите не больше {n}.",
+        "TOO_LONG": "Не больше {max, plural, one {# слова} other {# слов}}.",
+        "ANSWER_INVALID": "Этот ответ не подходит."
+      }
     }
   }
 }

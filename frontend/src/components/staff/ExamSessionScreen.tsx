@@ -25,6 +25,7 @@ import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 import { SubmitStateBadge } from "./SubmitStateBadge";
 import { useCurrentUser, useHomePath } from "./SessionProvider";
+import { isOverseer } from "@/lib/staffRoutes";
 
 type ExamSessionScreenProps = {
   session: ExamSession;
@@ -33,13 +34,14 @@ type ExamSessionScreenProps = {
 };
 
 /** One exam: its state, who takes it and how they did, attendance (editable while open), and «close».
- * Admins read it only. */
+ * Admins and the superadmin read it; only the superadmin makes an attempt inactive. */
 export function ExamSessionScreen({ session: initial, students }: ExamSessionScreenProps) {
   const t = useTranslations("staff.examSession.page");
   const ta = useTranslations("staff.examSession.attendance");
   const tf = useTranslations("admin.game.flagNames");
   const home = useHomePath();
-  const readOnly = useCurrentUser().role === "admin";
+  const role = useCurrentUser().role;
+  const readOnly = isOverseer(role);
   const [viewing, setViewing] = useState<{ studentId: string; name: string } | null>(null);
   const [ruling, setRuling] = useState<{ studentId: string; name: string } | null>(null);
   const [granting, setGranting] = useState<{ studentId: string; name: string } | null>(null);
@@ -271,6 +273,7 @@ export function ExamSessionScreen({ session: initial, students }: ExamSessionScr
           studentId={viewing.studentId}
           name={viewing.name}
           admin={readOnly}
+          canInactivate={role === "superadmin"}
           onChanged={setSession}
           onClose={() => setViewing(null)}
         />

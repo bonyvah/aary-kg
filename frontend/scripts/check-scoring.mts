@@ -1,7 +1,7 @@
 // Checks the contest rules the browser still uses (coefficients, one jury member's score, permissions, the form check).
 // Ranking and ties are the server's job now: backend/tests/test_contest_scoring.py has those numbers.
 // Run: pnpm check:scoring (Node 22.6+ strips the types itself).
-import { canManage, canScore, contestRole, finishedCount, jurorEntryScore, round2, scoredEntryCount, validateContest, coefficientShare, isValidCoefficient, parseCoefficient } from "../src/lib/contestScoring.ts";
+import { canManage, canScore, canSeeAll, contestRole, finishedCount, jurorEntryScore, round2, scoredEntryCount, validateContest, coefficientShare, isValidCoefficient, parseCoefficient } from "../src/lib/contestScoring.ts";
 import { getMockContest } from "./fixtures/contests.mts";
 
 let failed = 0;
@@ -33,7 +33,8 @@ check("empty title, no criteria, no entries, no jury", codes({ title: " ", crite
 check("blank criterion and entry names are FIELD_REQUIRED", validateContest({ ...base, criteria: [{ id: "a", name: "", coefficient: 1 }], entries: [{ id: "e", name: " ", description: "" }] }).map((i) => i.field).join(",") === "criterion:a:name,entry:e:name");
 
 const school = getMockContest("school-concert")!;
-check("the owner and an admin manage a contest, another teacher does not", canManage(school, { id: "u-aizhan", role: "teacher" }) && canManage(school, { id: "x", role: "admin" }) && !canManage(school, { id: "u-ulan", role: "teacher" }));
+check("the owner and the superadmin manage a contest, an admin and another teacher do not", canManage(school, { id: "u-aizhan", role: "teacher" }) && canManage(school, { id: "x", role: "superadmin" }) && !canManage(school, { id: "x", role: "admin" }) && !canManage(school, { id: "u-ulan", role: "teacher" }));
+check("an admin sees the jury's progress, another teacher does not", canSeeAll(school, { id: "x", role: "admin" }) && canSeeAll(school, { id: "u-aizhan", role: "teacher" }) && !canSeeAll(school, { id: "u-ulan", role: "teacher" }));
 check("a jury member scores only while it is open", canScore(photo, "u-omur") && !canScore(singers, "u-omur") && !canScore(school, "u-ulan") && !canScore(photo, "u-aizhan"));
 check("contestRole tells owner, jury and neither", contestRole(photo, "u-aizhan") === "owner" && contestRole(english, "u-aizhan") === "jury" && contestRole(english, "u-gulzat") === null);
 check("scoredEntryCount counts fully scored entries", scoredEntryCount(photo, "u-ulan") === 3 && scoredEntryCount(photo, "u-omur") === 0 && scoredEntryCount(singers, "u-gulzat") === 5);

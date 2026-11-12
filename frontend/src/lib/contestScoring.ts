@@ -106,9 +106,14 @@ export function finishedCount(contest: Pick<Contest, "jury">): number {
 
 type Viewer = { id: string; role: UserRole };
 
-/** Owner and admins manage a contest: open scoring, close it. */
+/** The owner and the superadmin manage a contest: open scoring, close it. */
 export function canManage(contest: Pick<Contest, "ownerId">, viewer: Viewer): boolean {
-  return viewer.role === "admin" || contest.ownerId === viewer.id;
+  return viewer.role === "superadmin" || contest.ownerId === viewer.id;
+}
+
+/** Whoever manages it, and admins (read-only), see the jury's progress. */
+export function canSeeAll(contest: Pick<Contest, "ownerId">, viewer: Viewer): boolean {
+  return viewer.role === "admin" || canManage(contest, viewer);
 }
 
 /** A jury member can score while the contest is open. */

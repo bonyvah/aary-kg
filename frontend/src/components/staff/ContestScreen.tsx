@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Table, Td, Th } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/useToast";
-import { canManage, canScore, contestRole, scoredEntryCount, validateContest } from "@/lib/contestScoring";
+import { canManage, canScore, canSeeAll, contestRole, scoredEntryCount, validateContest } from "@/lib/contestScoring";
 import type { Contest } from "@/types/contest";
 import { ConfirmModal } from "./ConfirmModal";
 import { ContestStatusBadge } from "./ContestStatusBadge";
@@ -35,6 +35,7 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
 
   const viewer = useCurrentUser();
   const manage = canManage(contest, viewer);
+  const overview = canSeeAll(contest, viewer);
   const role = contestRole(contest, viewer.id);
   const scoring = canScore(contest, viewer.id);
   const problems = validateContest(contest);
@@ -114,7 +115,7 @@ export function ContestScreen({ contest: initial }: { contest: Contest }) {
       ) : null}
       {status !== "draft" ? <p className="text-body text-ink-muted">{t("locked")}</p> : null}
 
-      {manage ? (
+      {overview ? (
         <section className="flex flex-col gap-3" aria-labelledby="jury-title">
           <h2 id="jury-title" className="text-h2 font-bold">
             {t("juryTitle")}

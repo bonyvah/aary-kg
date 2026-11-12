@@ -767,7 +767,8 @@
       "NO_STUDENTS_FOUND": "В списке не найдены студенты.",
       "STUDENTS_INVALID": "Исправьте ошибки в списке.",
       "SURVEY_NOT_FOUND": "Опрос не найден.",
-      "SURVEY_INVALID": "Бланк опроса заполнен неверно."
+      "SURVEY_INVALID": "Бланк опроса заполнен неверно.",
+      "SURVEY_NO_STUDENTS": "В выбранных группах нет студентов."
     },
     "toDashboard": "На главную",
     "filters": {
@@ -1151,7 +1152,8 @@
         "choices": "Варианты",
         "choice": "Вариант {number}",
         "removeChoice": "Удалить вариант",
-        "addChoice": "Добавить вариант"
+        "addChoice": "Добавить вариант",
+        "start": "Запустить"
       },
       "errors": {
         "FIELD_REQUIRED": "Заполните поле.",
@@ -1159,6 +1161,38 @@
         "TOO_MANY_WORDS": "Не больше {max} слов.",
         "TOO_MANY_CHOICES": "Не больше {max} вариантов.",
         "TOO_MANY_QUESTIONS": "Не больше {max} вопросов."
+      },
+      "status": {
+        "open": "Идёт",
+        "closed": "Закрыт"
+      },
+      "list": {
+        "title": "Опросы",
+        "start": "Запустить опрос",
+        "empty": "Опросов пока нет",
+        "name": "Опрос",
+        "groups": "Группы",
+        "opened": "Начат",
+        "status": "Статус",
+        "answered": "Ответили"
+      },
+      "start": {
+        "back": "Назад",
+        "title": "Запуск опроса",
+        "start": "Запустить",
+        "sheet": "Бланк опроса",
+        "noSheets": "Бланков нет",
+        "groups": "Группы",
+        "studentCount": "{count, plural, one {# студент} few {# студента} many {# студентов} other {# студента}}"
+      },
+      "results": {
+        "back": "Назад",
+        "close": "Закрыть опрос",
+        "closeTitle": "Закрыть опрос?",
+        "closeBody": "После закрытия ответить уже нельзя.",
+        "cancel": "Отмена",
+        "answered": "Ответили {answered} из {total}",
+        "questionAnswered": "{count, plural, one {# ответ} few {# ответа} many {# ответов} other {# ответа}}"
       }
     }
   },

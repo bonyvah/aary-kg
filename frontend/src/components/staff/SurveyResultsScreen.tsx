@@ -1,0 +1,154 @@
+"use client";
+
+import { useState } from "react";
+import type { CSSProperties } from "react";
+import { useFormatter, useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Card } from "@/components/ui/Card";
+import { useToast } from "@/components/ui/useToast";
+import { toKnownCode } from "@/lib/api/client";
+import { closeSurvey } from "@/lib/api/surveys";
+import { useDateTime } from "@/lib/useDateTime";
+import type { QuestionResult, Survey } from "@/types/survey";
+import { ConfirmModal } from "./ConfirmModal";
+import { useCurrentUser } from "./SessionProvider";
+import { StaffMenu } from "./StaffMenu";
+import { StaffShell } from "./StaffShell";
+import { SurveyStatusBadge } from "./SurveyStatusBadge";
+
+/** A survey's results: how many answered, each choice counted, the open answers. Admins close it. */
+export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
+  const t = useTranslations("admin.surveys.results");
+  const tc = useTranslations("common");
+  const format = useFormatter();
+  const dateTime = useDateTime();
+  const { toast, show } = useToast();
+  const canClose = useCurrentUser().role === "admin";
+  const [survey, setSurvey] = useState(initial);
+  const [closing, setClosing] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function close() {
+    setClosing(false);
+    setBusy(true);
+    try {
+      setSurvey(await closeSurvey(survey.id));
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <StaffShell
+      topRight={
+        <div className="flex items-center gap-3">
+          <ButtonLink href="/admin" variant="neutral">
+            {t("back")}
+          </ButtonLink>
+          <StaffMenu />
+        </div>
+      }
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            <SurveyStatusBadge status={survey.status} />
+            {survey.groupNames.map((name) => (
+              <Badge key={name} variant="neutral">
+                {name}
+              </Badge>
+            ))}
+          </div>
+          <h1 className="text-h1 font-black [overflow-wrap:anywhere]">{survey.title}</h1>
+          <p className="text-body text-ink-muted">
+            {dateTime(new Date(survey.openedAt))}
+            {survey.closedAt ? ` – ${dateTime(new Date(survey.closedAt))}` : ""}
+          </p>
+        </div>
+        {canClose && survey.status === "open" ? (
+          <Button variant="danger" disabled={busy} onClick={() => setClosing(true)}>
+            {t("close")}
+          </Button>
+        ) : null}
+      </div>
+
+      <p className="text-h2 font-black tabular-nums">
+        {t("answered", { answered: format.number(survey.answeredCount), total: format.number(survey.studentCount) })}
+      </p>
+
+      <ol className="flex flex-col gap-6 pb-4">
+        {survey.results.map((result, index) => (
+          <li key={result.question.id}>
+            <ResultCard result={result} number={index + 1} />
+          </li>
+        ))}
+      </ol>
+
+      <ConfirmModal
+        open={closing}
+        title={t("closeTitle")}
+        body={t("closeBody")}
+        confirmLabel={t("close")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => void close()}
+        onClose={() => setClosing(false)}
+      />
+      {toast}
+    </StaffShell>
+  );
+}
+
+function ResultCard({ result, number }: { result: QuestionResult; number: number }) {
+  const t = useTranslations("admin.surveys.results");
+  const tk = useTranslations("admin.surveys.editor.kinds");
+  const format = useFormatter();
+  const { question } = result;
+
+  return (
+    <Card className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="neutral">{tk(question.kind)}</Badge>
+        <span className="text-body text-ink-muted tabular-nums">{t("questionAnswered", { count: result.answered })}</span>
+      </div>
+      <h2 className="text-h3 font-bold [overflow-wrap:anywhere]">
+        {number}. {question.text}
+      </h2>
+      {question.kind === "open" ? (
+        (result.texts ?? []).length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {(result.texts ?? []).map((text, index) => (
+              <li key={index} className="rounded-md bg-surface px-4 py-3 text-body whitespace-pre-wrap [overflow-wrap:anywhere]">
+                {text}
+              </li>
+            ))}
+          </ul>
+        ) : null
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {question.choices.map((choice, index) => {
+            const count = result.counts?.[index] ?? 0;
+            const share = result.answered > 0 ? count / result.answered : 0;
+            const barVars = { "--pct": `${share * 100}%` } as CSSProperties;
+            return (
+              <li key={index} className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 text-body-lg font-bold [overflow-wrap:anywhere]">{choice}</span>
+                  <span className="text-body font-bold whitespace-nowrap tabular-nums">
+                    {format.number(count)} · {format.number(share, { style: "percent", maximumFractionDigits: 0 })}
+                  </span>
+                </div>
+                <span className="h-4 overflow-hidden rounded-full bg-surface">
+                  <span style={barVars} className="block h-full w-(--pct) rounded-full bg-accent" />
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}

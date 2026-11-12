@@ -177,7 +177,33 @@
     "admin.surveys.errors.TOO_MANY_CHOICES",
     "admin.surveys.errors.TOO_MANY_QUESTIONS",
     "common.apiError.SURVEY_NOT_FOUND",
-    "common.apiError.SURVEY_INVALID"
+    "common.apiError.SURVEY_INVALID",
+    "admin.surveys.editor.start",
+    "admin.surveys.status.open",
+    "admin.surveys.status.closed",
+    "admin.surveys.list.title",
+    "admin.surveys.list.start",
+    "admin.surveys.list.empty",
+    "admin.surveys.list.name",
+    "admin.surveys.list.groups",
+    "admin.surveys.list.opened",
+    "admin.surveys.list.status",
+    "admin.surveys.list.answered",
+    "admin.surveys.start.back",
+    "admin.surveys.start.title",
+    "admin.surveys.start.start",
+    "admin.surveys.start.sheet",
+    "admin.surveys.start.noSheets",
+    "admin.surveys.start.groups",
+    "admin.surveys.start.studentCount",
+    "admin.surveys.results.back",
+    "admin.surveys.results.close",
+    "admin.surveys.results.closeTitle",
+    "admin.surveys.results.closeBody",
+    "admin.surveys.results.cancel",
+    "admin.surveys.results.answered",
+    "admin.surveys.results.questionAnswered",
+    "common.apiError.SURVEY_NO_STUDENTS"
   ],
   "app": {
     "name": "aary kg"
@@ -947,7 +973,8 @@
       "NO_STUDENTS_FOUND": "Тизмеден студенттер табылган жок.",
       "STUDENTS_INVALID": "Тизмедеги каталарды оңдоңуз.",
       "SURVEY_NOT_FOUND": "Сурамжылоо табылган жок.",
-      "SURVEY_INVALID": "Сурамжылоо барагы туура толтурулган жок."
+      "SURVEY_INVALID": "Сурамжылоо барагы туура толтурулган жок.",
+      "SURVEY_NO_STUDENTS": "Тандалган группаларда студент жок."
     },
     "toDashboard": "Башкы бетке",
     "filters": {
@@ -1331,7 +1358,8 @@
         "choices": "Варианттар",
         "choice": "{number}-вариант",
         "removeChoice": "Вариантты өчүрүү",
-        "addChoice": "Вариант кошуу"
+        "addChoice": "Вариант кошуу",
+        "start": "Баштоо"
       },
       "errors": {
         "FIELD_REQUIRED": "Талааны толтуруңуз.",
@@ -1339,6 +1367,38 @@
         "TOO_MANY_WORDS": "{max} сөздөн ашпашы керек.",
         "TOO_MANY_CHOICES": "{max} варианттан ашпашы керек.",
         "TOO_MANY_QUESTIONS": "{max} суроодон ашпашы керек."
+      },
+      "status": {
+        "open": "Жүрүп жатат",
+        "closed": "Жабык"
+      },
+      "list": {
+        "title": "Сурамжылоолор",
+        "start": "Сурамжылоону баштоо",
+        "empty": "Сурамжылоолор азырынча жок",
+        "name": "Сурамжылоо",
+        "groups": "Группалар",
+        "opened": "Башталды",
+        "status": "Абалы",
+        "answered": "Жооп бергендер"
+      },
+      "start": {
+        "back": "Артка",
+        "title": "Сурамжылоону баштоо",
+        "start": "Баштоо",
+        "sheet": "Сурамжылоо барагы",
+        "noSheets": "Барактар жок",
+        "groups": "Группалар",
+        "studentCount": "{count, plural, one {# студент} other {# студент}}"
+      },
+      "results": {
+        "back": "Артка",
+        "close": "Сурамжылоону жабуу",
+        "closeTitle": "Сурамжылоону жабасызбы?",
+        "closeBody": "Жабылгандан кийин жооп берүүгө болбойт.",
+        "cancel": "Жокко чыгаруу",
+        "answered": "{total} ичинен {answered} жооп берди",
+        "questionAnswered": "{count, plural, one {# жооп} other {# жооп}}"
       }
     }
   },

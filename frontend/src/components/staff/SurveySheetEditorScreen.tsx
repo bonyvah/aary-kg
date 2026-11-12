@@ -118,9 +118,14 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
           </ButtonLink>
           <div className="ml-auto flex flex-wrap gap-3">
             {isNew ? null : (
-              <Button variant="danger" onClick={() => setDeleting(true)}>
-                {t("delete")}
-              </Button>
+              <>
+                <Button variant="danger" onClick={() => setDeleting(true)}>
+                  {t("delete")}
+                </Button>
+                <ButtonLink href={`/admin/surveys/new?sheet=${sheet.id}`} variant="primary">
+                  {t("start")}
+                </ButtonLink>
+              </>
             )}
             <Button variant="success" disabled={busy} onClick={() => void save()}>
               {t("save")}

@@ -51,7 +51,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
         role="tablist"
         aria-label={label}
         aria-orientation="vertical"
-        className={cx("flex gap-2 overflow-x-auto rounded-lg bg-surface-raised p-2 md:flex-col md:overflow-visible", className)}
+        className={cx("flex gap-3 overflow-x-auto p-1 pb-2 md:flex-col md:overflow-visible", className)}
       >
         {tabs.map((tab, index) => {
           const selected = value === tab.id;
@@ -66,11 +66,11 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
               tabIndex={selected ? 0 : -1}
               className={cx(
                 "min-h-[44px] shrink-0 cursor-pointer rounded-md px-4 py-2 text-left text-body-lg font-bold",
-                "transition-colors duration-150 ease-out",
+                "transition-[transform,box-shadow,background-color] duration-150 ease-out",
                 "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
                 selected
-                  ? "bg-primary text-on-primary shadow-edge-primary [--edge-c:var(--primary-edge)]"
-                  : "bg-surface text-ink hover:bg-brand-dark",
+                  ? "bg-accent text-on-accent shadow-edge-accent [--edge-c:var(--accent-edge)]"
+                  : "bg-neutral text-on-neutral shadow-edge-neutral [--edge-c:var(--neutral-edge)] hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--edge-c)] active:translate-y-1 active:shadow-[0_0_0_0_var(--edge-c)]",
               )}
               onClick={() => onChange(tab.id)}
               onKeyDown={(event) => onKeyDown(event, index)}

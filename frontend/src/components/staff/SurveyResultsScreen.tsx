@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
 import { closeSurvey } from "@/lib/api/surveys";
 import { useDateTime } from "@/lib/useDateTime";
-import type { QuestionResult, Survey } from "@/types/survey";
+import type { QuestionResult, Survey, SurveyStudent } from "@/types/survey";
 import { ConfirmModal } from "./ConfirmModal";
 import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
@@ -28,6 +29,7 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
   const canClose = useCurrentUser().role === "admin";
   const [survey, setSurvey] = useState(initial);
   const [closing, setClosing] = useState(false);
+  const [who, setWho] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function close() {
@@ -76,9 +78,14 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
         ) : null}
       </div>
 
-      <p className="text-h2 font-black tabular-nums">
-        {t("answered", { answered: format.number(survey.answeredCount), total: format.number(survey.studentCount) })}
-      </p>
+      <div className="flex flex-wrap items-center gap-4">
+        <p className="text-h2 font-black tabular-nums">
+          {t("answered", { answered: format.number(survey.answeredCount), total: format.number(survey.studentCount) })}
+        </p>
+        <Button variant="neutral" onClick={() => setWho(true)}>
+          {t("who")}
+        </Button>
+      </div>
 
       <ol className="flex flex-col gap-6 pb-4">
         {survey.results.map((result, index) => (
@@ -87,6 +94,23 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
           </li>
         ))}
       </ol>
+
+      <Modal
+        open={who}
+        onClose={() => setWho(false)}
+        title={t("who")}
+        wide
+        actions={
+          <Button variant="neutral" onClick={() => setWho(false)}>
+            {t("closeDialog")}
+          </Button>
+        }
+      >
+        <div className="grid gap-6 sm:grid-cols-2">
+          <StudentList title={t("whoDone")} students={survey.students.filter((s) => s.answered)} empty={t("whoNobody")} />
+          <StudentList title={t("whoPending")} students={survey.students.filter((s) => !s.answered)} empty={t("whoNobody")} />
+        </div>
+      </Modal>
 
       <ConfirmModal
         open={closing}
@@ -150,5 +174,28 @@ function ResultCard({ result, number }: { result: QuestionResult; number: number
         </ul>
       )}
     </Card>
+  );
+}
+
+function StudentList({ title, students, empty }: { title: string; students: readonly SurveyStudent[]; empty: string }) {
+  const format = useFormatter();
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-body-lg font-black">
+        {title} <span className="tabular-nums text-ink-muted">{format.number(students.length)}</span>
+      </h3>
+      {students.length === 0 ? (
+        <p className="text-body text-ink-muted">{empty}</p>
+      ) : (
+        <ul className="flex max-h-[50dvh] flex-col gap-1 overflow-y-auto">
+          {students.map((student) => (
+            <li key={student.id} className="text-body [overflow-wrap:anywhere]">
+              <span className="font-bold">{student.name}</span>
+              {student.groupName ? <span className="text-ink-muted"> · {student.groupName}</span> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

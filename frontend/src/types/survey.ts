@@ -36,10 +36,14 @@ export type QuestionResult = {
   texts: string[] | null;
 };
 
+/** A student the survey is for and whether they answered, never what. */
+export type SurveyStudent = { id: string; name: string; groupName: string | null; answered: boolean };
+
 export type Survey = SurveySummary & {
   sheetId: string;
   groups: { id: string; name: string }[];
   results: QuestionResult[];
+  students: SurveyStudent[];
 };
 
 /** A single choice is its number (1 to n), a multiple select the numbers, an open answer the text. */
@@ -53,6 +57,8 @@ export type StudentSurvey = {
   closedAt: string | null;
   questionCount: number;
   answered: boolean;
-  /** Only on its own page, while it can still be answered. */
+  /** Only on its own page, while the survey is open (answered or not: the answers can be changed). */
   questions: SurveyQuestion[] | null;
+  /** The answers sent so far, with the questions; null before the first send. */
+  answers: Record<string, SurveyAnswer> | null;
 };

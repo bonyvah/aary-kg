@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { ClipboardText } from "@phosphor-icons/react/ssr";
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RowNumberTd, RowNumberTh, Table, Td, Th } from "@/components/ui/Table";
 import { listSurveySheets, listSurveys } from "@/lib/api/surveys";
@@ -19,44 +18,22 @@ const LINK =
 // Rows per page in the surveys table.
 const PAGE = 20;
 
-/** The Surveys tab: the surveys run, and for admins the sheets to write and run. The superadmin only reads. */
-export function SurveysPanel({ superadmin }: { superadmin: boolean }) {
-  return (
-    <div className="flex flex-col gap-8">
-      <SurveysSection canStart={!superadmin} />
-      {superadmin ? null : <SheetsSection />}
-    </div>
-  );
-}
-
-function SurveysSection({ canStart }: { canStart: boolean }) {
-  const t = useTranslations("admin.surveys");
+/** The surveys run. */
+export function SurveysList() {
   const surveys = useResource(listSurveys);
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="surveys-title">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="surveys-title" className="text-h2 font-black">
-          {t("list.title")}
-        </h2>
-        {canStart ? (
-          <ButtonLink href="/admin/surveys/new" variant="primary">
-            {t("list.start")}
-          </ButtonLink>
-        ) : null}
-      </div>
-      <ResourceView resource={surveys} inline>
-        {(items) => (
-          <FilteredList
-            items={items}
-            fields={{ text: (s) => [s.title, ...s.groupNames], date: (s) => s.openedAt }}
-            pageSize={PAGE}
-            empty={<SurveysTable surveys={[]} />}
-          >
-            {(page, first) => <SurveysTable surveys={page} first={first} />}
-          </FilteredList>
-        )}
-      </ResourceView>
-    </section>
+    <ResourceView resource={surveys} inline>
+      {(items) => (
+        <FilteredList
+          items={items}
+          fields={{ text: (s) => [s.title, ...s.groupNames], date: (s) => s.openedAt }}
+          pageSize={PAGE}
+          empty={<SurveysTable surveys={[]} />}
+        >
+          {(page, first) => <SurveysTable surveys={page} first={first} />}
+        </FilteredList>
+      )}
+    </ResourceView>
   );
 }
 
@@ -101,23 +78,13 @@ function SurveysTable({ surveys, first = 1 }: { surveys: readonly SurveySummary[
   );
 }
 
-function SheetsSection() {
-  const t = useTranslations("admin.surveys");
+/** The sheets (papers) to write and run surveys from. */
+export function SheetsList() {
   const sheets = useResource(listSurveySheets);
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="survey-sheets-title">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="survey-sheets-title" className="text-h2 font-black">
-          {t("sheets.title")}
-        </h2>
-        <ButtonLink href="/admin/surveys/sheets/new" variant="success">
-          {t("sheets.new")}
-        </ButtonLink>
-      </div>
-      <ResourceView resource={sheets} inline>
-        {(items) => <SheetsTable sheets={items} />}
-      </ResourceView>
-    </section>
+    <ResourceView resource={sheets} inline>
+      {(items) => <SheetsTable sheets={items} />}
+    </ResourceView>
   );
 }
 

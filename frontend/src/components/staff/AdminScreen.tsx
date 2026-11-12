@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { useStoredTab } from "@/lib/useStoredTab";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
@@ -40,7 +41,7 @@ import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
-import { SurveysPanel } from "./SurveysPanel";
+import { SheetsList, SurveysList } from "./SurveysPanel";
 import { useCurrentUser } from "./SessionProvider";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
@@ -48,10 +49,10 @@ type Pending = { kind: "disable"; user: ManagedUser } | null;
 // Rows per page in the tables.
 const TABLE_PAGE = 20;
 
-const TABS = ["teachers", "students", "groups", "exams", "surveys", "contests", "games"] as const;
-// The superadmin manages the admins and sees the rest read-only.
-const SUPERADMIN_TABS = ["admins", ...TABS] as const;
-type Tab = (typeof SUPERADMIN_TABS)[number];
+const TABS = ["teachers", "students", "groups", "exams", "surveySheets", "surveys", "contests", "games"] as const;
+// The superadmin manages the admins and sees the rest read-only; the survey sheets are the admin's to write.
+const SUPERADMIN_TABS = ["admins", ...TABS.filter((tab) => tab !== "surveySheets")] as const;
+type Tab = (typeof TABS)[number] | (typeof SUPERADMIN_TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
@@ -219,6 +220,14 @@ export function AdminScreen() {
           <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
+        ) : tab === "surveys" ? (
+          <ButtonLink href="/admin/surveys/new" variant="primary">
+            {t("surveys.list.start")}
+          </ButtonLink>
+        ) : tab === "surveySheets" ? (
+          <ButtonLink href="/admin/surveys/sheets/new" variant="success">
+            {t("surveys.sheets.new")}
+          </ButtonLink>
         ) : tab === "teachers" ? (
           <Button variant="success" onClick={() => setCreating("teacher")}>
             {t("createTeacher")}
@@ -251,8 +260,10 @@ export function AdminScreen() {
               </FilteredList>
             )}
           </ResourceView>
+        ) : tab === "surveySheets" ? (
+          <SheetsList />
         ) : tab === "surveys" ? (
-          <SurveysPanel superadmin={superadmin} />
+          <SurveysList />
         ) : tab === "exams" ? (
           <ResourceView resource={allExams} inline>
             {(items) => (

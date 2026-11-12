@@ -57,3 +57,10 @@ export function toPayload(questions: readonly SurveyQuestion[], draft: Draft): R
   }
   return payload;
 }
+
+/** The server's saved answers as a draft: a single choice becomes a list of one. */
+export function fromAnswers(answers: Readonly<Record<string, SurveyAnswer>> | null): Draft {
+  const draft: Record<string, readonly number[] | string> = {};
+  for (const [id, value] of Object.entries(answers ?? {})) draft[id] = typeof value === "number" ? [value] : value;
+  return draft;
+}

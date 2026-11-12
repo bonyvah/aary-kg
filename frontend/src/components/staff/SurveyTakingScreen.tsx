@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle, LockSimple } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
@@ -14,42 +14,59 @@ import { useToast } from "@/components/ui/useToast";
 import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { submitStudentSurvey } from "@/lib/api/studentSurveys";
 import { maxChars } from "@/lib/surveyEditor";
-import { issuesOf, toPayload, toggle, type AnswerIssue, type Draft } from "@/lib/surveyAnswer";
+import { fromAnswers, issuesOf, toPayload, toggle, type AnswerIssue, type Draft } from "@/lib/surveyAnswer";
+import { clearProgress, readProgress, writeProgress } from "@/lib/surveyProgress";
 import type { StudentSurvey, SurveyQuestion } from "@/types/survey";
 import { ConfirmModal } from "./ConfirmModal";
+import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
-/** /student/surveys/<id>: answer every question and send it once. Nothing ties the answers to the student. */
+/** /student/surveys/<id>: answer every question and send. Until the survey closes the answers open again and can be changed. */
 export function SurveyTakingScreen({ survey: initial }: { survey: StudentSurvey }) {
   const t = useTranslations("student.survey");
   const tc = useTranslations("common");
   const { toast, show } = useToast();
   const [survey, setSurvey] = useState(initial);
-  const [draft, setDraft] = useState<Draft>({});
+  const studentId = useCurrentUser().id;
+  // What was sent before, or, if the student typed more and left, what they were typing.
+  const [draft, setDraft] = useState<Draft>(() => fromAnswers(initial.answers));
   // After a first try to send, the empty mandatory questions and the too-short selections show too.
   const [tried, setTried] = useState(false);
   const [serverIssues, setServerIssues] = useState<ReadonlyMap<string, string>>(new Map());
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    const saved = readProgress(studentId, initial.id);
+    if (saved) setDraft(saved);
+  }, [studentId, initial.id]);
   const questions = survey.questions ?? [];
   const issues = issuesOf(questions, draft, tried);
 
   function change(id: string, value: Draft[string]) {
-    setDraft((current) => ({ ...current, [id]: value }));
+    const next = { ...draft, [id]: value };
+    setDraft(next);
+    writeProgress(studentId, survey.id, next);
     if (serverIssues.has(id)) setServerIssues((current) => new Map([...current].filter(([k]) => k !== id)));
   }
 
   function trySend() {
     setTried(true);
-    if (issuesOf(questions, draft, true).size === 0) setConfirming(true);
+    if (issuesOf(questions, draft, true).size !== 0) return;
+    // The first send asks; changing answers already sent does not.
+    if (survey.answered) void send();
+    else setConfirming(true);
   }
 
   async function send() {
     setConfirming(false);
     setBusy(true);
     try {
-      setSurvey(await submitStudentSurvey(survey.id, toPayload(questions, draft)));
+      const payload = toPayload(questions, draft);
+      await submitStudentSurvey(survey.id, payload);
+      clearProgress(studentId, survey.id);
+      setSurvey((s) => ({ ...s, answered: true, answers: payload }));
+      show("success", t("saved"));
     } catch (error) {
       if (error instanceof ApiRequestError && error.issues.length > 0) setServerIssues(new Map(error.issues.map((i) => [i.field, i.code])));
       show("danger", tc(`apiError.${toKnownCode(error)}`));
@@ -61,7 +78,7 @@ export function SurveyTakingScreen({ survey: initial }: { survey: StudentSurvey 
     }
   }
 
-  const done = survey.answered || survey.status === "closed" || survey.questions === null;
+  const done = survey.status === "closed" || survey.questions === null;
 
   return (
     <StaffShell
@@ -100,7 +117,7 @@ export function SurveyTakingScreen({ survey: initial }: { survey: StudentSurvey 
           </ol>
           <div className="flex flex-wrap items-center gap-4 pb-4">
             <Button variant="success" size="lg" disabled={busy} onClick={trySend}>
-              {t("send")}
+              {survey.answered ? t("save") : t("send")}
             </Button>
             {tried && issues.size > 0 ? <p className="text-body font-bold text-danger-text">{t("fix")}</p> : null}
           </div>

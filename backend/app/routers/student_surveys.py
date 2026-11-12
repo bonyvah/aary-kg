@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -11,8 +12,11 @@ from app.services import survey_answers as service
 router = APIRouter(prefix="/student/surveys", tags=["student-surveys"])
 
 
-def _out(survey: Survey, answered: bool, *, with_questions: bool) -> StudentSurveyOut:
-    open_to_answer = survey.status == "open" and not answered
+def _out(
+    survey: Survey, answered: bool, *, with_questions: bool, answers: dict[str, Any] | None = None
+) -> StudentSurveyOut:
+    # An answered survey stays open to change until it is closed.
+    open_to_answer = survey.status == "open"
     return StudentSurveyOut.model_validate(
         {
             "id": survey.id,
@@ -23,6 +27,7 @@ def _out(survey: Survey, answered: bool, *, with_questions: bool) -> StudentSurv
             "question_count": len(survey.questions),
             "answered": answered,
             "questions": survey.questions if open_to_answer and with_questions else None,
+            "answers": answers if open_to_answer and with_questions else None,
         }
     )
 
@@ -38,11 +43,13 @@ async def list_surveys(user: StudentUser, session: Session) -> list[StudentSurve
 async def get_survey(survey_id: uuid.UUID, user: StudentUser, session: Session) -> StudentSurveyOut:
     survey = await service.get_listed(session, user, survey_id)
     answered = bool(await repo.answered_by(session, user.id, [survey.id]))
-    return _out(survey, answered, with_questions=True)
+    own = await repo.own_response(session, survey.id, user.id)
+    return _out(survey, answered, with_questions=True, answers=own.answers if own else None)
 
 
 @router.post("/{survey_id}/submit", response_model=StudentSurveyOut, response_model_by_alias=True)
 async def submit(
     survey_id: uuid.UUID, body: SurveySubmitIn, user: StudentUser, session: Session
 ) -> StudentSurveyOut:
-    return _out(await service.submit(session, user, survey_id, body.answers), True, with_questions=False)
+    survey, _ = await service.submit(session, user, survey_id, body.answers)
+    return _out(survey, True, with_questions=False)

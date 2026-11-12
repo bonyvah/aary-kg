@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.survey import Survey, SurveyRespondent, SurveyResponse, SurveySheet, SurveyStudent
+from app.models.user import User
 
 
 async def get_sheet(session: AsyncSession, sheet_id: uuid.UUID) -> SurveySheet | None:
@@ -69,3 +70,29 @@ async def answered_by(
         )
     )
     return set(result.scalars())
+
+
+async def own_response(
+    session: AsyncSession, survey_id: uuid.UUID, student_id: uuid.UUID
+) -> SurveyResponse | None:
+    result = await session.execute(
+        select(SurveyResponse).where(
+            SurveyResponse.survey_id == survey_id, SurveyResponse.student_id == student_id
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def students_with_status(session: AsyncSession, survey_id: uuid.UUID) -> list[tuple[User, bool]]:
+    """Every student the survey was for, with whether they answered, sorted by name."""
+    done = await session.execute(
+        select(SurveyRespondent.student_id).where(SurveyRespondent.survey_id == survey_id)
+    )
+    answered = set(done.scalars())
+    users = await session.execute(
+        select(User)
+        .join(SurveyStudent, SurveyStudent.student_id == User.id)
+        .where(SurveyStudent.survey_id == survey_id)
+    )
+    rows = [(u, u.id in answered) for u in users.scalars()]
+    return sorted(rows, key=lambda r: r[0].name.casefold())

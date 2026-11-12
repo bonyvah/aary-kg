@@ -125,10 +125,19 @@ class SurveySummary(CamelModel):
     answered_count: int
 
 
+class SurveyStudentOut(CamelModel):
+    id: uuid.UUID
+    name: str
+    group_name: str | None
+    answered: bool
+
+
 class SurveyOut(SurveySummary):
     sheet_id: uuid.UUID
     groups: list[SurveyGroupOut]
     results: list[QuestionResult]
+    # Who the survey was for and who has answered, never what.
+    students: list[SurveyStudentOut]
 
 
 # A single choice is its number (1 to n), a multiple select the list of numbers, an open answer the text.
@@ -147,5 +156,7 @@ class StudentSurveyOut(CamelModel):
     closed_at: datetime | None
     question_count: int
     answered: bool
-    # Only while it can still be answered, and only on the survey's own page.
+    # Only while the survey is open, and only on its own page: the questions, and this student's answers
+    # so far (none before the first send).
     questions: list[SurveyQuestion] | None = None
+    answers: dict[str, AnswerValue] | None = None

@@ -3,11 +3,11 @@
 import asyncio
 
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import inspect, select
+from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.main import app
-from app.models.survey import SurveyRespondent, SurveyResponse
+from app.models.survey import SurveyResponse
 from tests.conftest import login_as
 from tests.test_survey_sheets import multi, open_, sheet, single
 from tests.test_surveys import setup
@@ -40,10 +40,12 @@ async def test_list_answer_once_and_read_the_results(as_user):
     r = await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
     assert r.status_code == 200, r.text
     assert r.json()["answered"] is True and r.json()["questions"] is None
-    assert (await aizada.get(f"/student/surveys/{svid}")).json()["questions"] is None
 
+    # The answers can be changed while the survey is open.
+    mine = (await aizada.get(f"/student/surveys/{svid}")).json()
+    assert mine["answers"] == {"q1": 2, "q2": [1, 3], "q3": "More art"} and mine["questions"] is not None
     again = await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
-    assert (again.status_code, again.json()["code"]) == (409, "SURVEY_ALREADY_ANSWERED")
+    assert again.status_code == 200
 
     await bakyt.post(f"/student/surveys/{svid}/submit", json={"answers": {"q1": 1, "q2": [3], "q3": "Fine"}})
     assert (await bakyt.get(f"/student/surveys/{svid}")).json()["answered"] is True
@@ -55,14 +57,31 @@ async def test_list_answer_once_and_read_the_results(as_user):
     assert sorted(results["results"][2]["texts"]) == ["Fine", "More art"]
 
 
-async def test_nothing_ties_a_response_to_a_student(as_user):
-    _, svid, (aizada,) = await started(as_user)
+async def test_an_answer_can_be_changed_until_the_survey_closes(as_user):
+    admin, svid, (aizada,) = await started(as_user)
     await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
-    assert {c.key for c in inspect(SurveyResponse).columns} == {"id", "survey_id", "answers"}
-    assert {c.key for c in inspect(SurveyRespondent).columns} == {"survey_id", "student_id"}
+    changed = {"q1": 1, "q2": [2], "q3": "Less art"}
+    r = await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": changed})
+    assert r.status_code == 200
+    assert (await aizada.get(f"/student/surveys/{svid}")).json()["answers"] == changed
     async with SessionLocal() as s:
         stored = list((await s.execute(select(SurveyResponse))).scalars())
-    assert [r.answers for r in stored] == [{"q1": 2, "q2": [1, 3], "q3": "More art"}]
+    assert [r.answers for r in stored] == [changed]
+    assert (await admin.get(f"/admin/surveys/{svid}")).json()["answeredCount"] == 1
+
+    await admin.post(f"/admin/surveys/{svid}/close")
+    late = await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
+    assert (late.status_code, late.json()["code"]) == (409, "SURVEY_CLOSED")
+    closed = (await aizada.get(f"/student/surveys/{svid}")).json()
+    assert closed["questions"] is None and closed["answers"] is None
+
+
+async def test_the_admin_sees_who_answered_and_who_did_not(as_user):
+    admin, svid, (aizada, bakyt) = await started(as_user, logins=("aizada", "bakyt"))
+    await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
+    students = (await admin.get(f"/admin/surveys/{svid}")).json()["students"]
+    assert sorted((s["answered"]) for s in students) == [False, True]
+    assert all({"id", "name", "groupName", "answered"} == set(s) for s in students)
 
 
 async def test_bad_answers_are_listed_per_question(as_user):
@@ -129,7 +148,7 @@ async def test_two_submits_at_once_leave_one_response(as_user):
     admin, svid, (aizada,) = await started(as_user)
     sends = [aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL}) for _ in range(3)]
     codes = sorted(r.status_code for r in await asyncio.gather(*sends))
-    assert codes[0] == 200 and set(codes[1:]) <= {409}
+    assert codes[0] == 200 and set(codes) <= {200, 409}
     assert (await admin.get(f"/admin/surveys/{svid}")).json()["answeredCount"] == 1
     async with SessionLocal() as s:
         assert len(list((await s.execute(select(SurveyResponse))).scalars())) == 1

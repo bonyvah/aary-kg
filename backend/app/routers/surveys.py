@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from app.deps import AdminUser, OverseerUser, Session
 from app.models.survey import Survey
 from app.repositories import surveys as repo
-from app.schemas.survey import SurveyGroupOut, SurveyIn, SurveyOut, SurveySummary
+from app.schemas.survey import SurveyGroupOut, SurveyIn, SurveyOut, SurveyStudentOut, SurveySummary
 from app.services import surveys as service
 
 # Admins run surveys; the superadmin sees them read-only.
@@ -33,6 +33,10 @@ async def _out(session: Session, survey: Survey) -> SurveyOut:
         sheet_id=survey.sheet_id,
         groups=[SurveyGroupOut(id=g.id, name=g.name) for g in sorted(survey.groups, key=lambda g: g.name)],
         results=service.results(survey.questions, responses),
+        students=[
+            SurveyStudentOut(id=u.id, name=u.name, group_name=u.group_name, answered=done)
+            for u, done in await repo.students_with_status(session, survey.id)
+        ],
     )
 
 

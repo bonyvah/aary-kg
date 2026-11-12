@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, Table, func
+from sqlalchemy import Column, DateTime, ForeignKey, String, Table, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -67,7 +67,7 @@ class SurveyStudent(Base):
 
 
 class SurveyRespondent(Base):
-    """THAT a student answered, never what: a response has no link to it, and neither has a time."""
+    """THAT a student answered: who finished a survey and who did not."""
 
     __tablename__ = "survey_respondents"
 
@@ -78,10 +78,16 @@ class SurveyRespondent(Base):
 
 
 class SurveyResponse(Base):
-    """WHAT was answered, with no student and no time. question id -> choice 1-n, [choices] or text."""
+    """WHAT was answered, by whom: the student can open and change it while the survey is open.
+
+    question id -> choice 1-n, [choices] or text. Responses from before the link have no student: nobody
+    can change those.
+    """
 
     __tablename__ = "survey_responses"
+    __table_args__ = (UniqueConstraint("survey_id", "student_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     survey_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("surveys.id", ondelete="CASCADE"), index=True)
+    student_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), default=None)
     answers: Mapped[dict[str, Any]] = mapped_column(JSONB)

@@ -1,4 +1,4 @@
-"""A student answers a survey: once, all at once, anonymously."""
+"""A student answers a survey all at once, and can change the answers until the survey is closed."""
 
 import uuid
 from typing import Any
@@ -73,19 +73,27 @@ def check(questions: list[dict[str, Any]], answers: dict[str, AnswerValue]) -> d
 
 async def submit(
     session: AsyncSession, student: User, survey_id: uuid.UUID, answers: dict[str, AnswerValue]
-) -> Survey:
+) -> tuple[Survey, dict[str, Any]]:
+    """Saves the answers: the first send creates them, the next ones replace them while the survey is open.
+
+    A response from before answers were linked to students can't be changed (SURVEY_ALREADY_ANSWERED).
+    """
     survey = await get_listed(session, student, survey_id)
     if survey.status != "open":
         raise ApiError(409, "SURVEY_CLOSED")
-    if await repo.answered_by(session, student.id, [survey.id]):
-        raise ApiError(409, "SURVEY_ALREADY_ANSWERED")
     stored = check(survey.questions, answers)
-    session.add(SurveyRespondent(survey_id=survey.id, student_id=student.id))
-    session.add(SurveyResponse(survey_id=survey.id, answers=stored))
+    own = await repo.own_response(session, survey.id, student.id)
+    if own:
+        own.answers = stored
+    else:
+        if await repo.answered_by(session, student.id, [survey.id]):
+            raise ApiError(409, "SURVEY_ALREADY_ANSWERED")
+        session.add(SurveyRespondent(survey_id=survey.id, student_id=student.id))
+        session.add(SurveyResponse(survey_id=survey.id, student_id=student.id, answers=stored))
     try:
         await session.commit()
     except IntegrityError:
         # Sent twice at the same time: the first one counts, the second leaves nothing behind.
         await session.rollback()
         raise ApiError(409, "SURVEY_ALREADY_ANSWERED") from None
-    return survey
+    return survey, stored

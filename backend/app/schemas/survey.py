@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import Field, StringConstraints, model_validator
@@ -85,3 +86,49 @@ class SurveySheetSummary(CamelModel):
     id: uuid.UUID
     title: str
     question_count: int
+
+
+class SurveyIn(CamelModel):
+    sheet_id: uuid.UUID
+    group_ids: list[uuid.UUID] = Field(min_length=1, max_length=50)
+
+    @model_validator(mode="after")
+    def _unique(self) -> "SurveyIn":
+        if len(self.group_ids) != len(set(self.group_ids)):
+            raise ValueError("duplicate ids")
+        return self
+
+
+class SurveyGroupOut(CamelModel):
+    id: uuid.UUID
+    name: str
+
+
+class QuestionResult(CamelModel):
+    """A question with what was answered to it. counts: per choice; texts: open answers, shuffled."""
+
+    question: SurveyQuestion
+    # Responses that answered this question (an optional one may be left out).
+    answered: int
+    counts: list[int] | None = None
+    texts: list[str] | None = None
+
+
+SurveyStatus = Literal["open", "closed"]
+
+
+class SurveySummary(CamelModel):
+    id: uuid.UUID
+    title: str
+    status: SurveyStatus
+    opened_at: datetime
+    closed_at: datetime | None
+    group_names: list[str]
+    student_count: int
+    answered_count: int
+
+
+class SurveyOut(SurveySummary):
+    sheet_id: uuid.UUID
+    groups: list[SurveyGroupOut]
+    results: list[QuestionResult]

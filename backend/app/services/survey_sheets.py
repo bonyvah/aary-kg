@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,6 +69,10 @@ async def update(session: AsyncSession, sheet_id: uuid.UUID, payload: SurveyShee
 
 
 async def delete(session: AsyncSession, sheet_id: uuid.UUID) -> None:
+    """Removed if no survey was run from it; otherwise only marked deleted, so its surveys keep it."""
     sheet = await get(session, sheet_id)
-    await session.delete(sheet)
+    if await repo.sheet_used(session, sheet.id):
+        sheet.deleted_at = datetime.now(UTC)
+    else:
+        await session.delete(sheet)
     await session.commit()

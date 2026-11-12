@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
 import { moveBetweenFields } from "@/lib/fieldNav";
+import { clearSurveyDraft, readSurveyDraft, writeSurveyDraft } from "@/lib/surveyDraft";
 import { useDragReorder } from "@/lib/useDragReorder";
 import { cx } from "@/lib/cx";
 import { IconButton } from "@/components/ui/IconButton";
@@ -46,10 +47,37 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
   const router = useRouter();
   const { toast, show } = useToast();
   const [sheet, setSheet] = useState(initial);
+  // What is saved: the draft is only what differs from it.
+  const [baseline, setBaseline] = useState(initial);
+  const [hydrated, setHydrated] = useState(false);
+  const focusId = useRef<string | null>(null);
   const [issues, setIssues] = useState<ReadonlyMap<string, string>>(new Map());
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const isNew = sheet.id === NEW_SHEET_ID;
+
+  // The draft of this sheet, if there is one, replaces what the server sent.
+  useEffect(() => {
+    if (hydrated) return;
+    const draft = readSurveyDraft(initial.id);
+    if (draft) setSheet({ ...initial, ...draft });
+    setHydrated(true);
+  }, [initial, hydrated]);
+
+  // Every change is kept; a sheet equal to the saved one has no draft.
+  useEffect(() => {
+    if (!hydrated) return;
+    const same = JSON.stringify(toInput(sheet)) === JSON.stringify(toInput(baseline));
+    if (same) clearSurveyDraft(sheet.id);
+    else writeSurveyDraft(sheet.id, sheet);
+  }, [sheet, baseline, hydrated]);
+
+  // A new question: the cursor goes to its text.
+  useEffect(() => {
+    if (focusId.current === null) return;
+    document.getElementById(focusId.current)?.focus();
+    focusId.current = null;
+  }, [sheet.questions.length]);
 
   const error = (key: string) => {
     const code = issues.get(key);
@@ -82,7 +110,9 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
       show("danger", t("saveFailed"));
       return;
     }
-    edit((s) => ({ ...s, questions: [...s.questions, blankQuestion(nextId(s.questions))] }));
+    const id = nextId(sheet.questions);
+    focusId.current = `${id}-text`;
+    edit((s) => ({ ...s, questions: [...s.questions, blankQuestion(id)] }));
   }
 
   async function save() {
@@ -95,6 +125,9 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
     setBusy(true);
     try {
       const saved = isNew ? await createSurveySheet(toInput(sheet)) : await updateSurveySheet(sheet.id, toInput(sheet));
+      clearSurveyDraft(sheet.id);
+      clearSurveyDraft(saved.id);
+      setBaseline(saved);
       setSheet(saved);
       show("success", t("saved"));
       if (isNew) router.replace(`/admin/surveys/sheets/${saved.id}`);
@@ -112,6 +145,8 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
     setDeleting(false);
     try {
       await deleteSurveySheet(sheet.id);
+      clearSurveyDraft(sheet.id);
+      setBaseline(sheet);
       router.push(BACK);
     } catch (failure) {
       show("danger", tc(`apiError.${toKnownCode(failure)}`));
@@ -253,6 +288,7 @@ function QuestionCard({ question, number, first, last, only, error, onChange, on
       </div>
 
       <Input
+        id={`${id}-text`}
         label={t("text")}
         value={question.text}
         maxLength={500}
@@ -440,7 +476,10 @@ function Choices({
         );
       })}
       <div className="flex flex-col items-start gap-2">
-        <Button variant="neutral" disabled={full} onClick={() => setChoices((choices) => [...choices, ""], `${question.id}:limit`)}>
+        <Button variant="neutral" disabled={full} onClick={() => {
+            focusAfter.current = question.choices.length;
+            setChoices((choices) => [...choices, ""], `${question.id}:limit`);
+          }}>
           <Icon icon={Plus} weight="bold" />
           {t("addChoice")}
         </Button>

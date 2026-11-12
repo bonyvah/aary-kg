@@ -27,6 +27,11 @@ The interface is available in Kyrgyz and Russian.
 - Students sign in and take it against the server's clock, in full screen. After the close they see their score and the correct answers.
 - The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins and the superadmin see every exam read-only, except that the superadmin can take an attempt out of the count (logged).
 
+### Anonymous surveys
+- An admin writes a survey sheet: single choice, multiple select (any number, at least, at most or exactly N) and open-ended questions (up to 100 words), each mandatory or optional, 2 to 30 choices.
+- The admin starts it for student groups and closes it by hand. Every student answers once, all at once, at `/student`.
+- Anonymous by design: the server keeps who answered and what was answered in two tables with no link and no time between them. The results show answered X of Y, a count per choice and the open answers in a random order. The superadmin sees surveys read-only.
+
 ### Contests
 - A teacher creates a contest and invites juries (other teachers).
 - Each jury member gives points to entries.
@@ -37,9 +42,9 @@ The interface is available in Kyrgyz and Russian.
 | Role   | How they get in               | What they can do                                                  |
 |--------|-------------------------------|-------------------------------------------------------------------|
 | Superadmin | Seeded with the CLI       | Create and disable admins and set their passwords, correct a finished game's data, open or close any contest, take an exam attempt out of the count. Sees teachers, students and groups read-only |
-| Admin  | Created by the superadmin, or with the CLI | Create and disable teachers and students, manage student groups, set or generate passwords, see all contests, games and exams read-only. Does not create quizzes or contests or host games |
+| Admin  | Created by the superadmin, or with the CLI | Create and disable teachers and students, manage student groups, set or generate passwords, write and run anonymous surveys, see all contests, games and exams read-only. Does not create quizzes or contests or host games |
 | Teacher| Created by an admin           | Create quizzes and exam sheets, host games, run exams, create contests, act as jury |
-| Student| Created by an admin, in a group | Take exams at `/student`                                       |
+| Student| Created by an admin, in a group | Take exams and answer surveys at `/student`                    |
 | Player | No auth, joins with a PIN     | Join and play live games                                          |
 
 There is no public registration. Accounts are created by admins.

@@ -14,6 +14,7 @@ corrects games, exams and contests (issue #96). Each sees the other's side read-
 | Host a game | no | no | yes (any teacher's quiz, from the bazar too) | yes |
 | Write exam sheets, run exams | no | no | yes (own) | n/a |
 | See every exam | yes, read-only (`GET /admin/exam-sessions`) | yes, read-only | own only | n/a |
+| Write survey sheets, start and close surveys | no, sees surveys and results read-only | yes (all admins share them) | no | n/a |
 | Take an exam attempt out of the count | yes (kept and shown, logged) | no | no | n/a |
 | Create a contest | no | no | yes | n/a |
 | See every contest | yes | yes, read-only | own only | n/a |
@@ -70,3 +71,16 @@ host's report shows how many corrections were made.
   A generated one is random (`xxxx-xxxx-xxxx`, always with a digit). The new password is shown once.
 - A reset signs the person out everywhere. Nobody is forced to change a password they were given;
   they can, in the settings.
+
+## Anonymous surveys
+
+`/admin` → Surveys tab (API: `/admin/survey-sheets`, `/admin/surveys`, students `/student/surveys`).
+
+- A sheet's question is single choice, multiple select or open-ended, mandatory or optional. Choices: 2 to 30.
+  A multiple select takes any number, at least N, at most N or exactly N. An open answer is limited in
+  words (1 to 100), counted as 6 characters each, never over 650 characters.
+- A survey copies the sheet and lists the active students of the chosen groups when it starts. It is
+  open until an admin closes it. A student answers once, all at once (`SURVEY_ALREADY_ANSWERED`).
+- Nothing ties an answer to a student: `survey_respondents` says who answered, `survey_responses` what,
+  with no link and no time on either. The results show only counts and the open texts, shuffled.
+  With very few respondents, answers can still be guessed from the counts.

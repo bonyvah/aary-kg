@@ -161,11 +161,14 @@ async def test_staff_are_refused(as_user):
     assert (await teacher.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})).status_code == 403
 
 
-async def test_deleting_a_survey_takes_its_answers_with_it(as_user):
+async def test_a_deleted_survey_is_hidden_and_its_rows_stay(as_user):
     admin, svid, (aizada,) = await started(as_user)
     await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
     assert (await admin.delete(f"/admin/surveys/{svid}")).status_code == 204
     async with SessionLocal() as s:
-        assert list((await s.execute(select(SurveyResponse))).scalars()) == []
-        assert list((await s.execute(select(SurveyRespondent))).scalars()) == []
+        assert len(list((await s.execute(select(SurveyResponse))).scalars())) == 1
+        assert len(list((await s.execute(select(SurveyRespondent))).scalars())) == 1
     assert (await aizada.get(f"/student/surveys/{svid}")).status_code == 404
+    assert (await aizada.get("/student/surveys")).json() == []
+    late = await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
+    assert late.status_code == 404

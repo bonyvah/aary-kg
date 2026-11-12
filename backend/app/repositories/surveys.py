@@ -20,11 +20,14 @@ async def list_sheets(session: AsyncSession) -> list[SurveySheet]:
 
 
 async def get(session: AsyncSession, survey_id: uuid.UUID) -> Survey | None:
-    return await session.get(Survey, survey_id, populate_existing=True)
+    survey = await session.get(Survey, survey_id, populate_existing=True)
+    return survey if survey and survey.deleted_at is None else None
 
 
 async def list_all(session: AsyncSession) -> list[Survey]:
-    result = await session.execute(select(Survey).order_by(Survey.opened_at.desc()))
+    result = await session.execute(
+        select(Survey).where(Survey.deleted_at.is_(None)).order_by(Survey.opened_at.desc())
+    )
     return list(result.scalars())
 
 
@@ -53,7 +56,7 @@ async def list_for_student(session: AsyncSession, student_id: uuid.UUID) -> list
     result = await session.execute(
         select(Survey)
         .join(SurveyStudent, SurveyStudent.survey_id == Survey.id)
-        .where(SurveyStudent.student_id == student_id)
+        .where(SurveyStudent.student_id == student_id, Survey.deleted_at.is_(None))
         .order_by(Survey.opened_at.desc())
     )
     return list(result.scalars())

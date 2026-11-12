@@ -98,7 +98,7 @@ async def test_reopen_and_delete(as_user):
     assert closed["status"] == "closed" and closed["closedAt"]
     reopened = (await admin.post(f"{url}/reopen")).json()
     assert reopened["status"] == "open" and reopened["closedAt"] is None
-    # An open survey can be deleted too; it is gone from the list and the sheet is free again.
+    # An open survey can be deleted too; it is hidden from the list and its page.
     assert (await admin.delete(url)).status_code == 204
     assert (await admin.get(url)).status_code == 404
     assert (await admin.get("/admin/surveys")).json() == []

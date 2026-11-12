@@ -50,6 +50,8 @@ class Survey(Base):
     status: Mapped[str] = mapped_column(String(10), default="open")  # open | closed
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Set when an admin deletes it: gone from every list and page, its rows kept.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     groups: Mapped[list[Group]] = relationship(secondary=survey_groups, lazy="selectin")
     students: Mapped[list["SurveyStudent"]] = relationship(lazy="selectin", cascade="all, delete-orphan")

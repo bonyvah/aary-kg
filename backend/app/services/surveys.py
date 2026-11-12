@@ -72,9 +72,9 @@ async def reopen(session: AsyncSession, survey_id: uuid.UUID) -> Survey:
 
 
 async def delete(session: AsyncSession, survey_id: uuid.UUID) -> None:
-    """Gone for good, open or closed, with its answers, its groups and its student list."""
+    """Gone from every list and page, open or closed. The rows stay: only `deleted_at` is set."""
     survey = await get(session, survey_id)
-    await session.delete(survey)
+    survey.deleted_at = datetime.now(UTC)
     await session.commit()
 
 

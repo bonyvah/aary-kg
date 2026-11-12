@@ -24,6 +24,7 @@ from app.routers import (
     quiz_library,
     quizzes,
     student_exams,
+    survey_sheets,
     users,
     ws,
 )
@@ -54,6 +55,7 @@ app.include_router(exam_sessions.router)
 app.include_router(exam_sessions.admin_router)
 app.include_router(exam_sessions.attempts_admin_router)
 app.include_router(student_exams.router)
+app.include_router(survey_sheets.router)
 app.include_router(contests.router)
 app.include_router(users.router)
 app.include_router(games.router)

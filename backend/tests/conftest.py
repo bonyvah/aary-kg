@@ -35,7 +35,10 @@ async def clean_db(migrated: None):
     yield
     async with engine.begin() as conn:
         await conn.execute(
-            text("TRUNCATE users, groups, quizzes, exams, exam_sessions, contests, games CASCADE")
+            text(
+                "TRUNCATE users, groups, quizzes, exams, exam_sessions, contests, games, "
+                "survey_sheets CASCADE"
+            )
         )
 
 

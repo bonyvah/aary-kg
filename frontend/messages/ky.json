@@ -1191,7 +1191,7 @@
         "closeTitle": "Сурамжылоону жабасызбы?",
         "closeBody": "Жабылгандан кийин жооп берүүгө болбойт.",
         "cancel": "Жокко чыгаруу",
-        "answered": "{total} ичинен {answered} жооп берди",
+        "answered": "{answered}/{total} жооп берди",
         "questionAnswered": "{count, plural, one {# жооп} other {# жооп}}"
       }
     }

@@ -188,6 +188,7 @@ export function AdminScreen() {
 
   return (
     <StaffShell
+      wide
       topRight={
         <div className="flex items-center gap-3">
           <StaffMenu />
@@ -195,15 +196,19 @@ export function AdminScreen() {
       }
     >
       <h1 className="sr-only">{t("title")}</h1>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <Tabs
+          layout="side"
           idBase={idBase}
           label={t("tabsLabel")}
           tabs={tabs.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[820px] flex-1"
+          className="md:sticky md:top-6 md:w-56 md:shrink-0"
         />
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-4">
+            <h2 className="text-h3 font-black">{t(`tabs.${tab}`)}</h2>
         {superadmin ? (
           tab === "admins" ? (
             <Button variant="success" onClick={() => setCreating("admin")}>
@@ -228,7 +233,7 @@ export function AdminScreen() {
             </Button>
           </div>
         ) : null}
-      </div>
+          </div>
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "groups" ? (
@@ -366,6 +371,8 @@ export function AdminScreen() {
         <Pagination page={userPage} pages={userPages} onChange={setUsersPage} />
         </div>
         )}
+      </div>
+        </div>
       </div>
 
       <CreateUserModal role={creating} existing={users ?? []} groups={groups} onClose={() => setCreating(null)} onCreate={createUser} />

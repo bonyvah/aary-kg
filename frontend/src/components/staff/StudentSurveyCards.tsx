@@ -31,13 +31,12 @@ export function StudentSurveyCards({ surveys }: { surveys: readonly StudentSurve
                 }
               >
                 <div className="flex flex-wrap gap-2">
+                  {survey.status === "closed" ? <Badge variant="neutral">{t("state.closed")}</Badge> : null}
                   {survey.answered ? (
                     <Badge variant="success">{t("state.answered")}</Badge>
                   ) : survey.status === "open" ? (
                     <Badge variant="accent">{t("state.open")}</Badge>
-                  ) : (
-                    <Badge variant="neutral">{t("state.closed")}</Badge>
-                  )}
+                  ) : null}
                 </div>
                 <h3 title={survey.title} className="line-clamp-2 text-h3 font-bold [overflow-wrap:anywhere]">
                   <Link href={`/student/surveys/${survey.id}`} className="outline-none after:absolute after:inset-0 after:content-['']">

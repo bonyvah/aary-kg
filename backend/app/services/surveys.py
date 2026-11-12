@@ -61,6 +61,23 @@ async def close(session: AsyncSession, survey_id: uuid.UUID) -> Survey:
     return await get(session, survey_id)
 
 
+async def reopen(session: AsyncSession, survey_id: uuid.UUID) -> Survey:
+    """Open again: students can answer and change their answers once more."""
+    survey = await get(session, survey_id)
+    if survey.status != "open":
+        survey.status = "open"
+        survey.closed_at = None
+        await session.commit()
+    return await get(session, survey_id)
+
+
+async def delete(session: AsyncSession, survey_id: uuid.UUID) -> None:
+    """Gone for good, open or closed, with its answers, its groups and its student list."""
+    survey = await get(session, survey_id)
+    await session.delete(survey)
+    await session.commit()
+
+
 def results(questions: list[dict[str, Any]], responses: list[SurveyResponse]) -> list[QuestionResult]:
     """Per question: how many answered it, the count of each choice, or the open answers shuffled."""
     out: list[QuestionResult] = []

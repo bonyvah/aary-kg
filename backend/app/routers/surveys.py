@@ -60,3 +60,13 @@ async def get_survey(survey_id: uuid.UUID, _: OverseerUser, session: Session) ->
 @admin_router.post("/{survey_id}/close", response_model=SurveyOut, response_model_by_alias=True)
 async def close_survey(survey_id: uuid.UUID, _: AdminUser, session: Session) -> SurveyOut:
     return await _out(session, await service.close(session, survey_id))
+
+
+@admin_router.post("/{survey_id}/reopen", response_model=SurveyOut, response_model_by_alias=True)
+async def reopen_survey(survey_id: uuid.UUID, _: AdminUser, session: Session) -> SurveyOut:
+    return await _out(session, await service.reopen(session, survey_id))
+
+
+@admin_router.delete("/{survey_id}", status_code=204)
+async def delete_survey(survey_id: uuid.UUID, _: AdminUser, session: Session) -> None:
+    await service.delete(session, survey_id)

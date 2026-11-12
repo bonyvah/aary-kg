@@ -78,6 +78,8 @@ async def test_who_may_run_and_see_surveys(as_user):
     assert (await superadmin.get("/admin/surveys")).status_code == 200
     assert (await superadmin.get(f"/admin/surveys/{survey['id']}")).status_code == 200
     assert (await superadmin.post(f"/admin/surveys/{survey['id']}/close")).status_code == 403
+    assert (await superadmin.post(f"/admin/surveys/{survey['id']}/reopen")).status_code == 403
+    assert (await superadmin.delete(f"/admin/surveys/{survey['id']}")).status_code == 403
     assert (
         await superadmin.post("/admin/surveys", json={"sheetId": sid, "groupIds": [gid]})
     ).status_code == 403
@@ -85,6 +87,22 @@ async def test_who_may_run_and_see_surveys(as_user):
         c, _ = await as_user(f"u-{role}", role=role)
         assert (await c.get("/admin/surveys")).status_code == 403
         assert (await c.get(f"/admin/surveys/{survey['id']}")).status_code == 403
+        assert (await c.delete(f"/admin/surveys/{survey['id']}")).status_code == 403
+
+
+async def test_reopen_and_delete(as_user):
+    admin, gid, _, _, sid, _ = await setup(as_user)
+    survey = (await admin.post("/admin/surveys", json={"sheetId": sid, "groupIds": [gid]})).json()
+    url = f"/admin/surveys/{survey['id']}"
+    closed = (await admin.post(f"{url}/close")).json()
+    assert closed["status"] == "closed" and closed["closedAt"]
+    reopened = (await admin.post(f"{url}/reopen")).json()
+    assert reopened["status"] == "open" and reopened["closedAt"] is None
+    # An open survey can be deleted too; it is gone from the list and the sheet is free again.
+    assert (await admin.delete(url)).status_code == 204
+    assert (await admin.get(url)).status_code == 404
+    assert (await admin.get("/admin/surveys")).json() == []
+    assert (await admin.delete(url)).status_code == 404
 
 
 async def test_results_count_choices_and_list_open_answers():

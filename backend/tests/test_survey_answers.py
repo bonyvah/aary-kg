@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.main import app
-from app.models.survey import SurveyResponse
+from app.models.survey import SurveyRespondent, SurveyResponse
 from tests.conftest import login_as
 from tests.test_survey_sheets import multi, open_, sheet, single
 from tests.test_surveys import setup
@@ -159,3 +159,13 @@ async def test_staff_are_refused(as_user):
     teacher, _ = await as_user("ulan")
     assert (await teacher.get("/student/surveys")).status_code == 403
     assert (await teacher.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})).status_code == 403
+
+
+async def test_deleting_a_survey_takes_its_answers_with_it(as_user):
+    admin, svid, (aizada,) = await started(as_user)
+    await aizada.post(f"/student/surveys/{svid}/submit", json={"answers": FULL})
+    assert (await admin.delete(f"/admin/surveys/{svid}")).status_code == 204
+    async with SessionLocal() as s:
+        assert list((await s.execute(select(SurveyResponse))).scalars()) == []
+        assert list((await s.execute(select(SurveyRespondent))).scalars()) == []
+    assert (await aizada.get(f"/student/surveys/{svid}")).status_code == 404

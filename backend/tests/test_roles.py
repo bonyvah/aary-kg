@@ -42,3 +42,16 @@ async def test_only_a_teacher_creates_quizzes_games_and_contests(as_user):
     for path, body in (("/quizzes", {}), ("/games", {"quizId": str(uuid.uuid4())}), ("/contests", {})):
         r = await admin.post(path, json=body)
         assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN"), path
+
+
+async def test_a_superadmin_is_staff_and_never_listed_for_admins(as_user):
+    from tests.conftest import make_user as make
+
+    await make("boss", role="superadmin")
+    admin, _ = await as_user("root", role="admin")
+    r = await admin.get("/admin/users")
+    assert r.status_code == 200
+    assert all(u["role"] in ("teacher", "student") for u in r.json())
+    superadmin, _ = await as_user("chief", role="superadmin")
+    for path in STAFF_GETS:
+        assert (await superadmin.get(path)).status_code == 200, path

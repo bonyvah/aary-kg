@@ -17,7 +17,11 @@ async def get_by_login(session: AsyncSession, login: str) -> User | None:
 
 async def list_managed(session: AsyncSession) -> list[User]:
     """Teachers and students: the accounts an admin manages. Admins are not listed."""
-    stmt = select(User).where(User.role != "admin").order_by(User.created_at, User.first_name, User.last_name)
+    stmt = (
+        select(User)
+        .where(User.role.not_in(("admin", "superadmin")))
+        .order_by(User.created_at, User.first_name, User.last_name)
+    )
     result = await session.execute(stmt)
     return list(result.scalars())
 

@@ -7,7 +7,7 @@ from pydantic import Field, field_serializer
 from app.ai.students import MAX_STUDENTS
 from app.schemas.base import CamelModel
 
-UserRole = Literal["admin", "teacher", "student"]
+UserRole = Literal["superadmin", "admin", "teacher", "student"]
 
 
 class LoginIn(CamelModel):

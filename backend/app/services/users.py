@@ -219,7 +219,7 @@ async def move_to_group(session: AsyncSession, user_id: uuid.UUID, group_id: uui
 
 def _not_an_admin(user: User) -> None:
     """Admins manage teachers and students. Another admin can't be disabled or reset from here."""
-    if user.role == "admin":
+    if user.role in ("admin", "superadmin"):
         raise ApiError(403, "CANNOT_MANAGE_ADMIN")
 
 

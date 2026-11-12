@@ -64,7 +64,7 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 - Backend returns error CODES, never display text. The frontend translates them.
 - Dates, numbers and sorting use the locale (Intl APIs).
 - User-written quiz content is not translated.
-- Kyrgyz strings I will review myself, so keep them easy to find and edit. Mark unreviewed Kyrgyz keys in a `_todo_review` list.
+- Kyrgyz strings I will review myself, so keep them easy to find and edit. List every unreviewed Kyrgyz string in `_todo_review` in `messages/ky.json` as key -> the Kyrgyz text itself (`pnpm check:messages` keeps them equal to the real strings).
 
 ## Design system (Kahoot-inspired, NOT a copy)
 

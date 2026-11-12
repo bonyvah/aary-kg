@@ -23,4 +23,8 @@ export const getSurvey = (id: string) => apiFetch<Survey>(`/admin/surveys/${id}`
 export const startSurvey = (input: { sheetId: string; groupIds: string[] }) =>
   apiFetch<Survey>("/admin/surveys", { method: "POST", body: input });
 
+export const reopenSurvey = (id: string) => apiFetch<Survey>(`/admin/surveys/${id}/reopen`, { method: "POST" });
+
+export const deleteSurvey = (id: string) => apiFetch<void>(`/admin/surveys/${id}`, { method: "DELETE" });
+
 export const closeSurvey = (id: string) => apiFetch<Survey>(`/admin/surveys/${id}/close`, { method: "POST" });

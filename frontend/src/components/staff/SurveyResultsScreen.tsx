@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
@@ -10,7 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/useToast";
 import { toKnownCode } from "@/lib/api/client";
-import { closeSurvey } from "@/lib/api/surveys";
+import { closeSurvey, deleteSurvey, reopenSurvey } from "@/lib/api/surveys";
 import { useDateTime } from "@/lib/useDateTime";
 import type { QuestionResult, Survey, SurveyStudent } from "@/types/survey";
 import { ConfirmModal } from "./ConfirmModal";
@@ -30,7 +31,34 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
   const [survey, setSurvey] = useState(initial);
   const [closing, setClosing] = useState(false);
   const [who, setWho] = useState(false);
+  const [reopening, setReopening] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
+
+  async function reopen() {
+    setReopening(false);
+    setBusy(true);
+    try {
+      setSurvey(await reopenSurvey(survey.id));
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    setDeleting(false);
+    setBusy(true);
+    try {
+      await deleteSurvey(survey.id);
+      router.push("/admin?tab=surveys");
+    } catch (error) {
+      show("danger", tc(`apiError.${toKnownCode(error)}`));
+      setBusy(false);
+    }
+  }
 
   async function close() {
     setClosing(false);
@@ -71,10 +99,21 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
             {survey.closedAt ? ` – ${dateTime(new Date(survey.closedAt))}` : ""}
           </p>
         </div>
-        {canClose && survey.status === "open" ? (
-          <Button variant="danger" disabled={busy} onClick={() => setClosing(true)}>
-            {t("close")}
-          </Button>
+        {canClose ? (
+          <div className="flex flex-wrap gap-3">
+            {survey.status === "open" ? (
+              <Button variant="secondary" disabled={busy} onClick={() => setClosing(true)}>
+                {t("close")}
+              </Button>
+            ) : (
+              <Button variant="success" disabled={busy} onClick={() => setReopening(true)}>
+                {t("reopen")}
+              </Button>
+            )}
+            <Button variant="danger" disabled={busy} onClick={() => setDeleting(true)}>
+              {t("delete")}
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -112,6 +151,25 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
         </div>
       </Modal>
 
+      <ConfirmModal
+        open={reopening}
+        title={t("reopenTitle")}
+        body={t("reopenBody")}
+        confirmLabel={t("reopen")}
+        cancelLabel={t("cancel")}
+        variant="success"
+        onConfirm={() => void reopen()}
+        onClose={() => setReopening(false)}
+      />
+      <ConfirmModal
+        open={deleting}
+        title={t("deleteTitle")}
+        body={t("deleteBody", { count: survey.answeredCount })}
+        confirmLabel={t("delete")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => void remove()}
+        onClose={() => setDeleting(false)}
+      />
       <ConfirmModal
         open={closing}
         title={t("closeTitle")}

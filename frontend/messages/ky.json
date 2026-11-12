@@ -1197,6 +1197,12 @@
         "whoPending": "Бүтүргөн жок",
         "whoNobody": "Эч ким жок",
         "closeDialog": "Жабуу",
+        "reopen": "Кайра ачуу",
+        "reopenTitle": "Сурамжылоону кайра ачасызбы?",
+        "reopenBody": "Студенттер кайра жооп бере алышат.",
+        "delete": "Өчүрүү",
+        "deleteTitle": "Сурамжылоону өчүрөсүзбү?",
+        "deleteBody": "Жооптор ({count}) менен кошо өчүрүлөт. Артка кайтарууга болбойт.",
         "allAnswers": "Бардык жооптор ({count})",
         "questionAnswered": "{count, plural, one {# жооп} other {# жооп}}"
       }

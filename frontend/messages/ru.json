@@ -1197,6 +1197,12 @@
         "whoPending": "Не закончили",
         "whoNobody": "Никого нет",
         "closeDialog": "Закрыть",
+        "reopen": "Открыть снова",
+        "reopenTitle": "Открыть опрос снова?",
+        "reopenBody": "Студенты снова смогут отвечать.",
+        "delete": "Удалить",
+        "deleteTitle": "Удалить опрос?",
+        "deleteBody": "Опрос будет удалён вместе с ответами ({count}). Отменить нельзя.",
         "allAnswers": "Все ответы ({count})",
         "questionAnswered": "{count, plural, one {# ответ} few {# ответа} many {# ответов} other {# ответа}}"
       }

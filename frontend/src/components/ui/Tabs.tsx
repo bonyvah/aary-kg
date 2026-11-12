@@ -51,7 +51,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
         role="tablist"
         aria-label={label}
         aria-orientation="vertical"
-        className={cx("flex gap-1 overflow-x-auto md:flex-col md:overflow-visible", className)}
+        className={cx("flex gap-2 overflow-x-auto rounded-lg bg-surface-raised p-2 md:flex-col md:overflow-visible", className)}
       >
         {tabs.map((tab, index) => {
           const selected = value === tab.id;
@@ -68,7 +68,9 @@ export function Tabs<T extends string>({ tabs, value, onChange, label, idBase, c
                 "min-h-[44px] shrink-0 cursor-pointer rounded-md px-4 py-2 text-left text-body-lg font-bold",
                 "transition-colors duration-150 ease-out",
                 "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-                selected ? "bg-primary text-on-primary" : "bg-transparent text-ink hover:bg-surface-raised",
+                selected
+                  ? "bg-primary text-on-primary shadow-edge-primary [--edge-c:var(--primary-edge)]"
+                  : "bg-surface text-ink hover:bg-brand-dark",
               )}
               onClick={() => onChange(tab.id)}
               onKeyDown={(event) => onKeyDown(event, index)}

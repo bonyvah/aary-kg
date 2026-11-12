@@ -14,7 +14,9 @@ import { toKnownCode } from "@/lib/api/client";
 import { closeSurvey, deleteSurvey, reopenSurvey } from "@/lib/api/surveys";
 import { useDateTime } from "@/lib/useDateTime";
 import type { QuestionResult, Survey, SurveyStudent } from "@/types/survey";
+import type { ExportTable } from "@/lib/exportTable";
 import { ConfirmModal } from "./ConfirmModal";
+import { ExportButtons } from "./ExportButtons";
 import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
@@ -72,6 +74,34 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
     }
   }
 
+  /** Every question with its choices and counts, or its open answers one per row. Built when a button is pressed. */
+  function exportTable(): ExportTable {
+    const rows: ExportTable["rows"] = [];
+    survey.results.forEach((result, index) => {
+      const heading = `${index + 1}. ${result.question.text}`;
+      const lines =
+        result.question.kind === "open"
+          ? (result.texts ?? []).map((text): [string, string, string] => [text, "", ""])
+          : result.question.choices.map((choice, i): [string, string, string] => {
+              const count = result.counts?.[i] ?? 0;
+              const share = result.answered > 0 ? Math.round((count / result.answered) * 100) : 0;
+              return [choice, String(count), `${share}%`];
+            });
+      if (lines.length === 0) rows.push([heading, "", "", ""]);
+      lines.forEach((line, i) => rows.push([i === 0 ? heading : "", ...line]));
+    });
+    return {
+      title: survey.title,
+      subtitle: [
+        dateTime(new Date(survey.openedAt)),
+        survey.groupNames.join(", "),
+        t("answered", { answered: survey.answeredCount, total: survey.studentCount }),
+      ].join(" · "),
+      headers: [t("export.question"), t("export.answer"), t("export.count"), t("export.share")],
+      rows,
+    };
+  }
+
   return (
     <StaffShell
       topRight={
@@ -124,6 +154,7 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
         <Button variant="neutral" onClick={() => setWho(true)}>
           {t("who")}
         </Button>
+        <ExportButtons onError={() => show("danger", tc("export.failed"))} table={exportTable} />
       </div>
 
       <ol className="flex flex-col gap-6 pb-4">

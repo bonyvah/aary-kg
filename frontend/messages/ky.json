@@ -1197,6 +1197,12 @@
         "whoPending": "Бүтүргөн жок",
         "whoNobody": "Эч ким жок",
         "closeDialog": "Жабуу",
+        "export": {
+          "question": "Суроо",
+          "answer": "Жооп",
+          "count": "Саны",
+          "share": "Үлүшү"
+        },
         "reopen": "Кайра ачуу",
         "reopenTitle": "Сурамжылоону кайра ачасызбы?",
         "reopenBody": "Студенттер кайра жооп бере алышат.",

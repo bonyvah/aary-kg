@@ -17,10 +17,8 @@
     "admin.bulk.read": "Окуу",
     "admin.bulk.loginTaken": "{login} бош эмес: {name}",
     "admin.bulk.errors.AI_NOT_CONFIGURED": "Тизмени окуу жөндөлгөн эмес.",
-    "admin.surveys.editor.maxWords": "Эң көп сөз",
     "admin.surveys.editor.limit": "Канчасын тандоо",
     "admin.surveys.editor.limits.none": "Каалагандай",
-    "admin.surveys.editor.limits.max": "Эң көп",
     "admin.surveys.editor.limits.exact": "Так",
     "admin.surveys.errors.LIMIT_TOO_HIGH": "{max} ашпашы керек.",
     "student.survey.errors.TOO_MANY": "{n} ашык тандабаңыз."
@@ -1169,12 +1167,12 @@
         },
         "required": "Милдеттүү",
         "text": "Суроо",
-        "maxWords": "Эң көп сөз",
+        "maxWords": "Макс сөз",
         "limit": "Канчасын тандоо",
         "limits": {
           "none": "Каалагандай",
           "min": "Кеминде",
-          "max": "Эң көп",
+          "max": "Макс",
           "exact": "Так"
         },
         "limitCount": "Саны",

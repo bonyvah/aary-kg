@@ -40,6 +40,7 @@ import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
+import { SurveysPanel } from "./SurveysPanel";
 import { useCurrentUser } from "./SessionProvider";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
@@ -47,7 +48,7 @@ type Pending = { kind: "disable"; user: ManagedUser } | null;
 // Rows per page in the tables.
 const TABLE_PAGE = 20;
 
-const TABS = ["teachers", "students", "groups", "exams", "contests", "games"] as const;
+const TABS = ["teachers", "students", "groups", "exams", "surveys", "contests", "games"] as const;
 // The superadmin manages the admins and sees the rest read-only.
 const SUPERADMIN_TABS = ["admins", ...TABS] as const;
 type Tab = (typeof SUPERADMIN_TABS)[number];
@@ -245,6 +246,8 @@ export function AdminScreen() {
               </FilteredList>
             )}
           </ResourceView>
+        ) : tab === "surveys" ? (
+          <SurveysPanel superadmin={superadmin} />
         ) : tab === "exams" ? (
           <ResourceView resource={allExams} inline>
             {(items) => (

@@ -765,7 +765,9 @@
       "TOO_MANY_FILES": "Не больше 10 файлов.",
       "LIST_TOO_LONG": "Список слишком длинный: не больше 200 студентов за раз.",
       "NO_STUDENTS_FOUND": "В списке не найдены студенты.",
-      "STUDENTS_INVALID": "Исправьте ошибки в списке."
+      "STUDENTS_INVALID": "Исправьте ошибки в списке.",
+      "SURVEY_NOT_FOUND": "Опрос не найден.",
+      "SURVEY_INVALID": "Бланк опроса заполнен неверно."
     },
     "toDashboard": "На главную",
     "filters": {
@@ -928,7 +930,8 @@
       "groups": "Группы",
       "exams": "Экзамены",
       "contests": "Конкурсы",
-      "games": "Игры"
+      "games": "Игры",
+      "surveys": "Опросы"
     },
     "contests": {
       "title": "Название",
@@ -1103,6 +1106,59 @@
         "UNSUPPORTED_FILE": "Такой файл не подходит: нужен Word (.docx), Excel (.xlsx) или текст.",
         "AI_NOT_CONFIGURED": "Чтение списка не настроено.",
         "AI_FAILED": "Не удалось прочитать список. Попробуйте ещё раз."
+      }
+    },
+    "surveys": {
+      "sheets": {
+        "title": "Бланки опросов",
+        "new": "Новый бланк",
+        "empty": "Бланков пока нет",
+        "name": "Название",
+        "questions": "Вопросы"
+      },
+      "editor": {
+        "back": "Назад",
+        "delete": "Удалить",
+        "save": "Сохранить",
+        "title": "Название опроса",
+        "addQuestion": "Добавить вопрос",
+        "deleteTitle": "Удалить бланк?",
+        "deleteBody": "«{title}» исчезнет из списка. Проведённые опросы сохранятся.",
+        "cancel": "Отмена",
+        "saved": "Бланк сохранён.",
+        "saveFailed": "Исправьте отмеченные поля.",
+        "question": "Вопрос {number}",
+        "moveUp": "Выше",
+        "moveDown": "Ниже",
+        "removeQuestion": "Удалить вопрос",
+        "kind": "Тип вопроса",
+        "kinds": {
+          "single": "Один ответ",
+          "multi": "Несколько ответов",
+          "open": "Свободный ответ"
+        },
+        "required": "Обязательный",
+        "text": "Вопрос",
+        "maxWords": "Максимум слов",
+        "limit": "Сколько выбрать",
+        "limits": {
+          "none": "Сколько угодно",
+          "min": "Не меньше",
+          "max": "Не больше",
+          "exact": "Ровно"
+        },
+        "limitCount": "Количество",
+        "choices": "Варианты",
+        "choice": "Вариант {number}",
+        "removeChoice": "Удалить вариант",
+        "addChoice": "Добавить вариант"
+      },
+      "errors": {
+        "FIELD_REQUIRED": "Заполните поле.",
+        "LIMIT_TOO_HIGH": "Не больше {max}.",
+        "TOO_MANY_WORDS": "Не больше {max} слов.",
+        "TOO_MANY_CHOICES": "Не больше {max} вариантов.",
+        "TOO_MANY_QUESTIONS": "Не больше {max} вопросов."
       }
     }
   },

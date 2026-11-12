@@ -133,7 +133,51 @@
     "admin.confirmDisable.adminTitle",
     "admin.toast.adminCreated",
     "admin.toast.adminDisabled",
-    "admin.tabs.admins"
+    "admin.tabs.admins",
+    "admin.tabs.surveys",
+    "admin.surveys.sheets.title",
+    "admin.surveys.sheets.new",
+    "admin.surveys.sheets.empty",
+    "admin.surveys.sheets.name",
+    "admin.surveys.sheets.questions",
+    "admin.surveys.editor.back",
+    "admin.surveys.editor.delete",
+    "admin.surveys.editor.save",
+    "admin.surveys.editor.title",
+    "admin.surveys.editor.addQuestion",
+    "admin.surveys.editor.deleteTitle",
+    "admin.surveys.editor.deleteBody",
+    "admin.surveys.editor.cancel",
+    "admin.surveys.editor.saved",
+    "admin.surveys.editor.saveFailed",
+    "admin.surveys.editor.question",
+    "admin.surveys.editor.moveUp",
+    "admin.surveys.editor.moveDown",
+    "admin.surveys.editor.removeQuestion",
+    "admin.surveys.editor.kind",
+    "admin.surveys.editor.kinds.single",
+    "admin.surveys.editor.kinds.multi",
+    "admin.surveys.editor.kinds.open",
+    "admin.surveys.editor.required",
+    "admin.surveys.editor.text",
+    "admin.surveys.editor.maxWords",
+    "admin.surveys.editor.limit",
+    "admin.surveys.editor.limits.none",
+    "admin.surveys.editor.limits.min",
+    "admin.surveys.editor.limits.max",
+    "admin.surveys.editor.limits.exact",
+    "admin.surveys.editor.limitCount",
+    "admin.surveys.editor.choices",
+    "admin.surveys.editor.choice",
+    "admin.surveys.editor.removeChoice",
+    "admin.surveys.editor.addChoice",
+    "admin.surveys.errors.FIELD_REQUIRED",
+    "admin.surveys.errors.LIMIT_TOO_HIGH",
+    "admin.surveys.errors.TOO_MANY_WORDS",
+    "admin.surveys.errors.TOO_MANY_CHOICES",
+    "admin.surveys.errors.TOO_MANY_QUESTIONS",
+    "common.apiError.SURVEY_NOT_FOUND",
+    "common.apiError.SURVEY_INVALID"
   ],
   "app": {
     "name": "aary kg"
@@ -901,7 +945,9 @@
       "TOO_MANY_FILES": "10 файлдан ашпасын.",
       "LIST_TOO_LONG": "Тизме өтө узун: бир жолу 200 студенттен ашпасын.",
       "NO_STUDENTS_FOUND": "Тизмеден студенттер табылган жок.",
-      "STUDENTS_INVALID": "Тизмедеги каталарды оңдоңуз."
+      "STUDENTS_INVALID": "Тизмедеги каталарды оңдоңуз.",
+      "SURVEY_NOT_FOUND": "Сурамжылоо табылган жок.",
+      "SURVEY_INVALID": "Сурамжылоо барагы туура толтурулган жок."
     },
     "toDashboard": "Башкы бетке",
     "filters": {
@@ -1064,7 +1110,8 @@
       "groups": "Группалар",
       "exams": "Экзамендер",
       "contests": "Конкурстар",
-      "games": "Оюндар"
+      "games": "Оюндар",
+      "surveys": "Сурамжылоолор"
     },
     "contests": {
       "title": "Аталышы",
@@ -1239,6 +1286,59 @@
         "UNSUPPORTED_FILE": "Мындай файл туура келбейт: Word (.docx), Excel (.xlsx) же текст керек.",
         "AI_NOT_CONFIGURED": "Тизмени окуу жөндөлгөн эмес.",
         "AI_FAILED": "Тизмени окуу мүмкүн болгон жок. Кайра аракет кылыңыз."
+      }
+    },
+    "surveys": {
+      "sheets": {
+        "title": "Сурамжылоо барактары",
+        "new": "Жаңы барак",
+        "empty": "Барактар азырынча жок",
+        "name": "Аталышы",
+        "questions": "Суроолор"
+      },
+      "editor": {
+        "back": "Артка",
+        "delete": "Өчүрүү",
+        "save": "Сактоо",
+        "title": "Сурамжылоонун аталышы",
+        "addQuestion": "Суроо кошуу",
+        "deleteTitle": "Баракты өчүрөсүзбү?",
+        "deleteBody": "«{title}» тизмеден жоголот. Өткөн сурамжылоолор сакталат.",
+        "cancel": "Жокко чыгаруу",
+        "saved": "Барак сакталды.",
+        "saveFailed": "Белгиленген талааларды оңдоңуз.",
+        "question": "{number}-суроо",
+        "moveUp": "Жогору",
+        "moveDown": "Төмөн",
+        "removeQuestion": "Суроону өчүрүү",
+        "kind": "Суроонун түрү",
+        "kinds": {
+          "single": "Бир жооп",
+          "multi": "Бир нече жооп",
+          "open": "Эркин жооп"
+        },
+        "required": "Милдеттүү",
+        "text": "Суроо",
+        "maxWords": "Эң көп сөз",
+        "limit": "Канчасын тандоо",
+        "limits": {
+          "none": "Каалагандай",
+          "min": "Кеминде",
+          "max": "Эң көп",
+          "exact": "Так"
+        },
+        "limitCount": "Саны",
+        "choices": "Варианттар",
+        "choice": "{number}-вариант",
+        "removeChoice": "Вариантты өчүрүү",
+        "addChoice": "Вариант кошуу"
+      },
+      "errors": {
+        "FIELD_REQUIRED": "Талааны толтуруңуз.",
+        "LIMIT_TOO_HIGH": "{max} ашпашы керек.",
+        "TOO_MANY_WORDS": "{max} сөздөн ашпашы керек.",
+        "TOO_MANY_CHOICES": "{max} варианттан ашпашы керек.",
+        "TOO_MANY_QUESTIONS": "{max} суроодон ашпашы керек."
       }
     }
   },

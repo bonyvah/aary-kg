@@ -23,6 +23,8 @@ const under = (pathname: string, base: string) => pathname === base || pathname.
  */
 export function redirectFor(role: UserRole, pathname: string): string | null {
   if (role === "student") return under(pathname, "/student") ? null : "/student";
+  // Only admins write and start surveys; the superadmin reads them.
+  if (role === "superadmin" && (under(pathname, "/admin/surveys/sheets") || pathname === "/admin/surveys/new")) return "/admin";
   if (isOverseer(role)) {
     const blocked =
       under(pathname, "/dashboard") || under(pathname, "/quizzes") || under(pathname, "/exams") || pathname === "/exam-sessions/new" || under(pathname, "/host") || under(pathname, "/student") || pathname === "/contests/new";

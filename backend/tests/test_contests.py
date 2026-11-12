@@ -159,14 +159,16 @@ async def test_open_and_close_permissions_and_states(as_user):
     owner, _ = await as_user("ulan")
     jury_c, j = await as_user("omur")
     admin, _ = await as_user("root", role="admin")
+    chief, _ = await as_user("chief", role="superadmin")
     cid = (await make_contest(owner, [j]))["id"]
 
     assert (await jury_c.post(f"/contests/{cid}/open")).status_code == 403
     assert (await owner.post(f"/contests/{cid}/close")).json()["code"] == "CONTEST_NOT_OPEN"
     assert (await owner.post(f"/contests/{cid}/open")).json()["status"] == "open"
-    assert (await admin.post(f"/contests/{cid}/open")).json()["code"] == "CONTEST_NOT_DRAFT"
+    assert (await chief.post(f"/contests/{cid}/open")).json()["code"] == "CONTEST_NOT_DRAFT"
     assert (await jury_c.post(f"/contests/{cid}/close")).status_code == 403
-    assert (await admin.post(f"/contests/{cid}/close")).json()["status"] == "closed"  # admin manages
+    assert (await admin.post(f"/contests/{cid}/close")).status_code == 403  # an admin only reads
+    assert (await chief.post(f"/contests/{cid}/close")).json()["status"] == "closed"  # the superadmin manages
     r = await owner.post(f"/contests/{cid}/open")
     assert (r.status_code, r.json()["code"]) == (409, "CONTEST_NOT_DRAFT")  # never reopened
 

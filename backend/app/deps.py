@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.errors import ApiError
 from app.models.user import User
+from app.roles import OVERSEERS
 from app.services.auth import user_from_token
 
 COOKIE_NAME = "aary_token"
@@ -20,11 +21,6 @@ async def current_user(
     if user is None:
         raise ApiError(401, "UNAUTHENTICATED")
     return user
-
-
-# Admins look after teachers, students and groups. The superadmin looks after the admins and is the only
-# one who corrects games, exams and contests. Both see the other's side read-only.
-OVERSEERS = ("admin", "superadmin")
 
 
 async def require_admin(user: Annotated[User, Depends(current_user)]) -> User:

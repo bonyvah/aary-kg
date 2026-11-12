@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 
-from app.deps import AdminUser, Session, StaffUser, TeacherUser
+from app.deps import OverseerUser, Session, StaffUser, TeacherUser
 from app.errors import ApiError
 from app.game import protocol, ratelimit
 from app.game.models import GameError
@@ -117,7 +117,7 @@ async def join(body: JoinIn, request: Request) -> JoinOut:
 
 
 @admin_router.get("/admin/games", response_model=list[GameSummary], response_model_by_alias=True)
-async def all_games(_: AdminUser, session: Session) -> list[GameSummary]:
+async def all_games(_: OverseerUser, session: Session) -> list[GameSummary]:
     return await service.list_all_games(session)
 
 

@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.deps import AdminUser, Session, StaffUser, TeacherUser
+from app.deps import OverseerUser, Session, StaffUser, SuperAdminUser, TeacherUser
 from app.models.exam_session import ExamAttempt, ExamSession, ExamSessionStudent
 from app.schemas.exam_session import (
     AttemptDetailOut,
@@ -209,7 +209,7 @@ async def decide(
 
 
 @admin_router.get("", response_model=list[ExamSessionSummary], response_model_by_alias=True)
-async def admin_list(_: AdminUser, session: Session) -> list[ExamSessionSummary]:
+async def admin_list(_: OverseerUser, session: Session) -> list[ExamSessionSummary]:
     """Every exam, read-only: admins don't run exams."""
     return [_summary(s) for s in await service.list_all(session)]
 
@@ -220,6 +220,6 @@ attempts_admin_router = APIRouter(prefix="/admin/exam-attempts", tags=["admin"])
 @attempts_admin_router.post(
     "/{attempt_id}/inactivate", response_model=ExamSessionOut, response_model_by_alias=True
 )
-async def inactivate(attempt_id: uuid.UUID, admin: AdminUser, session: Session) -> ExamSessionOut:
+async def inactivate(attempt_id: uuid.UUID, admin: SuperAdminUser, session: Session) -> ExamSessionOut:
     """Admins only: the attempt is kept and shown, but no longer counts. Logged."""
     return await _out(session, await service.inactivate(session, admin, attempt_id))

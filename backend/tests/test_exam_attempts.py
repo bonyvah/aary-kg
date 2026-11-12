@@ -369,10 +369,12 @@ async def test_a_second_attempt_is_granted_logged_and_counts(as_user, client_fac
         ("grant", {"attempts": 1}, {"attempts": 2})
     ]
 
-    # Only an admin inactivates; the latest active one then counts.
+    # Only the superadmin inactivates; the latest active one then counts.
     second_id = detail["attempts"][1]["id"]
     assert (await teacher.post(f"/admin/exam-attempts/{second_id}/inactivate")).status_code == 403
-    admin, _ = await as_user("root2", role="admin")
+    reader, _ = await as_user("root4", role="admin")
+    assert (await reader.post(f"/admin/exam-attempts/{second_id}/inactivate")).status_code == 403
+    admin, _ = await as_user("root2", role="superadmin")
     row = (await admin.post(f"/admin/exam-attempts/{second_id}/inactivate")).json()["students"][0]
     assert row["score"] == 1
     again = await admin.post(f"/admin/exam-attempts/{second_id}/inactivate")

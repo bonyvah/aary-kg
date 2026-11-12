@@ -10,6 +10,7 @@ from app.models.contest import Contest, ContestJury, ContestScore
 from app.models.user import User
 from app.repositories import contests as repo
 from app.repositories import users as users_repo
+from app.roles import OVERSEERS
 from app.schemas.contest import ContestIn, ContestOut, ResultsOut
 from app.services import contest_scoring as scoring
 
@@ -60,11 +61,17 @@ def is_jury(contest: Contest, user: User) -> bool:
 
 
 def can_manage(contest: Contest, user: User) -> bool:
-    return user.role == "admin" or contest.owner_id == user.id
+    """Open, close, finish: the owner, or the superadmin correcting it."""
+    return user.role == "superadmin" or contest.owner_id == user.id
+
+
+def can_see_all(contest: Contest, user: User) -> bool:
+    """Every score and the breakdown: whoever manages it, and admins (read-only)."""
+    return user.role in OVERSEERS or can_manage(contest, user)
 
 
 def _visible(contest: Contest, user: User) -> bool:
-    return can_manage(contest, user) or is_jury(contest, user)
+    return can_see_all(contest, user) or is_jury(contest, user)
 
 
 async def get_visible(
@@ -237,7 +244,7 @@ async def results(session: AsyncSession, user: User, contest_id: uuid.UUID) -> R
     finished = [(str(j.user_id), j.user.name) for j in contest.jury if j.finished]
     ranking = scoring.rank_entries(contest.criteria, contest.entries, [u for u, _ in finished], sheets)
     breakdown = None
-    if can_manage(contest, user):
+    if can_see_all(contest, user):
         breakdown = {
             e["id"]: scoring.entry_breakdown(contest.criteria, e["id"], finished, sheets)
             for e in contest.entries

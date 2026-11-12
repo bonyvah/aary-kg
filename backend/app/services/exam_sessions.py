@@ -9,6 +9,7 @@ from app.models.group import Group
 from app.models.user import User
 from app.repositories import exam_sessions as repo
 from app.repositories import users as users_repo
+from app.roles import OVERSEERS
 from app.schemas.exam_session import AttendanceChange, DecisionIn, ExamSessionIn
 from app.services import exam_attempts
 from app.services import exams as exams_service
@@ -73,8 +74,8 @@ async def get_owned(session: AsyncSession, user: User, session_id: uuid.UUID) ->
 
 
 async def get_viewable(session: AsyncSession, user: User, session_id: uuid.UUID) -> ExamSession:
-    """The teacher who started it, or an admin (read-only: every change goes through get_owned)."""
-    if user.role != "admin":
+    """The teacher who started it, an admin or the superadmin (read-only: changes go through get_owned)."""
+    if user.role not in OVERSEERS:
         return await get_owned(session, user, session_id)
     exam_session = await repo.get(session, session_id)
     if not exam_session:

@@ -133,9 +133,11 @@ function QuestionField({ question, number, value, issue, onChange }: FieldProps)
   const t = useTranslations("student.survey");
   const titleId = `survey-q-${question.id}`;
   const errorId = `${titleId}-error`;
-  const n = question.kind === "multi" ? question.limit.n : null;
+  // «n» is the number the message names: the min for too few, the max for too many.
+  const n =
+    question.kind === "multi" ? (issue === "TOO_FEW" ? question.limit.min : (question.limit.max ?? question.choices.length)) : 0;
   const error = issue
-    ? t(`errors.${issue}`, { n: n ?? 0, max: question.kind === "open" ? question.maxWords : 0 })
+    ? t(`errors.${issue}`, { n, max: question.kind === "open" ? question.maxWords : 0 })
     : undefined;
   const picked = Array.isArray(value) ? value : [];
 

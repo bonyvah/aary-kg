@@ -1,9 +1,7 @@
 /** Anonymous surveys: an admin writes a sheet, runs it as a survey for groups, students answer once. */
 
-export type SelectLimitMode = "none" | "min" | "max" | "exact";
-
-/** How many choices a multiple-select question takes. `n` goes with min, max and exact only. */
-export type SelectLimit = { mode: SelectLimitMode; n: number | null };
+/** How many choices a multiple-select question takes: at least `min`, at most `max` (null: all of them). */
+export type SelectLimit = { min: number; max: number | null };
 
 type QuestionBase = { id: string; text: string; required: boolean };
 

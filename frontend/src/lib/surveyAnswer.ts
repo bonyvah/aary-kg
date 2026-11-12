@@ -21,9 +21,9 @@ export function issueOf(question: SurveyQuestion, value: Draft[string] | undefin
     const text = typeof value === "string" ? value.trim() : "";
     if (text.length > maxChars(question.maxWords)) return "TOO_LONG";
   } else if (question.kind === "multi" && Array.isArray(value)) {
-    const { mode, n } = question.limit;
-    if (n !== null && (mode === "max" || mode === "exact") && value.length > n) return "TOO_MANY";
-    if (submitting && n !== null && (mode === "min" || mode === "exact") && value.length > 0 && value.length < n) return "TOO_FEW";
+    const { min, max } = question.limit;
+    if (value.length > (max ?? question.choices.length)) return "TOO_MANY";
+    if (submitting && value.length > 0 && value.length < min) return "TOO_FEW";
   }
   if (submitting && question.required && !given(question, value)) return "ANSWER_REQUIRED";
   return null;

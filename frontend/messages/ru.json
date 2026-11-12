@@ -1146,13 +1146,8 @@
         "text": "Вопрос",
         "maxWords": "Максимум слов",
         "limit": "Сколько выбрать",
-        "limits": {
-          "none": "Сколько угодно",
-          "min": "Не меньше",
-          "max": "Не больше",
-          "exact": "Ровно"
-        },
-        "limitCount": "Количество",
+        "limitMin": "Мин",
+        "limitMax": "Макс",
         "choices": "Варианты",
         "choice": "Вариант {number}",
         "removeChoice": "Удалить вариант",
@@ -1161,6 +1156,7 @@
       },
       "errors": {
         "FIELD_REQUIRED": "Заполните поле.",
+        "LIMIT_RANGE": "Мин не должен быть больше макс.",
         "LIMIT_TOO_HIGH": "Не больше {max}.",
         "TOO_MANY_WORDS": "Не больше {max} слов.",
         "TOO_MANY_CHOICES": "Не больше {max} вариантов.",

@@ -1146,13 +1146,8 @@
         "text": "Суроо",
         "maxWords": "Макс сөз",
         "limit": "Канчасын тандоо",
-        "limits": {
-          "none": "Каалагандай",
-          "min": "Кеминде",
-          "max": "Макс",
-          "exact": "Так"
-        },
-        "limitCount": "Саны",
+        "limitMin": "Мин",
+        "limitMax": "Макс",
         "choices": "Варианттар",
         "choice": "{number}-вариант",
         "removeChoice": "Вариантты өчүрүү",
@@ -1161,6 +1156,7 @@
       },
       "errors": {
         "FIELD_REQUIRED": "Талааны толтуруңуз.",
+        "LIMIT_RANGE": "Мин макстан ашпашы керек.",
         "LIMIT_TOO_HIGH": "{max} ашпашы керек.",
         "TOO_MANY_WORDS": "{max} сөздөн ашпашы керек.",
         "TOO_MANY_CHOICES": "{max} варианттан ашпашы керек.",

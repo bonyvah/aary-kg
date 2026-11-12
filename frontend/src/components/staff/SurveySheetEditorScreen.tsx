@@ -17,7 +17,6 @@ import { ApiRequestError, toKnownCode } from "@/lib/api/client";
 import { createSurveySheet, deleteSurveySheet, updateSurveySheet } from "@/lib/api/surveys";
 import {
   KINDS,
-  LIMIT_MODES,
   MAX_CHOICES,
   MAX_QUESTIONS,
   MAX_WORDS,
@@ -28,9 +27,8 @@ import {
   nextId,
   toInput,
   withKind,
-  withLimitMode,
 } from "@/lib/surveyEditor";
-import type { SelectLimitMode, SurveyQuestion, SurveyQuestionKind, SurveySheet } from "@/types/survey";
+import type { SurveyQuestion, SurveyQuestionKind, SurveySheet } from "@/types/survey";
 import { ConfirmModal } from "./ConfirmModal";
 import { StaffMenu } from "./StaffMenu";
 import { StaffTopBar } from "./StaffShell";
@@ -261,34 +259,35 @@ function QuestionCard({ question, number, first, last, only, error, onChange, on
       )}
 
       {question.kind === "multi" ? (
-        <div className="flex flex-wrap items-start gap-4">
-          <Select
-            label={t("limit")}
-            value={question.limit.mode}
-            wrapperClassName="w-full max-w-[280px]"
-            onChange={(event) =>
+        <div role="group" aria-label={t("limit")} className="flex flex-wrap items-start gap-4">
+          <NumberField
+            label={t("limitMin")}
+            max={question.choices.length}
+            value={question.limit.min}
+            tooHigh={te("LIMIT_TOO_HIGH", { max: question.choices.length })}
+            onChange={(min) => onChange((q) => (q.kind === "multi" ? { ...q, limit: { ...q.limit, min } } : q), `${id}:limit`)}
+          />
+          <NumberField
+            // The max follows the choices until it is set by hand.
+            key={question.limit.max === null ? question.choices.length : "set"}
+            label={t("limitMax")}
+            max={question.choices.length}
+            value={question.limit.max ?? question.choices.length}
+            tooHigh={te("LIMIT_TOO_HIGH", { max: question.choices.length })}
+            error={
+              error(`${id}:limit`)
+                ? te(question.limit.min > (question.limit.max ?? question.choices.length) ? "LIMIT_RANGE" : "LIMIT_TOO_HIGH", {
+                    max: question.choices.length,
+                  })
+                : undefined
+            }
+            onChange={(max) =>
               onChange(
-                (q) => (q.kind === "multi" ? { ...q, limit: withLimitMode(q.limit.n, event.target.value as SelectLimitMode) } : q),
+                (q) => (q.kind === "multi" ? { ...q, limit: { ...q.limit, max: max >= q.choices.length ? null : max } } : q),
                 `${id}:limit`,
               )
             }
-          >
-            {LIMIT_MODES.map((mode) => (
-              <option key={mode} value={mode}>
-                {t(`limits.${mode}`)}
-              </option>
-            ))}
-          </Select>
-          {question.limit.mode === "none" ? null : (
-            <NumberField
-              label={t("limitCount")}
-              max={question.choices.length}
-              value={question.limit.n ?? 1}
-              tooHigh={te("LIMIT_TOO_HIGH", { max: question.choices.length })}
-              error={error(`${id}:limit`) ? te("LIMIT_TOO_HIGH", { max: question.choices.length }) : undefined}
-              onChange={(n) => onChange((q) => (q.kind === "multi" ? { ...q, limit: { ...q.limit, n } } : q), `${id}:limit`)}
-            />
-          )}
+          />
         </div>
       ) : null}
     </Card>

@@ -1,6 +1,6 @@
 // Checks the survey sheet editor's rules (the server's, in backend/app/services/survey_sheets.py).
 // Run: pnpm check:surveys
-import { blankQuestion, blankSheet, findIssues, maxChars, nextId, withKind, withLimitMode } from "../src/lib/surveyEditor.ts";
+import { blankQuestion, blankSheet, findIssues, maxChars, nextId, withKind } from "../src/lib/surveyEditor.ts";
 import { redirectFor } from "../src/lib/staffRoutes.ts";
 import { issuesOf, toPayload, toggle } from "../src/lib/surveyAnswer.ts";
 import type { SurveyQuestion } from "../src/types/survey.ts";
@@ -18,7 +18,7 @@ const filled = {
   title: "Term",
   questions: [
     { ...blankQuestion("a", "single"), text: "?", choices: ["x", "y"] },
-    { id: "b", kind: "multi" as const, text: "?", required: true, choices: ["x", " ", "z"], limit: { mode: "min" as const, n: 4 } },
+    { id: "b", kind: "multi" as const, text: "?", required: true, choices: ["x", " ", "z"], limit: { min: 4, max: null } },
     { ...blankQuestion("c", "open"), text: " " },
   ],
 };
@@ -28,11 +28,11 @@ check("words are 6 characters, never over 650", maxChars(1) === 6 && maxChars(10
 check("new ids skip used ones", nextId([blankQuestion("q2"), blankQuestion("q3")]) === "q4" && nextId([]) === "q1");
 
 const multi = withKind({ ...blankQuestion("a", "single"), text: "T", required: false, choices: ["1", "2", "3"] }, "multi");
-check("single to multiple keeps text, required and choices", multi.kind === "multi" && multi.text === "T" && !multi.required && multi.choices.length === 3 && multi.limit.mode === "none");
+check("single to multiple keeps text, required and choices", multi.kind === "multi" && multi.text === "T" && !multi.required && multi.choices.length === 3 && multi.limit.min === 1 && multi.limit.max === null);
 const open = withKind(multi, "open");
 check("to open drops the choices, keeps the text", open.kind === "open" && open.text === "T" && open.maxWords === 100 && !("choices" in open));
 check("open to single starts with two blank choices", (() => { const q = withKind(open, "single"); return q.kind === "single" && q.choices.join("|") === "|"; })());
-check("limit modes: none has no number, the others keep theirs or start at 1", JSON.stringify([withLimitMode(3, "none"), withLimitMode(null, "min"), withLimitMode(3, "exact")]) === '[{"mode":"none","n":null},{"mode":"min","n":1},{"mode":"exact","n":3}]');
+check("a min above the max is a range error, a max above the choices is too high", keys(findIssues({ title: "T", questions: [{ id: "a", kind: "multi" as const, text: "?", required: true, choices: ["x", "y", "z"], limit: { min: 3, max: 2 } }, { id: "b", kind: "multi" as const, text: "?", required: true, choices: ["x", "y", "z"], limit: { min: 1, max: 4 } }] })) === "a:limit=LIMIT_RANGE,b:limit=LIMIT_TOO_HIGH");
 
 check("the superadmin can't write or start surveys", redirectFor("superadmin", "/admin/surveys/sheets/new") === "/admin" && redirectFor("superadmin", "/admin/surveys/new") === "/admin" && redirectFor("superadmin", "/admin/surveys/x") === null);
 check("an admin can", redirectFor("admin", "/admin/surveys/sheets/new") === null && redirectFor("admin", "/admin/surveys/new") === null);
@@ -40,8 +40,8 @@ check("a teacher and a student can't", redirectFor("teacher", "/admin/surveys/x"
 
 const qs: SurveyQuestion[] = [
   { id: "s", kind: "single", text: "?", required: true, choices: ["a", "b"] },
-  { id: "min", kind: "multi", text: "?", required: true, choices: ["a", "b", "c"], limit: { mode: "min", n: 2 } },
-  { id: "max", kind: "multi", text: "?", required: false, choices: ["a", "b", "c"], limit: { mode: "max", n: 1 } },
+  { id: "min", kind: "multi", text: "?", required: true, choices: ["a", "b", "c"], limit: { min: 2, max: null } },
+  { id: "max", kind: "multi", text: "?", required: false, choices: ["a", "b", "c"], limit: { min: 1, max: 1 } },
   { id: "o", kind: "open", text: "?", required: true, maxWords: 2 },
   { id: "opt", kind: "open", text: "?", required: false, maxWords: 100 },
 ];

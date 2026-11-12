@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { downloadPdf, downloadXlsx, type ExportTable } from "@/lib/exportTable";
+import { downloadPdf, downloadXlsx, type ExportReport, type ExportTable } from "@/lib/exportTable";
 
 /** «Excel» and «PDF»: the results table as a file. `table` is built only when a button is pressed. */
-export function ExportButtons({ table, onError }: { table: () => ExportTable; onError: () => void }) {
+export function ExportButtons({ table, onError }: { table: () => ExportTable | ExportReport; onError: () => void }) {
   const t = useTranslations("common.export");
   const [busy, setBusy] = useState(false);
 
-  async function run(make: (table: ExportTable) => Promise<void>) {
+  async function run(make: (table: ExportTable | ExportReport) => Promise<void>) {
     setBusy(true);
     try {
       await make(table());

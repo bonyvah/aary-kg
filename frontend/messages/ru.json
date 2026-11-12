@@ -1197,12 +1197,8 @@
         "whoPending": "Не закончили",
         "whoNobody": "Никого нет",
         "closeDialog": "Закрыть",
-        "export": {
-          "question": "Вопрос",
-          "answer": "Ответ",
-          "count": "Количество",
-          "share": "Доля"
-        },
+        "mandatory": "Обязательный",
+        "optional": "Необязательный",
         "reopen": "Открыть снова",
         "reopenTitle": "Открыть опрос снова?",
         "reopenBody": "Студенты снова смогут отвечать.",

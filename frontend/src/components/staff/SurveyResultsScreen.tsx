@@ -14,7 +14,7 @@ import { toKnownCode } from "@/lib/api/client";
 import { closeSurvey, deleteSurvey, reopenSurvey } from "@/lib/api/surveys";
 import { useDateTime } from "@/lib/useDateTime";
 import type { QuestionResult, Survey, SurveyStudent } from "@/types/survey";
-import type { ExportTable } from "@/lib/exportTable";
+import type { ExportReport } from "@/lib/exportTable";
 import { ConfirmModal } from "./ConfirmModal";
 import { ExportButtons } from "./ExportButtons";
 import { useCurrentUser } from "./SessionProvider";
@@ -26,6 +26,7 @@ import { SurveyStatusBadge } from "./SurveyStatusBadge";
 export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
   const t = useTranslations("admin.surveys.results");
   const tc = useTranslations("common");
+  const tk = useTranslations("admin.surveys.editor.kinds");
   const format = useFormatter();
   const dateTime = useDateTime();
   const { toast, show } = useToast();
@@ -74,22 +75,9 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
     }
   }
 
-  /** Every question with its choices and counts, or its open answers one per row. Built when a button is pressed. */
-  function exportTable(): ExportTable {
-    const rows: ExportTable["rows"] = [];
-    survey.results.forEach((result, index) => {
-      const heading = `${index + 1}. ${result.question.text}`;
-      const lines =
-        result.question.kind === "open"
-          ? (result.texts ?? []).map((text): [string, string, string] => [text, "", ""])
-          : result.question.choices.map((choice, i): [string, string, string] => {
-              const count = result.counts?.[i] ?? 0;
-              const share = result.answered > 0 ? Math.round((count / result.answered) * 100) : 0;
-              return [choice, String(count), `${share}%`];
-            });
-      if (lines.length === 0) rows.push([heading, "", "", ""]);
-      lines.forEach((line, i) => rows.push([i === 0 ? heading : "", ...line]));
-    });
+  /** Per question: its heading, a line with the kind, mandatory or not and how many answered, then the choices
+   * with counts and shares, or the open answers one per row. Built when a button is pressed. */
+  function exportReport(): ExportReport {
     return {
       title: survey.title,
       subtitle: [
@@ -97,8 +85,22 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
         survey.groupNames.join(", "),
         t("answered", { answered: survey.answeredCount, total: survey.studentCount }),
       ].join(" · "),
-      headers: [t("export.question"), t("export.answer"), t("export.count"), t("export.share")],
-      rows,
+      sections: survey.results.map((result, index) => {
+        const { question } = result;
+        const rows: ExportReport["sections"][number]["rows"] =
+          question.kind === "open"
+            ? (result.texts ?? []).map((text) => [text])
+            : question.choices.map((choice, i) => {
+                const count = result.counts?.[i] ?? 0;
+                const share = result.answered > 0 ? Math.round((count / result.answered) * 100) : 0;
+                return [choice, count, `${share}%`];
+              });
+        return {
+          heading: `${index + 1}. ${question.text}`,
+          meta: [tk(question.kind), question.required ? t("mandatory") : t("optional"), t("questionAnswered", { count: result.answered })].join(" · "),
+          rows: rows.length > 0 ? rows : [["—"]],
+        };
+      }),
     };
   }
 
@@ -154,7 +156,7 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
         <Button variant="neutral" onClick={() => setWho(true)}>
           {t("who")}
         </Button>
-        <ExportButtons onError={() => show("danger", tc("export.failed"))} table={exportTable} />
+        <ExportButtons onError={() => show("danger", tc("export.failed"))} table={exportReport} />
       </div>
 
       <ol className="flex flex-col gap-6 pb-4">
@@ -280,6 +282,7 @@ function ResultCard({ result, number }: { result: QuestionResult; number: number
     <Card className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="neutral">{tk(question.kind)}</Badge>
+        <Badge variant={question.required ? "accent" : "neutral"}>{question.required ? t("mandatory") : t("optional")}</Badge>
         <span className="text-body text-ink-muted tabular-nums">{t("questionAnswered", { count: result.answered })}</span>
       </div>
       <h2 className="text-h3 font-bold [overflow-wrap:anywhere]">

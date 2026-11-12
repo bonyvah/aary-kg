@@ -127,7 +127,13 @@
     "admin.toast.studentsAdded",
     "common.apiError.LIST_TOO_LONG",
     "common.apiError.NO_STUDENTS_FOUND",
-    "common.apiError.STUDENTS_INVALID"
+    "common.apiError.STUDENTS_INVALID",
+    "admin.createAdmin",
+    "admin.create.adminTitle",
+    "admin.confirmDisable.adminTitle",
+    "admin.toast.adminCreated",
+    "admin.toast.adminDisabled",
+    "admin.tabs.admins"
   ],
   "app": {
     "name": "aary kg"
@@ -987,6 +993,7 @@
     "title": "Башкаруу",
     "createTeacher": "Мугалим кошуу",
     "createStudent": "Студент кошуу",
+    "createAdmin": "Администратор кошуу",
     "cancel": "Жокко чыгаруу",
     "columns": {
       "name": "Аты-жөнү",
@@ -1008,6 +1015,7 @@
       "firstName": "Аты",
       "lastName": "Фамилиясы",
       "studentTitle": "Жаңы студент",
+      "adminTitle": "Жаңы администратор",
       "group": "Группа",
       "groupPick": "Группаны тандаңыз",
       "password": "Сырсөз",
@@ -1035,7 +1043,8 @@
     "confirmDisable": {
       "title": "Мугалимди өчүрөсүзбү?",
       "body": "{name} системага кире албай калат.",
-      "confirm": "Өчүрүү"
+      "confirm": "Өчүрүү",
+      "adminTitle": "Администраторду өчүрөсүзбү?"
     },
     "toast": {
       "created": "Мугалим кошулду.",
@@ -1043,10 +1052,13 @@
       "copied": "Сырсөз көчүрүлдү.",
       "copyFailed": "Көчүрүү мүмкүн болбоду. Сырсөздү кол менен белгилеп алыңыз.",
       "moved": "Студент башка группага которулду.",
-      "studentsAdded": "{count, plural, other {# студент кошулду.}}"
+      "studentsAdded": "{count, plural, other {# студент кошулду.}}",
+      "adminCreated": "Администратор кошулду.",
+      "adminDisabled": "Администратор өчүрүлдү."
     },
     "tabsLabel": "Бөлүмдөр",
     "tabs": {
+      "admins": "Администраторлор",
       "teachers": "Мугалимдер",
       "students": "Студенттер",
       "groups": "Группалар",

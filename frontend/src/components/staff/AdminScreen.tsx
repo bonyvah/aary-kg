@@ -40,6 +40,7 @@ import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
+import { useCurrentUser } from "./SessionProvider";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
 
@@ -47,12 +48,20 @@ type Pending = { kind: "disable"; user: ManagedUser } | null;
 const TABLE_PAGE = 20;
 
 const TABS = ["teachers", "students", "groups", "exams", "contests", "games"] as const;
-type Tab = (typeof TABS)[number];
+// The superadmin manages the admins and sees the rest read-only.
+const SUPERADMIN_TABS = ["admins", ...TABS] as const;
+type Tab = (typeof SUPERADMIN_TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
-  const [tab, setStoredTab] = useStoredTab<Tab>("aary.adminTab", TABS, "teachers");
+  const superadmin = useCurrentUser().role === "superadmin";
+  const tabs: readonly Tab[] = superadmin ? SUPERADMIN_TABS : TABS;
+  const [tab, setStoredTab] = useStoredTab<Tab>(
+    superadmin ? "aary.superadminTab" : "aary.adminTab",
+    tabs,
+    superadmin ? "admins" : "teachers",
+  );
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
   const allExams = useResource(listAllExamSessions);
@@ -79,7 +88,10 @@ export function AdminScreen() {
     setStoredTab(next);
     setFilter(() => ({ query: "", groupId: "" }));
   };
-  const role: UserFilter["role"] | null = tab === "teachers" ? "teacher" : tab === "students" ? "student" : null;
+  const role: UserFilter["role"] | null =
+    tab === "admins" ? "admin" : tab === "teachers" ? "teacher" : tab === "students" ? "student" : null;
+  // An admin acts on teachers and students, the superadmin on admins only.
+  const canAct = superadmin ? role === "admin" : role !== null;
   const filter: UserFilter = { ...search, role: role ?? "teacher" };
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
@@ -117,7 +129,7 @@ export function AdminScreen() {
     setUsers((current) => [...(current ?? []), created.user]);
     setCreating(null);
     setRevealed({ name: created.user.name, password: created.password });
-    show("success", t("toast.created"));
+    show("success", t(created.user.role === "admin" ? "toast.adminCreated" : "toast.created"));
   }
 
   function studentsAdded(created: readonly ManagedUser[]) {
@@ -130,7 +142,7 @@ export function AdminScreen() {
     try {
       const updated = await api.disableUser(user.id);
       setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
-      show("success", t("toast.disabled"));
+      show("success", t(updated.role === "admin" ? "toast.adminDisabled" : "toast.disabled"));
     } catch (error) {
       fail(error);
     }
@@ -186,12 +198,18 @@ export function AdminScreen() {
         <Tabs
           idBase={idBase}
           label={t("tabsLabel")}
-          tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
+          tabs={tabs.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
           className="max-w-[820px] flex-1"
         />
-        {tab === "groups" ? (
+        {superadmin ? (
+          tab === "admins" ? (
+            <Button variant="success" onClick={() => setCreating("admin")}>
+              {t("createAdmin")}
+            </Button>
+          ) : null
+        ) : tab === "groups" ? (
           <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
@@ -213,7 +231,7 @@ export function AdminScreen() {
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "groups" ? (
-          <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} />
+          <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} readOnly={superadmin} />
         ) : tab === "games" ? (
           <ResourceView resource={allGames} inline>
             {(items) => (
@@ -300,7 +318,7 @@ export function AdminScreen() {
               <Th>{t("columns.login")}</Th>
               {role === "student" ? <Th>{t("columns.group")}</Th> : null}
               <Th>{t("columns.created")}</Th>
-              <Th>{t("columns.actions")}</Th>
+              {canAct ? <Th>{t("columns.actions")}</Th> : null}
             </tr>
           </thead>
           <tbody>
@@ -315,6 +333,7 @@ export function AdminScreen() {
                 <Td className="whitespace-nowrap">
                   {dateTime(new Date(user.createdAt), { time: false })}
                 </Td>
+                {canAct ? (
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
@@ -335,6 +354,7 @@ export function AdminScreen() {
                     </Button>
                   </div>
                 </Td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -358,7 +378,7 @@ export function AdminScreen() {
       />
       <ConfirmModal
         open={pending !== null}
-        title={t("confirmDisable.title")}
+        title={t(pending?.user.role === "admin" ? "confirmDisable.adminTitle" : "confirmDisable.title")}
         body={t("confirmDisable.body", { name: pending?.user.name ?? "" })}
         confirmLabel={t("confirmDisable.confirm")}
         cancelLabel={t("cancel")}

@@ -7,7 +7,8 @@ export type NewUser = {
   firstName: string;
   lastName: string;
   login: string;
-  role: "teacher" | "student";
+  /** An admin makes teachers and students, the superadmin makes admins. */
+  role: "teacher" | "student" | "admin";
   /** Students only. */
   groupId: string | null;
   /** Blank: the server generates one. */

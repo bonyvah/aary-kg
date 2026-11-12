@@ -1,21 +1,27 @@
-# What an admin can and cannot do
+# What an admin and the superadmin can and cannot do
 
-Decided with the owner: an admin runs the platform, they don't use it.
+Decided with the owner: admins and the superadmin run the platform, they don't use it. An admin looks
+after teachers, students and groups; the superadmin looks after the admins and is the only one who
+corrects games, exams and contests (issue #96). Each sees the other's side read-only.
 
-| | admin | teacher | host of the game |
-|---|---|---|---|
-| Create, disable teachers and students, reset passwords | yes, roles `teacher` and `student` only | no | no |
-| Student groups: create, rename, delete an empty one, move a student | yes | no | n/a |
-| Admins (others and the acting one) | not listed anywhere; refused with `CANNOT_MANAGE_ADMIN` | n/a | n/a |
-| Create quizzes, edit quiz questions and answers | no | yes (own) | yes |
-| Host a game | no | yes (any teacher's quiz, from the bazar too) | yes |
-| Write exam sheets, run exams | no | yes (own) | n/a |
-| See every exam | yes, read-only (`GET /admin/exam-sessions`) | own only | n/a |
-| Take an exam attempt out of the count | yes (kept and shown, logged) | no | n/a |
-| Create a contest | no | yes | n/a |
-| See and manage every contest | yes | own only | n/a |
-| See every finished game | yes (`GET /admin/games`) | own only | read-only report |
-| Correct a finished game's data | yes | no | no, sees a note that an admin did |
+| | superadmin | admin | teacher | host of the game |
+|---|---|---|---|---|
+| Create, disable admins, reset their passwords | yes, role `admin` only | no, `CANNOT_MANAGE_ADMIN` | no | no |
+| Create, disable teachers and students, reset passwords | no, sees them read-only | yes, roles `teacher` and `student` only | no | no |
+| Student groups: create, rename, delete an empty one, move a student | no, sees them read-only | yes | no | n/a |
+| Superadmins (others and the acting one) | not listed anywhere; refused with `CANNOT_MANAGE_ADMIN` | the same | n/a | n/a |
+| Create quizzes, edit quiz questions and answers | no | no | yes (own) | yes |
+| Host a game | no | no | yes (any teacher's quiz, from the bazar too) | yes |
+| Write exam sheets, run exams | no | no | yes (own) | n/a |
+| See every exam | yes, read-only (`GET /admin/exam-sessions`) | yes, read-only | own only | n/a |
+| Take an exam attempt out of the count | yes (kept and shown, logged) | no | no | n/a |
+| Create a contest | no | no | yes | n/a |
+| See every contest | yes | yes, read-only | own only | n/a |
+| Open and close any contest | yes | no | own only | n/a |
+| See every finished game | yes (`GET /admin/games`) | yes, read-only | own only | read-only report |
+| Correct a finished game's data | yes | no | no | no, sees a note that it was corrected |
+
+The superadmin comes from the command line: `python -m app.cli create-superadmin` (`make superadmin`).
 
 Avatars exist only for players. Staff and students are shown by name.
 
@@ -27,12 +33,13 @@ group and the one password they all get (typed, never generated; it follows the 
 A login already in use gets a number (`bek.asanov2`), and its row says whose it is: it may be the
 same student, already here.
 
-The admin area has a tab each for teachers, students and groups. A student is always in exactly one
+The admin area has a tab each for teachers, students and groups; the superadmin also gets an admins tab. A student is always in exactly one
 group (`GROUP_REQUIRED`); a group with students in it can't be deleted (`GROUP_NOT_EMPTY`).
 
 ## Correcting a finished game
 
 `/admin/games/<id>` (API: `/admin/games/{id}/...`, see `backend/app/routers/admin_games.py`).
+Only the superadmin corrects; an admin opens the same page read-only.
 The quiz is never touched, only the data of that game:
 
 - add or take away points (`adjustment`), or set the total;

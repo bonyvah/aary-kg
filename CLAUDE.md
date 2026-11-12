@@ -22,7 +22,8 @@ Small userbase (a handful of admins, a few dozen users). Do not over-engineer.
 ## Product
 
 ### Roles
-- **admin**: few of them. Manages the platform, does not use it: creates/disables teachers (role `teacher` only, never another admin; other admins are listed without actions, the acting admin is not listed), sees all contests and games and can correct a finished game's data (scores, answers, nicknames, flags; every edit is audited, hosts see it read-only). Admins never create quizzes, contests or host games. No self-registration anywhere.
+- **superadmin**: created with the CLI (`create-superadmin`). Creates, disables and resets admins; the only one who corrects game, exam and contest data. Sees teachers, students and groups read-only. Never creates quizzes, contests or hosts games.
+- **admin**: few of them, created by the superadmin. Manages the platform, does not use it: creates/disables teachers and students and manages groups (never another admin or the superadmin, who are not listed), sees all contests, games and exams read-only. Correcting a finished game's data (scores, answers, nicknames, flags; every edit is audited, hosts see it read-only) is the superadmin's. Admins never create quizzes, contests or host games. No self-registration anywhere.
 - **teacher**: created by admin. Creates quizzes, hosts live games, creates contests, can be a jury member.
 - **player**: no account, no auth. Joins a live game with a game PIN + nickname.
 

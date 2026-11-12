@@ -16,6 +16,7 @@ import { describeEdit } from "@/lib/adminGame";
 import type { DetailPlayer, GameDetail } from "@/types/adminGame";
 import { ConfirmModal } from "./ConfirmModal";
 import { PlayerEditModal } from "./PlayerEditModal";
+import { useCurrentUser } from "./SessionProvider";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 
@@ -26,6 +27,8 @@ type Pending = { kind: "removePlayer"; player: DetailPlayer } | { kind: "deleteG
  * anti-cheat signals. The quiz itself stays as it was. Every change is logged below and the host sees it.
  */
 export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
+  // Only the superadmin corrects a game; an admin reads it.
+  const readOnly = useCurrentUser().role !== "superadmin";
   const t = useTranslations("admin.game");
   const tc = useTranslations("common");
   const tf = useTranslations("staff.report.flags");
@@ -95,15 +98,17 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
           <ButtonLink href="/admin" variant="neutral">
             {t("back")}
           </ButtonLink>
-          <Button variant="danger" disabled={busy} onClick={() => setPending({ kind: "deleteGame" })}>
-            {t("deleteGame")}
-          </Button>
+          {readOnly ? null : (
+            <Button variant="danger" disabled={busy} onClick={() => setPending({ kind: "deleteGame" })}>
+              {t("deleteGame")}
+            </Button>
+          )}
         </div>
       </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-h2 font-bold">{t("playersTitle")}</h2>
-        <p className="text-body text-ink-muted">{t("note")}</p>
+        {readOnly ? null : <p className="text-body text-ink-muted">{t("note")}</p>}
         <Table className="min-w-[860px]">
           <thead>
             <tr>
@@ -112,7 +117,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
               <Th className="text-right">{t("columns.score")}</Th>
               <Th>{t("columns.correct")}</Th>
               <Th>{t("columns.signals")}</Th>
-              <Th>{t("columns.actions")}</Th>
+              {readOnly ? null : <Th>{t("columns.actions")}</Th>}
             </tr>
           </thead>
           <tbody>
@@ -147,6 +152,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
                     </span>
                   )}
                 </Td>
+                {readOnly ? null : (
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="secondary" disabled={busy} onClick={() => setEditingId(player.id)}>
@@ -157,6 +163,7 @@ export function AdminGameScreen({ game: initial }: { game: GameDetail }) {
                     </Button>
                   </div>
                 </Td>
+                )}
               </tr>
             ))}
           </tbody>

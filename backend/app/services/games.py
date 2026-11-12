@@ -10,6 +10,7 @@ from app.game import anticheat
 from app.game.models import FinishedGame
 from app.models.game import Game, GamePlayer
 from app.models.user import User
+from app.roles import OVERSEERS
 from app.schemas.game import GameReport, GameSummary
 
 
@@ -66,7 +67,7 @@ async def persist_finished(finished: FinishedGame) -> None:
 
 
 def _visible(game: Game, user: User) -> bool:
-    return user.role == "admin" or game.owner_id == user.id
+    return user.role in OVERSEERS or game.owner_id == user.id
 
 
 async def _summaries(session: AsyncSession, owner_id: uuid.UUID | None) -> list[GameSummary]:

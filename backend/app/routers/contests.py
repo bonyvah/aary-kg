@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Response
 
-from app.deps import AdminUser, Session, StaffUser, TeacherUser
+from app.deps import OverseerUser, Session, StaffUser, TeacherUser
 from app.repositories import contests as repo
 from app.schemas.contest import ContestIn, ContestOut, ResultsOut, ScoreIn
 from app.services import contests as service
@@ -21,7 +21,7 @@ async def my_contests(user: StaffUser, session: Session) -> list[ContestOut]:
 
 
 @router.get("/admin/contests", response_model=list[ContestOut], response_model_by_alias=True)
-async def all_contests(user: AdminUser, session: Session) -> list[ContestOut]:
+async def all_contests(user: OverseerUser, session: Session) -> list[ContestOut]:
     return await service.to_out(session, await repo.list_all(session), user)
 
 

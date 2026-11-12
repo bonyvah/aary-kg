@@ -19,14 +19,16 @@ type AttemptModalProps = {
   sessionId: string;
   studentId: string;
   name: string;
-  /** Admins may make an attempt inactive. */
+  /** An admin or the superadmin: every attempt is listed with its state. */
   admin: boolean;
+  /** Only the superadmin makes an attempt inactive. */
+  canInactivate: boolean;
   onChanged: (session: ExamSession) => void;
   onClose: () => void;
 };
 
 /** A student's attempts: each question with their answer and the correct one, the screen signals, and the log. */
-export function AttemptModal({ sessionId, studentId, name, admin, onChanged, onClose }: AttemptModalProps) {
+export function AttemptModal({ sessionId, studentId, name, admin, canInactivate, onChanged, onClose }: AttemptModalProps) {
   const t = useTranslations("staff.examSession.attempt");
   const tc = useTranslations("common");
   const { toast, show } = useToast();
@@ -62,7 +64,7 @@ export function AttemptModal({ sessionId, studentId, name, admin, onChanged, onC
       }
     >
       <ResourceView resource={resource} inline>
-        {(detail) => <AttemptBody detail={detail} admin={admin} onInactivate={setInactivating} />}
+        {(detail) => <AttemptBody detail={detail} admin={admin} canInactivate={canInactivate} onInactivate={setInactivating} />}
       </ResourceView>
       <ConfirmModal
         open={inactivating !== null}
@@ -82,10 +84,12 @@ export function AttemptModal({ sessionId, studentId, name, admin, onChanged, onC
 function AttemptBody({
   detail,
   admin,
+  canInactivate,
   onInactivate,
 }: {
   detail: AttemptDetail;
   admin: boolean;
+  canInactivate: boolean;
   onInactivate: (attempt: AttemptRecord) => void;
 }) {
   const t = useTranslations("staff.examSession.attempt");
@@ -100,7 +104,7 @@ function AttemptBody({
               <h3 className="text-h3 font-black">{t("number", { number: attempt.number })}</h3>
               {attempt.counts ? <Badge variant="success">{t("counts")}</Badge> : null}
               {attempt.active ? null : <Badge variant="danger">{t("inactive")}</Badge>}
-              {admin && attempt.active && attempt.attemptState === "submitted" ? (
+              {canInactivate && attempt.active && attempt.attemptState === "submitted" ? (
                 <Button variant="danger" onClick={() => onInactivate(attempt)}>
                   {t("inactivate")}
                 </Button>

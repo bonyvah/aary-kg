@@ -69,6 +69,7 @@ export function DashboardScreen() {
 
   return (
     <StaffShell
+      wide
       topRight={
         <div className="flex items-center gap-3">
           <StaffMenu />
@@ -76,15 +77,19 @@ export function DashboardScreen() {
       }
     >
       <h1 className="sr-only">{t("title")}</h1>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <Tabs
+          layout="side"
           idBase={idBase}
           label={t("tabsLabel")}
           tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[720px] flex-1"
+          className="md:sticky md:top-6 md:w-56 md:shrink-0"
         />
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-4">
+            <h2 className="text-h3 font-black">{t(`tabs.${tab}`)}</h2>
         {tab === "quizzes" ? (
           <ButtonLink href="/quizzes/manage/new" variant="success">
             {t("createQuiz")}
@@ -102,7 +107,8 @@ export function DashboardScreen() {
             {t("createContest")}
           </ButtonLink>
         ) : null}
-      </div>
+          </div>
+
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "quizzes" ? (
           <ResourceView resource={quizzes} inline>
@@ -194,6 +200,8 @@ export function DashboardScreen() {
             )}
           </ResourceView>
         )}
+      </div>
+        </div>
       </div>
     </StaffShell>
   );

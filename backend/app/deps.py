@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.errors import ApiError
 from app.models.user import User
+from app.roles import OVERSEERS
 from app.services.auth import user_from_token
 
 COOKIE_NAME = "aary_token"
@@ -28,9 +29,22 @@ async def require_admin(user: Annotated[User, Depends(current_user)]) -> User:
     return user
 
 
+async def require_superadmin(user: Annotated[User, Depends(current_user)]) -> User:
+    if user.role != "superadmin":
+        raise ApiError(403, "FORBIDDEN")
+    return user
+
+
+async def require_overseer(user: Annotated[User, Depends(current_user)]) -> User:
+    """An admin or the superadmin: the read-only overviews of the platform."""
+    if user.role not in OVERSEERS:
+        raise ApiError(403, "FORBIDDEN")
+    return user
+
+
 async def require_staff(user: Annotated[User, Depends(current_user)]) -> User:
-    """Admins and teachers: the staff screens. Anyone else (a student) is refused."""
-    if user.role not in ("admin", "teacher"):
+    """Admins, the superadmin and teachers: the staff screens. Anyone else (a student) is refused."""
+    if user.role not in (*OVERSEERS, "teacher"):
         raise ApiError(403, "FORBIDDEN")
     return user
 
@@ -51,6 +65,8 @@ async def require_student(user: Annotated[User, Depends(current_user)]) -> User:
 
 CurrentUser = Annotated[User, Depends(current_user)]
 AdminUser = Annotated[User, Depends(require_admin)]
+SuperAdminUser = Annotated[User, Depends(require_superadmin)]
+OverseerUser = Annotated[User, Depends(require_overseer)]
 StaffUser = Annotated[User, Depends(require_staff)]
 TeacherUser = Annotated[User, Depends(require_teacher)]
 StudentUser = Annotated[User, Depends(require_student)]

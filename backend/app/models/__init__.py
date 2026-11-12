@@ -4,6 +4,7 @@ from app.models.exam_session import ExamAttempt, ExamAttemptEvent, ExamAudit, Ex
 from app.models.game import Game, GamePlayer
 from app.models.group import Group
 from app.models.quiz import Quiz
+from app.models.survey import Survey, SurveyRespondent, SurveyResponse, SurveySheet, SurveyStudent
 from app.models.user import User
 
 __all__ = [
@@ -20,5 +21,10 @@ __all__ = [
     "GamePlayer",
     "Group",
     "Quiz",
+    "Survey",
+    "SurveyRespondent",
+    "SurveyResponse",
+    "SurveySheet",
+    "SurveyStudent",
     "User",
 ]

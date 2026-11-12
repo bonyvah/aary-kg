@@ -1,8 +1,16 @@
 import type { UserRole } from "@/types/user";
 
+/**
+ * Admins look after teachers, students and groups; the superadmin looks after the admins and corrects games,
+ * exams and contests. Both work in /admin and see the other's side read-only.
+ */
+export function isOverseer(role: UserRole): boolean {
+  return role === "admin" || role === "superadmin";
+}
+
 /** Where each role lands after signing in. */
 export function homePath(role: UserRole): string {
-  return role === "admin" ? "/admin" : role === "student" ? "/student" : "/dashboard";
+  return isOverseer(role) ? "/admin" : role === "student" ? "/student" : "/dashboard";
 }
 
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
@@ -15,7 +23,9 @@ const under = (pathname: string, base: string) => pathname === base || pathname.
  */
 export function redirectFor(role: UserRole, pathname: string): string | null {
   if (role === "student") return under(pathname, "/student") ? null : "/student";
-  if (role === "admin") {
+  // Only admins write and start surveys; the superadmin reads them.
+  if (role === "superadmin" && (under(pathname, "/admin/surveys/sheets") || pathname === "/admin/surveys/new")) return "/admin";
+  if (isOverseer(role)) {
     const blocked =
       under(pathname, "/dashboard") || under(pathname, "/quizzes") || under(pathname, "/exams") || pathname === "/exam-sessions/new" || under(pathname, "/host") || under(pathname, "/student") || pathname === "/contests/new";
     return blocked ? "/admin" : null;

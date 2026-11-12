@@ -765,7 +765,13 @@
       "TOO_MANY_FILES": "Не больше 10 файлов.",
       "LIST_TOO_LONG": "Список слишком длинный: не больше 200 студентов за раз.",
       "NO_STUDENTS_FOUND": "В списке не найдены студенты.",
-      "STUDENTS_INVALID": "Исправьте ошибки в списке."
+      "STUDENTS_INVALID": "Исправьте ошибки в списке.",
+      "SURVEY_NOT_FOUND": "Опрос не найден.",
+      "SURVEY_INVALID": "Бланк опроса заполнен неверно.",
+      "SURVEY_NO_STUDENTS": "В выбранных группах нет студентов.",
+      "SURVEY_CLOSED": "Опрос уже закрыт.",
+      "SURVEY_ALREADY_ANSWERED": "Вы уже ответили на этот опрос.",
+      "SURVEY_ANSWER_INVALID": "Исправьте отмеченные вопросы."
     },
     "toDashboard": "На главную",
     "filters": {
@@ -857,6 +863,7 @@
     "title": "Управление",
     "createTeacher": "Добавить учителя",
     "createStudent": "Добавить студента",
+    "createAdmin": "Добавить администратора",
     "cancel": "Отмена",
     "columns": {
       "name": "Имя",
@@ -878,6 +885,7 @@
       "firstName": "Имя",
       "lastName": "Фамилия",
       "studentTitle": "Новый студент",
+      "adminTitle": "Новый администратор",
       "group": "Группа",
       "groupPick": "Выберите группу",
       "password": "Пароль",
@@ -905,7 +913,8 @@
     "confirmDisable": {
       "title": "Отключить учителя?",
       "body": "{name} больше не сможет войти.",
-      "confirm": "Отключить"
+      "confirm": "Отключить",
+      "adminTitle": "Отключить администратора?"
     },
     "toast": {
       "created": "Учитель добавлен.",
@@ -913,16 +922,21 @@
       "copied": "Пароль скопирован.",
       "copyFailed": "Не удалось скопировать. Выделите пароль вручную.",
       "moved": "Студент переведён в другую группу.",
-      "studentsAdded": "{count, plural, one {Добавлен # студент.} few {Добавлено # студента.} many {Добавлено # студентов.} other {Добавлено # студента.}}"
+      "studentsAdded": "{count, plural, one {Добавлен # студент.} few {Добавлено # студента.} many {Добавлено # студентов.} other {Добавлено # студента.}}",
+      "adminCreated": "Администратор добавлен.",
+      "adminDisabled": "Администратор отключён."
     },
     "tabsLabel": "Разделы",
     "tabs": {
+      "admins": "Администраторы",
       "teachers": "Учителя",
       "students": "Студенты",
       "groups": "Группы",
       "exams": "Экзамены",
       "contests": "Конкурсы",
-      "games": "Игры"
+      "games": "Игры",
+      "surveySheets": "Бланки опросов",
+      "surveys": "Опросы"
     },
     "contests": {
       "title": "Название",
@@ -1097,6 +1111,102 @@
         "UNSUPPORTED_FILE": "Такой файл не подходит: нужен Word (.docx), Excel (.xlsx) или текст.",
         "AI_NOT_CONFIGURED": "Чтение списка не настроено.",
         "AI_FAILED": "Не удалось прочитать список. Попробуйте ещё раз."
+      }
+    },
+    "surveys": {
+      "sheets": {
+        "title": "Бланки опросов",
+        "new": "Новый бланк",
+        "empty": "Бланков пока нет",
+        "name": "Название",
+        "questions": "Вопросы"
+      },
+      "editor": {
+        "back": "Назад",
+        "delete": "Удалить",
+        "save": "Сохранить",
+        "title": "Название опроса",
+        "addQuestion": "Добавить вопрос",
+        "deleteTitle": "Удалить бланк?",
+        "deleteBody": "«{title}» исчезнет из списка. Проведённые опросы сохранятся.",
+        "cancel": "Отмена",
+        "saved": "Бланк сохранён.",
+        "saveFailed": "Исправьте отмеченные поля.",
+        "question": "Вопрос {number}",
+        "moveUp": "Выше",
+        "moveDown": "Ниже",
+        "removeQuestion": "Удалить вопрос",
+        "kind": "Тип вопроса",
+        "kinds": {
+          "single": "Один ответ",
+          "multi": "Несколько ответов",
+          "open": "Свободный ответ"
+        },
+        "required": "Обязательный",
+        "text": "Вопрос",
+        "maxWords": "Максимум слов",
+        "limit": "Сколько выбрать",
+        "limitMin": "Мин",
+        "limitMax": "Макс",
+        "choices": "Варианты",
+        "choice": "Вариант {number}",
+        "removeChoice": "Удалить вариант",
+        "addChoice": "Добавить вариант",
+        "start": "Запустить"
+      },
+      "errors": {
+        "FIELD_REQUIRED": "Заполните поле.",
+        "LIMIT_RANGE": "Мин не должен быть больше макс.",
+        "LIMIT_TOO_HIGH": "Не больше {max}.",
+        "TOO_MANY_WORDS": "Не больше {max} слов.",
+        "TOO_MANY_CHOICES": "Не больше {max} вариантов.",
+        "TOO_MANY_QUESTIONS": "Не больше {max} вопросов."
+      },
+      "status": {
+        "open": "Идёт",
+        "closed": "Закрыт"
+      },
+      "list": {
+        "title": "Опросы",
+        "start": "Запустить опрос",
+        "empty": "Опросов пока нет",
+        "name": "Опрос",
+        "groups": "Группы",
+        "opened": "Начат",
+        "status": "Статус",
+        "answered": "Ответили"
+      },
+      "start": {
+        "back": "Назад",
+        "title": "Запуск опроса",
+        "start": "Запустить",
+        "sheet": "Бланк опроса",
+        "noSheets": "Бланков нет",
+        "groups": "Группы",
+        "studentCount": "{count, plural, one {# студент} few {# студента} many {# студентов} other {# студента}}"
+      },
+      "results": {
+        "back": "Назад",
+        "close": "Закрыть опрос",
+        "closeTitle": "Закрыть опрос?",
+        "closeBody": "После закрытия ответить уже нельзя.",
+        "cancel": "Отмена",
+        "answered": "Ответили {answered} из {total}",
+        "who": "Кто",
+        "whoDone": "Закончили",
+        "whoPending": "Не закончили",
+        "whoNobody": "Никого нет",
+        "closeDialog": "Закрыть",
+        "mandatory": "Обязательный",
+        "optional": "Необязательный",
+        "reopen": "Открыть снова",
+        "reopenTitle": "Открыть опрос снова?",
+        "reopenBody": "Студенты снова смогут отвечать.",
+        "delete": "Удалить",
+        "deleteTitle": "Удалить опрос?",
+        "deleteBody": "Опрос и его ответы ({count}) исчезнут из списков.",
+        "allAnswers": "Все ответы ({count})",
+        "questionAnswered": "{count, plural, one {# ответ} few {# ответа} many {# ответов} other {# ответа}}"
       }
     }
   },
@@ -1289,6 +1399,33 @@
         "notCounted": "Не засчитан"
       },
       "startAgain": "Начать заново"
+    },
+    "survey": {
+      "title": "Опросы",
+      "back": "Назад",
+      "meta": "{count, plural, one {# вопрос} few {# вопроса} many {# вопросов} other {# вопроса}}",
+      "state": {
+        "open": "Ждёт ответа",
+        "answered": "Отвечено",
+        "closed": "Закрыт"
+      },
+      "answered": "Ответ отправлен. Спасибо!",
+      "closed": "Опрос закрыт.",
+      "required": "Обязательный вопрос",
+      "send": "Отправить",
+      "save": "Сохранить",
+      "saved": "Ответы сохранены.",
+      "cancel": "Отмена",
+      "fix": "Исправьте отмеченные вопросы.",
+      "confirmTitle": "Отправить ответы?",
+      "confirmBody": "Пока опрос не закрыт, ответы можно изменить.",
+      "errors": {
+        "ANSWER_REQUIRED": "Ответьте на этот вопрос.",
+        "TOO_FEW": "Выберите не меньше {n}.",
+        "TOO_MANY": "Выберите не больше {n}.",
+        "TOO_LONG": "Не больше {max, plural, one {# слова} other {# слов}}.",
+        "ANSWER_INVALID": "Этот ответ не подходит."
+      }
     }
   }
 }

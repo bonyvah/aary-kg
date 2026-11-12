@@ -6,18 +6,21 @@ import { Exam } from "@phosphor-icons/react/ssr";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { listStudentExams } from "@/lib/api/studentExams";
+import { listStudentSurveys } from "@/lib/api/studentSurveys";
 import { useDateTime } from "@/lib/useDateTime";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
 import { StudentExamBadge } from "./StudentExamBadge";
+import { StudentSurveyCards } from "./StudentSurveyCards";
 
-/** Where a student lands after signing in: their exams, open ones first. */
+/** Where a student lands after signing in: their surveys (when they have any) and exams, open ones first. */
 export function StudentHomeScreen() {
   const t = useTranslations("student.home");
   const te = useTranslations("student.exam");
   const dateTime = useDateTime();
   const exams = useResource(listStudentExams);
+  const surveys = useResource(listStudentSurveys);
 
   return (
     <StaffShell
@@ -27,6 +30,9 @@ export function StudentHomeScreen() {
         </div>
       }
     >
+      <ResourceView resource={surveys} inline>
+        {(items) => (items.length > 0 ? <StudentSurveyCards surveys={items} /> : null)}
+      </ResourceView>
       <h1 className="text-h1 font-black">{t("title")}</h1>
       <ResourceView resource={exams} inline>
         {(items) =>

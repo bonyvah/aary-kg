@@ -59,6 +59,8 @@ for (const path of ["/dashboard", "/quizzes", "/quizzes/new", "/quizzes/abc", "/
   check(`an admin is sent away from ${path}`, redirectFor("admin", path) === "/admin");
 for (const path of ["/admin", "/admin/games/abc", "/contests/abc", "/reports/abc", "/exam-sessions/abc"])
   check(`an admin may open ${path}`, redirectFor("admin", path) === null);
+check("the superadmin lands on /admin", homePath("superadmin") === "/admin");
+check("the superadmin is routed like an admin", ["/dashboard", "/quizzes/new", "/host/abc", "/contests/new", "/student"].every((path) => redirectFor("superadmin", path) === "/admin") && ["/admin", "/admin/games/abc", "/contests/abc", "/exam-sessions/abc"].every((path) => redirectFor("superadmin", path) === null));
 check("a teacher is sent away from /admin and below", redirectFor("teacher", "/admin") === "/dashboard" && redirectFor("teacher", "/admin/games/abc") === "/dashboard");
 check("students land on /student", homePath("student") === "/student");
 check("a student keeps their own area", ["/student", "/student/exams/abc"].every((path) => redirectFor("student", path) === null));

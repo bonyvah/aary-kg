@@ -13,7 +13,7 @@ export function TabsDemo({ idBase }: { idBase: string }) {
   const [tab, setTab] = useState<Id>("buttons");
 
   return (
-    <div className="flex max-w-[480px] flex-col gap-4">
+    <div className="flex max-w-[640px] flex-col gap-4">
       <Tabs
         idBase={idBase}
         label={t("section.tabs")}
@@ -24,6 +24,20 @@ export function TabsDemo({ idBase }: { idBase: string }) {
       <p id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)} className="text-body-lg">
         {t(`section.${tab}`)}
       </p>
+      <div className="flex flex-col gap-4 md:flex-row">
+        <Tabs
+          layout="side"
+          idBase={`${idBase}-side`}
+          label={t("section.tabs")}
+          tabs={IDS.map((id) => ({ id, label: t(`section.${id}`) }))}
+          value={tab}
+          onChange={setTab}
+          className="md:w-56 md:shrink-0"
+        />
+        <p id={panelId(`${idBase}-side`)} role="tabpanel" aria-labelledby={tabId(`${idBase}-side`, tab)} className="text-body-lg">
+          {t(`section.${tab}`)}
+        </p>
+      </div>
       <Select label={t("section.select")}>
         <option>{t("state.rest")}</option>
         <option>{t("state.locked")}</option>

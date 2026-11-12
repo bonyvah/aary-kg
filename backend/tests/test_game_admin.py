@@ -22,7 +22,7 @@ async def finished(client, as_user):
         game, [(ids["Aida"], [1, 2]), (ids["Bek"], [1, 4]), (ids["Cholpon"], [3])], started=True
     )
     await asyncio.sleep(0.15)
-    admin, _ = await as_user("root", role="admin")
+    admin, _ = await as_user("root", role="superadmin")
     gid = game["gameId"]
 
     async def fetch():
@@ -373,10 +373,28 @@ async def test_a_flat_game_stays_flat_when_corrected(client, as_user):
         game, [(ids["Aida"], [1, 2]), (ids["Bek"], [1, 4]), (ids["Cholpon"], [3])], started=True
     )
     await asyncio.sleep(0.15)
-    admin, _ = await as_user("root", role="admin")
+    admin, _ = await as_user("root", role="superadmin")
     url = f"/admin/games/{game['gameId']}"
     ranks = lambda d: {p["nickname"]: (p["score"], p["rank"]) for p in d["players"]}  # noqa: E731
     assert ranks((await admin.get(url)).json()) == {"Aida": (2, 1), "Bek": (1, 2), "Cholpon": (0, 3)}
     # Bek's q2 counted as right after all: 1 point, and he shares first place with Aida
     r = await admin.patch(f"{url}/players/{ids['Bek']}/answers/q2", json={"correct": True})
     assert ranks(r.json()) == {"Aida": (2, 1), "Bek": (2, 1), "Cholpon": (0, 3)}
+
+
+async def test_an_admin_reads_a_finished_game_but_only_the_superadmin_corrects_it(finished, as_user):
+    f = finished
+    reader, _ = await as_user("boss", role="admin")
+    assert (await reader.get(f.url)).status_code == 200
+    bek = f.ids["Bek"]
+    for method, path, body in (
+        ("post", f"{f.url}/players/{bek}/adjust", {"delta": 1}),
+        ("put", f"{f.url}/players/{bek}/score", {"score": 1}),
+        ("patch", f"{f.url}/players/{bek}/answers/q2", {"correct": True}),
+        ("patch", f"{f.url}/players/{bek}", {"nickname": "Bekzat"}),
+        ("delete", f"{f.url}/players/{bek}", None),
+        ("delete", f.url, None),
+    ):
+        kwargs = {"json": body} if body is not None else {}
+        r = await getattr(reader, method)(path, **kwargs)
+        assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN"), path

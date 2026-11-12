@@ -25,7 +25,12 @@ The interface is available in Kyrgyz and Russian.
 - A teacher writes an exam sheet (by hand, from a quiz or from teaching material) and starts it for student groups, with attendance.
 - An admin adds students one by one or from a list: a Word or Excel file or pasted text, read by OpenAI into first name, last name and login whatever the order of the names. The admin corrects the proposal, picks the group and one password for all of them.
 - Students sign in and take it against the server's clock, in full screen. After the close they see their score and the correct answers.
-- The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins see every exam read-only, except that they can take an attempt out of the count (logged).
+- The teacher sees the results and the anti-cheat signals, rules on them, and can grant a second attempt (logged). Admins and the superadmin see every exam read-only, except that the superadmin can take an attempt out of the count (logged).
+
+### Anonymous surveys
+- An admin writes a survey sheet: single choice, multiple select (any number, at least, at most or exactly N) and open-ended questions (up to 100 words), each mandatory or optional, 2 to 30 choices.
+- The admin starts it for student groups and closes it by hand. Every student answers once, all at once, at `/student`.
+- Anonymous by design: the server keeps who answered and what was answered in two tables with no link and no time between them. The results show answered X of Y, a count per choice and the open answers in a random order. The superadmin sees surveys read-only.
 
 ### Contests
 - A teacher creates a contest and invites juries (other teachers).
@@ -36,9 +41,10 @@ The interface is available in Kyrgyz and Russian.
 
 | Role   | How they get in               | What they can do                                                  |
 |--------|-------------------------------|-------------------------------------------------------------------|
-| Admin  | Seeded with the CLI           | Create and disable teachers and students (never admins, who aren't listed), manage student groups, set or generate passwords, see all contests, games and exams and correct a finished game's data. Does not create quizzes or contests or host games |
+| Superadmin | Seeded with the CLI       | Create and disable admins and set their passwords, correct a finished game's data, open or close any contest, take an exam attempt out of the count. Sees teachers, students and groups read-only |
+| Admin  | Created by the superadmin, or with the CLI | Create and disable teachers and students, manage student groups, set or generate passwords, write and run anonymous surveys, see all contests, games and exams read-only. Does not create quizzes or contests or host games |
 | Teacher| Created by an admin           | Create quizzes and exam sheets, host games, run exams, create contests, act as jury |
-| Student| Created by an admin, in a group | Take exams at `/student`                                       |
+| Student| Created by an admin, in a group | Take exams and answer surveys at `/student`                    |
 | Player | No auth, joins with a PIN     | Join and play live games                                          |
 
 There is no public registration. Accounts are created by admins.
@@ -82,10 +88,11 @@ Needs Docker (with compose), [uv](https://docs.astral.sh/uv/), pnpm and Node 22.
 
 ```bash
 make up                                          # Postgres, Redis, MinIO, migrations, backend, web app
-make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova # first time: prints a password once
+make superadmin LOGIN=aizhan FIRST=Aizhan LAST=Bekova # first time: prints a password once
+make admin LOGIN=bolot FIRST=Bolot LAST=Asanov        # or create admins from the superadmin's Admins tab
 ```
 
-The admin only manages: sign in at `/login`, create a teacher (Admin area, Teachers tab), then sign in as that teacher to build quizzes and host games. Students go in a group (Groups tab first, then the Students tab).
+Neither the superadmin nor an admin uses the platform: sign in as the superadmin at `/login` and create an admin (Admins tab), sign in as that admin and create a teacher (Teachers tab), then sign in as that teacher to build quizzes and host games. Students go in a group (Groups tab first, then the Students tab).
 
 Images work out of the box: MinIO stands in for R2 (console at http://localhost:9001, `minioadmin` / `minioadmin`). Questions from material and student lists need `OPENAI_API_KEY` in `backend/.env`.
 
@@ -102,7 +109,8 @@ cd backend
 cp .env.example .env                              # development settings
 uv sync
 uv run alembic upgrade head
-uv run python -m app.cli create-admin --login aizhan --first-name Aizhan --last-name Bekova   # prints a password once
+uv run python -m app.cli create-superadmin --login aizhan --first-name Aizhan --last-name Bekova   # prints a password once
+uv run python -m app.cli create-admin --login bolot --first-name Bolot --last-name Asanov          # an admin, the same way
 uv run uvicorn app.main:app --reload --port 8000 --no-proxy-headers       # always with --no-proxy-headers
 
 cd ../frontend
@@ -138,7 +146,7 @@ GitHub Actions runs the first two groups on every push to `main`.
 | | |
 |---|---|
 | `CLAUDE.md` | the rules of the project |
-| `docs/admin.md` | what an admin can and cannot do |
+| `docs/admin.md` | what an admin and the superadmin can and cannot do |
 | `docs/protocol.md` | how a live game talks (WebSocket messages, scoring, anti-cheat, rate limits) |
 | `docs/contest-scoring.md` | how a contest is scored and ranked |
 | `docs/deploy.md` | running it in containers, what a proxy in front must do, backups |

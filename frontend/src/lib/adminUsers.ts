@@ -96,7 +96,7 @@ function randomIndex(max: number): number {
   return (values[0] ?? 0) % max;
 }
 
-export type UserFilter = { query: string; role: Exclude<UserRole, "admin">; groupId: string };
+export type UserFilter = { query: string; role: Exclude<UserRole, "superadmin">; groupId: string };
 
 /**
  * The users on a tab: one role, for students by group ("" = any), then by name or login, best first.

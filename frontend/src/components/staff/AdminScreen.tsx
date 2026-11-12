@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useDateTime } from "@/lib/useDateTime";
 import { useStoredTab } from "@/lib/useStoredTab";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SearchInput } from "@/components/ui/Input";
@@ -40,19 +41,29 @@ import { PasswordModal } from "./PasswordModal";
 import { ResourceView, useResource } from "./Resource";
 import { StaffMenu } from "./StaffMenu";
 import { StaffShell } from "./StaffShell";
+import { SheetsList, SurveysList } from "./SurveysPanel";
+import { useCurrentUser } from "./SessionProvider";
 
 type Pending = { kind: "disable"; user: ManagedUser } | null;
 
 // Rows per page in the tables.
 const TABLE_PAGE = 20;
 
-const TABS = ["teachers", "students", "groups", "exams", "contests", "games"] as const;
-type Tab = (typeof TABS)[number];
+const TABS = ["teachers", "students", "groups", "exams", "surveySheets", "surveys", "contests", "games"] as const;
+// The superadmin manages the admins and sees the rest read-only; the survey sheets are the admin's to write.
+const SUPERADMIN_TABS = ["admins", ...TABS.filter((tab) => tab !== "surveySheets")] as const;
+type Tab = (typeof TABS)[number] | (typeof SUPERADMIN_TABS)[number];
 
 export function AdminScreen() {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
-  const [tab, setStoredTab] = useStoredTab<Tab>("aary.adminTab", TABS, "teachers");
+  const superadmin = useCurrentUser().role === "superadmin";
+  const tabs: readonly Tab[] = superadmin ? SUPERADMIN_TABS : TABS;
+  const [tab, setStoredTab] = useStoredTab<Tab>(
+    superadmin ? "aary.superadminTab" : "aary.adminTab",
+    tabs,
+    superadmin ? "admins" : "teachers",
+  );
   const allContests = useResource(listAllContests);
   const allGames = useResource(listAllGames);
   const allExams = useResource(listAllExamSessions);
@@ -79,7 +90,10 @@ export function AdminScreen() {
     setStoredTab(next);
     setFilter(() => ({ query: "", groupId: "" }));
   };
-  const role: UserFilter["role"] | null = tab === "teachers" ? "teacher" : tab === "students" ? "student" : null;
+  const role: UserFilter["role"] | null =
+    tab === "admins" ? "admin" : tab === "teachers" ? "teacher" : tab === "students" ? "student" : null;
+  // An admin acts on teachers and students, the superadmin on admins only.
+  const canAct = superadmin ? role === "admin" : role !== null;
   const filter: UserFilter = { ...search, role: role ?? "teacher" };
   // The password lives here only until the modal closes: it is never stored on the user.
   const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null);
@@ -117,7 +131,7 @@ export function AdminScreen() {
     setUsers((current) => [...(current ?? []), created.user]);
     setCreating(null);
     setRevealed({ name: created.user.name, password: created.password });
-    show("success", t("toast.created"));
+    show("success", t(created.user.role === "admin" ? "toast.adminCreated" : "toast.created"));
   }
 
   function studentsAdded(created: readonly ManagedUser[]) {
@@ -130,7 +144,7 @@ export function AdminScreen() {
     try {
       const updated = await api.disableUser(user.id);
       setUsers((current) => (current ?? []).map((item) => (item.id === updated.id ? updated : item)));
-      show("success", t("toast.disabled"));
+      show("success", t(updated.role === "admin" ? "toast.adminDisabled" : "toast.disabled"));
     } catch (error) {
       fail(error);
     }
@@ -175,6 +189,7 @@ export function AdminScreen() {
 
   return (
     <StaffShell
+      wide
       topRight={
         <div className="flex items-center gap-3">
           <StaffMenu />
@@ -182,19 +197,37 @@ export function AdminScreen() {
       }
     >
       <h1 className="sr-only">{t("title")}</h1>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <Tabs
+          layout="side"
           idBase={idBase}
           label={t("tabsLabel")}
-          tabs={TABS.map((id) => ({ id, label: t(`tabs.${id}`) }))}
+          tabs={tabs.map((id) => ({ id, label: t(`tabs.${id}`) }))}
           value={tab}
           onChange={setTab}
-          className="max-w-[820px] flex-1"
+          className="md:sticky md:top-6 md:w-56 md:shrink-0"
         />
-        {tab === "groups" ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-4">
+            <h2 className="text-h3 font-black">{t(`tabs.${tab}`)}</h2>
+        {superadmin ? (
+          tab === "admins" ? (
+            <Button variant="success" onClick={() => setCreating("admin")}>
+              {t("createAdmin")}
+            </Button>
+          ) : null
+        ) : tab === "groups" ? (
           <Button variant="success" onClick={() => setAddingGroup(true)}>
             {t("groups.add")}
           </Button>
+        ) : tab === "surveys" ? (
+          <ButtonLink href="/admin/surveys/new" variant="primary">
+            {t("surveys.list.start")}
+          </ButtonLink>
+        ) : tab === "surveySheets" ? (
+          <ButtonLink href="/admin/surveys/sheets/new" variant="success">
+            {t("surveys.sheets.new")}
+          </ButtonLink>
         ) : tab === "teachers" ? (
           <Button variant="success" onClick={() => setCreating("teacher")}>
             {t("createTeacher")}
@@ -209,11 +242,11 @@ export function AdminScreen() {
             </Button>
           </div>
         ) : null}
-      </div>
+          </div>
 
       <div id={panelId(idBase)} role="tabpanel" aria-labelledby={tabId(idBase, tab)}>
         {tab === "groups" ? (
-          <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} />
+          <AdminGroups adding={addingGroup} onAddingClose={() => setAddingGroup(false)} show={show} readOnly={superadmin} />
         ) : tab === "games" ? (
           <ResourceView resource={allGames} inline>
             {(items) => (
@@ -227,6 +260,10 @@ export function AdminScreen() {
               </FilteredList>
             )}
           </ResourceView>
+        ) : tab === "surveySheets" ? (
+          <SheetsList />
+        ) : tab === "surveys" ? (
+          <SurveysList />
         ) : tab === "exams" ? (
           <ResourceView resource={allExams} inline>
             {(items) => (
@@ -300,7 +337,7 @@ export function AdminScreen() {
               <Th>{t("columns.login")}</Th>
               {role === "student" ? <Th>{t("columns.group")}</Th> : null}
               <Th>{t("columns.created")}</Th>
-              <Th>{t("columns.actions")}</Th>
+              {canAct ? <Th>{t("columns.actions")}</Th> : null}
             </tr>
           </thead>
           <tbody>
@@ -315,6 +352,7 @@ export function AdminScreen() {
                 <Td className="whitespace-nowrap">
                   {dateTime(new Date(user.createdAt), { time: false })}
                 </Td>
+                {canAct ? (
                 <Td>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
@@ -335,6 +373,7 @@ export function AdminScreen() {
                     </Button>
                   </div>
                 </Td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -343,6 +382,8 @@ export function AdminScreen() {
         <Pagination page={userPage} pages={userPages} onChange={setUsersPage} />
         </div>
         )}
+      </div>
+        </div>
       </div>
 
       <CreateUserModal role={creating} existing={users ?? []} groups={groups} onClose={() => setCreating(null)} onCreate={createUser} />
@@ -358,7 +399,7 @@ export function AdminScreen() {
       />
       <ConfirmModal
         open={pending !== null}
-        title={t("confirmDisable.title")}
+        title={t(pending?.user.role === "admin" ? "confirmDisable.adminTitle" : "confirmDisable.title")}
         body={t("confirmDisable.body", { name: pending?.user.name ?? "" })}
         confirmLabel={t("confirmDisable.confirm")}
         cancelLabel={t("cancel")}

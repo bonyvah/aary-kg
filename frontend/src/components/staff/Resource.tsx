@@ -39,7 +39,7 @@ export function useResource<T>(load: () => Promise<T>) {
 
 /** A failed load that is just «nothing there»: the link was old, or the item isn't yours. */
 function isMissing(code: KnownApiCode) {
-  return code === "QUIZ_NOT_FOUND" || code === "CONTEST_NOT_FOUND" || code === "GAME_NOT_FOUND";
+  return code === "QUIZ_NOT_FOUND" || code === "CONTEST_NOT_FOUND" || code === "GAME_NOT_FOUND" || code === "SURVEY_NOT_FOUND";
 }
 
 type ResourceViewProps<T> = {

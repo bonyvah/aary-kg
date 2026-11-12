@@ -20,10 +20,12 @@ type AdminGroupsProps = {
   adding: boolean;
   onAddingClose: () => void;
   show: (variant: "success" | "danger", message: string) => void;
+  /** The superadmin sees the groups but doesn't change them. */
+  readOnly?: boolean;
 };
 
 /** The groups tab of /admin: create, rename, delete. A group with students is not deleted. */
-export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
+export function AdminGroups({ adding, onAddingClose, show, readOnly = false }: AdminGroupsProps) {
   const t = useTranslations("admin.groups");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -82,7 +84,7 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                   <Th>{t("columns.name")}</Th>
                   <Th className="text-right">{t("columns.students")}</Th>
                   <Th>{t("columns.created")}</Th>
-                  <Th>{t("columns.actions")}</Th>
+                  {readOnly ? null : <Th>{t("columns.actions")}</Th>}
                 </tr>
               </thead>
               <tbody>
@@ -94,6 +96,7 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                     </Td>
                     <Td className="text-right tabular-nums">{group.studentCount}</Td>
                     <Td className="whitespace-nowrap">{dateTime(new Date(group.createdAt), { time: false })}</Td>
+                    {readOnly ? null : (
                     <Td>
                       <div className="flex flex-wrap items-center gap-2">
                         <Button
@@ -114,6 +117,7 @@ export function AdminGroups({ adding, onAddingClose, show }: AdminGroupsProps) {
                         </Button>
                       </div>
                     </Td>
+                    )}
                   </tr>
                 ))}
               </tbody>

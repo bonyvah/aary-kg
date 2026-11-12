@@ -94,7 +94,7 @@ export function CreateUserModal({ role, existing, groups, onClose, onCreate }: C
     <Modal
       open={open}
       onClose={onClose}
-      title={t(student ? "studentTitle" : "title")}
+      title={t(student ? "studentTitle" : role === "admin" ? "adminTitle" : "title")}
       actions={
         <>
           <Button variant="neutral" onClick={onClose}>

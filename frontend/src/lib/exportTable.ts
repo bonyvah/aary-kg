@@ -13,13 +13,46 @@ export type ExportTable = {
   rows: ExportCell[][];
 };
 
+/**
+ * A report instead of one table: sections, each a heading with a line under it and then a table without
+ * headers. A row of one cell (an open answer) runs the full width; a row of three is label, count, share.
+ */
+export type ExportSection = { heading: string; meta?: string; rows: ExportCell[][] };
+export type ExportReport = { title: string; subtitle?: string; sections: ExportSection[] };
+
+const isReport = (table: ExportTable | ExportReport): table is ExportReport => "sections" in table;
+
 /** Letters, digits and dashes from the title. */
 export function exportName(title: string, extension: "xlsx" | "pdf"): string {
   const base = title.trim().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 60);
   return `${base || "results"}.${extension}`;
 }
 
-export async function downloadXlsx(table: ExportTable): Promise<void> {
+const BORDER = "#c8c4d2";
+
+async function reportXlsx(report: ExportReport): Promise<void> {
+  const { default: writeXlsxFile } = await import("write-excel-file/browser");
+  const edge = { borderColor: BORDER, borderStyle: "thin" as const };
+  const data: unknown[][] = [[{ value: report.title, fontWeight: "bold", fontSize: 16, columnSpan: 3, wrap: true }, null, null]];
+  if (report.subtitle) data.push([{ value: report.subtitle, columnSpan: 3, wrap: true, color: "#6e6e6e" }, null, null]);
+  for (const section of report.sections) {
+    data.push([]);
+    data.push([{ value: section.heading, fontWeight: "bold", fontSize: 12, columnSpan: 3, wrap: true, backgroundColor: "#ebe8f2" }, null, null]);
+    if (section.meta) data.push([{ value: section.meta, columnSpan: 3, color: "#6e6e6e" }, null, null]);
+    for (const row of section.rows) {
+      data.push(
+        row.length === 1
+          ? [{ value: row[0], columnSpan: 3, wrap: true, alignVertical: "top" as const, ...edge }, null, null]
+          : row.map((value, i) => ({ value, wrap: true, alignVertical: "top" as const, align: i === 0 ? ("left" as const) : ("right" as const), ...edge })),
+      );
+    }
+  }
+  const columns = [{ width: 70 }, { width: 12 }, { width: 12 }];
+  await writeXlsxFile(data as never, { columns, sheet: report.title.slice(0, 31) || "Sheet1" }).toFile(exportName(report.title, "xlsx"));
+}
+
+export async function downloadXlsx(table: ExportTable | ExportReport): Promise<void> {
+  if (isReport(table)) return reportXlsx(table);
   const { default: writeXlsxFile } = await import("write-excel-file/browser");
   const header = table.headers.map((value) => ({ value, fontWeight: "bold" as const }));
   const rows = table.rows.map((row) => row.map((value) => ({ value })));
@@ -41,18 +74,101 @@ const MARGIN = 36;
 const LINE = 13;
 const CELL_PAD = 4;
 
-/** A landscape A4 table with the Kyrgyz and Russian letters (DejaVu Sans, shipped in /fonts). */
-export async function downloadPdf(table: ExportTable): Promise<void> {
+async function newPdf(orientation: "landscape" | "portrait") {
   const [{ jsPDF }, regular, bold] = await Promise.all([
     import("jspdf"),
     fontBase64("/fonts/DejaVuSans.ttf"),
     fontBase64("/fonts/DejaVuSans-Bold.ttf"),
   ]);
-  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  const doc = new jsPDF({ orientation, unit: "pt", format: "a4" });
   doc.addFileToVFS("DejaVuSans.ttf", regular);
   doc.addFont("DejaVuSans.ttf", "DejaVu", "normal");
   doc.addFileToVFS("DejaVuSans-Bold.ttf", bold);
   doc.addFont("DejaVuSans-Bold.ttf", "DejaVu", "bold");
+  return doc;
+}
+
+/** Portrait A4: the title, then per section its heading, a grey line and a table without headers. */
+async function reportPdf(report: ExportReport): Promise<void> {
+  const doc = await newPdf("portrait");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const usable = pageWidth - MARGIN * 2;
+  const widths = [usable * 0.7, usable * 0.15, usable * 0.15];
+  let y = MARGIN;
+
+  const lines = (text: string, size: number, bold: boolean, width: number) => {
+    doc.setFont("DejaVu", bold ? "bold" : "normal");
+    doc.setFontSize(size);
+    return doc.splitTextToSize(text, width) as string[];
+  };
+  const room = (height: number) => {
+    if (y + height <= pageHeight - MARGIN) return;
+    doc.addPage();
+    y = MARGIN;
+  };
+
+  const title = lines(report.title, 16, true, usable);
+  doc.text(title, MARGIN, y + 14);
+  y += title.length * 20;
+  if (report.subtitle) {
+    const sub = lines(report.subtitle, 9, false, usable);
+    doc.setTextColor(110, 110, 110);
+    doc.text(sub, MARGIN, y + 8);
+    doc.setTextColor(0, 0, 0);
+    y += sub.length * LINE + 4;
+  }
+  y += 10;
+
+  for (const section of report.sections) {
+    const heading = lines(section.heading, 11, true, usable - 12);
+    const meta = section.meta ? lines(section.meta, 8, false, usable - 12) : [];
+    const first = section.rows[0] ?? [];
+    const firstHeight = (first.length === 1 ? lines(String(first[0]), 9, false, usable - CELL_PAD * 2).length : 1) * LINE + CELL_PAD * 2;
+    const headHeight = heading.length * 15 + meta.length * 11 + 10;
+    // The heading never stays alone at the bottom of a page.
+    room(headHeight + firstHeight);
+    doc.setFillColor(235, 232, 242);
+    doc.rect(MARGIN, y, usable, headHeight, "F");
+    lines(section.heading, 11, true, usable - 12);
+    doc.text(heading, MARGIN + 6, y + 14);
+    if (meta.length > 0) {
+      lines(section.meta ?? "", 8, false, usable - 12);
+      doc.setTextColor(110, 110, 110);
+      doc.text(meta, MARGIN + 6, y + 14 + (heading.length - 1) * 15 + 12);
+      doc.setTextColor(0, 0, 0);
+    }
+    y += headHeight;
+
+    for (const row of section.rows) {
+      const span = row.length === 1;
+      const cells = span ? [usable] : widths;
+      const wrapped = row.map((cell, i) => lines(String(cell ?? ""), 9, false, cells[i]! - CELL_PAD * 2));
+      const height = Math.max(1, ...wrapped.map((l) => l.length)) * LINE + CELL_PAD * 2;
+      room(height);
+      let x = MARGIN;
+      wrapped.forEach((cellLines, i) => {
+        doc.setDrawColor(200, 196, 210);
+        doc.rect(x, y, cells[i]!, height);
+        doc.setFont("DejaVu", "normal");
+        doc.setFontSize(9);
+        cellLines.forEach((text, n) => {
+          const right = i > 0;
+          doc.text(text, right ? x + cells[i]! - CELL_PAD : x + CELL_PAD, y + CELL_PAD + LINE * (n + 1) - 3, right ? { align: "right" } : undefined);
+        });
+        x += cells[i]!;
+      });
+      y += height;
+    }
+    y += 14;
+  }
+  doc.save(exportName(report.title, "pdf"));
+}
+
+/** A landscape A4 table with the Kyrgyz and Russian letters (DejaVu Sans, shipped in /fonts). */
+export async function downloadPdf(table: ExportTable | ExportReport): Promise<void> {
+  if (isReport(table)) return reportPdf(table);
+  const doc = await newPdf("landscape");
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

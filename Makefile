@@ -11,7 +11,7 @@ export BACKEND_PORT FRONTEND_PORT
 COMPOSE := docker compose
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart status logs db db-stop install env migrate admin test check e2e clean reset-db
+.PHONY: help up down restart status logs db db-stop install env migrate superadmin admin test check e2e clean reset-db
 
 help: ## show this list
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[1m%-10s\033[0m %s\n", $$1, $$2}'
@@ -72,6 +72,10 @@ env: ## create backend/.env from the example, once (for tools run on this machin
 
 migrate: ## apply database migrations (they also run whenever the backend container starts)
 	@$(COMPOSE) exec backend alembic upgrade head
+
+superadmin: ## create the superadmin: make superadmin LOGIN=aizhan FIRST=Aizhan LAST=Bekova (prints a password once)
+	@test -n "$(LOGIN)" -a -n "$(FIRST)" -a -n "$(LAST)" || { echo 'usage: make superadmin LOGIN=aizhan FIRST=Aizhan LAST=Bekova'; exit 2; }
+	@$(COMPOSE) exec backend python -m app.cli create-superadmin --login "$(LOGIN)" --first-name "$(FIRST)" --last-name "$(LAST)"
 
 admin: ## create an admin: make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova (prints a password once)
 	@test -n "$(LOGIN)" -a -n "$(FIRST)" -a -n "$(LAST)" || { echo 'usage: make admin LOGIN=aizhan FIRST=Aizhan LAST=Bekova'; exit 2; }

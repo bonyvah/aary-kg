@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "teacher" | "student";
+export type UserRole = "superadmin" | "admin" | "teacher" | "student";
 
 /** An account an admin creates and manages. There is no self-registration. */
 export type ManagedUser = {

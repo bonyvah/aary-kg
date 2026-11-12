@@ -18,12 +18,16 @@ async def test_an_admin_can_only_create_teachers(as_user):
     admin, _ = await as_user("root", role="admin")
     ok = await admin.post("/admin/users", json={"firstName": "Ulan", "lastName": "X", "login": "ulan"})
     assert ok.status_code == 201 and ok.json()["user"]["role"] == "teacher"  # the default
-    for role in ("admin", "user", "root", ""):
+    for role in ("superadmin", "user", "root", ""):
         r = await admin.post(
             "/admin/users",
             json={"firstName": "X", "lastName": "X", "login": f"x{len(role)}abc", "role": role},
         )
         assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR"), role
+    r = await admin.post(
+        "/admin/users", json={"firstName": "X", "lastName": "X", "login": "xadmin", "role": "admin"}
+    )
+    assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN")  # only the superadmin makes admins
     assert {r["login"] for r in (await admin.get("/admin/users")).json()} == {"ulan"}
 
 
@@ -57,7 +61,7 @@ async def test_regular_users_are_still_managed_normally(as_user):
     assert "password" in (await admin.post(f"/admin/users/{ulan.id}/reset-password")).json()
 
 
-async def test_an_admin_does_not_create_contests_but_still_manages_them(as_user):
+async def test_an_admin_does_not_create_contests_and_only_reads_them(as_user):
     owner, _ = await as_user("ulan")
     _, jury = await as_user("omur")
     admin, _ = await as_user("root", role="admin")
@@ -67,8 +71,7 @@ async def test_an_admin_does_not_create_contests_but_still_manages_them(as_user)
     assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN")
     cid = (await make_contest(owner, [jury]))["id"]
     assert (await admin.get(f"/contests/{cid}")).status_code == 200  # sees everything
-    assert (await admin.post(f"/contests/{cid}/open")).json()["status"] == "open"  # and manages it
-    assert (await admin.post(f"/contests/{cid}/close")).json()["status"] == "closed"
+    assert (await admin.post(f"/contests/{cid}/open")).status_code == 403  # the superadmin corrects
     assert [c["id"] for c in (await admin.get("/admin/contests")).json()] == [cid]
 
 

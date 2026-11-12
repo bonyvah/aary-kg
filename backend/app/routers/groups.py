@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Response
 
-from app.deps import AdminUser, Session, StaffUser
+from app.deps import AdminUser, OverseerUser, Session, StaffUser
 from app.schemas.group import GroupIn, GroupOut
 from app.services import groups as service
 
@@ -10,7 +10,7 @@ router = APIRouter(tags=["groups"])
 
 
 @router.get("/admin/groups", response_model=list[GroupOut], response_model_by_alias=True)
-async def admin_list(_: AdminUser, session: Session) -> list[GroupOut]:
+async def admin_list(_: OverseerUser, session: Session) -> list[GroupOut]:
     return await service.list_all(session)
 
 

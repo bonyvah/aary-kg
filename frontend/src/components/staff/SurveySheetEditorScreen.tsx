@@ -1,14 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowDown, ArrowUp, Plus, Trash } from "@phosphor-icons/react";
+import { ArrowDown, ArrowUp, DotsSixVertical, Plus, Trash } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Icon } from "@/components/ui/Icon";
+import { moveBetweenFields } from "@/lib/fieldNav";
+import { useDragReorder } from "@/lib/useDragReorder";
+import { cx } from "@/lib/cx";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -120,7 +123,7 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
   return (
     <div className="flex min-h-dvh flex-col">
       <StaffTopBar topRight={<StaffMenu />} />
-      <main className="mx-auto flex w-full max-w-[900px] flex-1 flex-col gap-6 p-4 md:p-6">
+      <main className="mx-auto flex w-full max-w-[900px] flex-1 flex-col gap-6 p-4 md:p-6" onKeyDown={moveBetweenFields}>
         <div className="flex flex-wrap items-center gap-3">
           <ButtonLink href={BACK} variant="neutral">
             {t("back")}
@@ -363,6 +366,29 @@ function Choices({
     onChange((q) => (q.kind === "open" ? q : { ...q, choices: change(q.choices) }), ...keys);
   // Removing a choice shifts the ones after it, so their errors no longer fit: they clear.
   const after = (index: number) => question.choices.map((_, i) => `${question.id}:choice:${i + 1}`).slice(index);
+  // Drag a choice by its handle, or Alt+↑ / Alt+↓ in its field. The ids are the places, so the errors that
+  // sat on places clear, and the focus follows the choice to its new place.
+  const moveChoice = (id: string, to: number) => {
+    const from = Number(id);
+    if (to < 0 || to >= question.choices.length || to === from) return;
+    setChoices((choices) => {
+      const next = [...choices];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved ?? "");
+      return next;
+    }, ...after(0));
+    focusAfter.current = to;
+  };
+  const focusAfter = useRef<number | null>(null);
+  useEffect(() => {
+    if (focusAfter.current === null) return;
+    document.getElementById(`${question.id}-choice-${focusAfter.current}`)?.focus();
+    focusAfter.current = null;
+  }, [question.id, question.choices]);
+  const drag = useDragReorder(
+    question.choices.map((_, i) => String(i)),
+    moveChoice,
+  );
 
   return (
     <fieldset className="flex flex-col gap-3">
@@ -370,8 +396,27 @@ function Choices({
       {question.choices.map((choice, index) => {
         const label = t("choice", { number: index + 1 });
         return (
-          <div key={index} className="flex items-start gap-2">
+          <div
+            key={index}
+            {...drag.row(String(index))}
+            draggable={false}
+            className={cx(
+              "flex items-start gap-2 rounded-md",
+              drag.dragging === String(index) && "opacity-50",
+              drag.over === String(index) && drag.dragging !== String(index) && "outline-3 outline-accent",
+            )}
+          >
+            <span
+              draggable
+              aria-hidden="true"
+              className="flex h-[44px] flex-none cursor-grab items-center text-ink-muted active:cursor-grabbing"
+            >
+              <DotsSixVertical weight="bold" size={22} />
+            </span>
             <Input
+              id={`${question.id}-choice-${index}`}
+              {...drag.keys(String(index))}
+              aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
               label={label}
               hideLabel
               placeholder={label}

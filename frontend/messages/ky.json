@@ -1197,6 +1197,7 @@
         "whoPending": "Бүтүргөн жок",
         "whoNobody": "Эч ким жок",
         "closeDialog": "Жабуу",
+        "allAnswers": "Бардык жооптор ({count})",
         "questionAnswered": "{count, plural, one {# жооп} other {# жооп}}"
       }
     }

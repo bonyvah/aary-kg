@@ -126,6 +126,61 @@ export function SurveyResultsScreen({ survey: initial }: { survey: Survey }) {
   );
 }
 
+// Characters the preview of open answers may hold in all: three short answers, or fewer long ones.
+const PREVIEW_CHARS = 600;
+const PREVIEW_COUNT = 3;
+
+/** The first few answers (fewer when they are long), and a button for a dialog with all of them. */
+function OpenAnswers({ texts, title }: { texts: readonly string[]; title: string }) {
+  const t = useTranslations("admin.surveys.results");
+  const [all, setAll] = useState(false);
+  if (texts.length === 0) return null;
+  const preview: string[] = [];
+  let used = 0;
+  for (const text of texts) {
+    if (preview.length >= PREVIEW_COUNT || (preview.length > 0 && used + text.length > PREVIEW_CHARS)) break;
+    preview.push(text);
+    used += text.length;
+  }
+  return (
+    <>
+      <AnswerList texts={preview} />
+      {texts.length > preview.length ? (
+        <div>
+          <Button variant="neutral" onClick={() => setAll(true)}>
+            {t("allAnswers", { count: texts.length })}
+          </Button>
+        </div>
+      ) : null}
+      <Modal
+        open={all}
+        onClose={() => setAll(false)}
+        title={title}
+        wide
+        actions={
+          <Button variant="neutral" onClick={() => setAll(false)}>
+            {t("closeDialog")}
+          </Button>
+        }
+      >
+        <AnswerList texts={texts} scroll />
+      </Modal>
+    </>
+  );
+}
+
+function AnswerList({ texts, scroll = false }: { texts: readonly string[]; scroll?: boolean }) {
+  return (
+    <ul className={scroll ? "flex max-h-[60dvh] flex-col gap-2 overflow-y-auto" : "flex flex-col gap-2"}>
+      {texts.map((text, index) => (
+        <li key={index} className="rounded-md bg-surface px-4 py-3 text-body whitespace-pre-wrap [overflow-wrap:anywhere]">
+          {text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ResultCard({ result, number }: { result: QuestionResult; number: number }) {
   const t = useTranslations("admin.surveys.results");
   const tk = useTranslations("admin.surveys.editor.kinds");
@@ -142,15 +197,7 @@ function ResultCard({ result, number }: { result: QuestionResult; number: number
         {number}. {question.text}
       </h2>
       {question.kind === "open" ? (
-        (result.texts ?? []).length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {(result.texts ?? []).map((text, index) => (
-              <li key={index} className="rounded-md bg-surface px-4 py-3 text-body whitespace-pre-wrap [overflow-wrap:anywhere]">
-                {text}
-              </li>
-            ))}
-          </ul>
-        ) : null
+        <OpenAnswers texts={result.texts ?? []} title={`${number}. ${question.text}`} />
       ) : (
         <ul className="flex flex-col gap-3">
           {question.choices.map((choice, index) => {

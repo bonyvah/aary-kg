@@ -43,9 +43,9 @@ def _issue(q: dict[str, Any], value: AnswerValue) -> tuple[str | None, Any]:
         return "ANSWER_INVALID", None
     limit = q["limit"]
     n = len(value)
-    if value and limit["mode"] in ("min", "exact") and n < limit["n"]:
+    if value and n < limit["min"]:
         return "TOO_FEW", None
-    if limit["mode"] in ("max", "exact") and n > limit["n"]:
+    if n > (limit["max"] or count):
         return "TOO_MANY", None
     return None, sorted(value)
 

@@ -13,7 +13,8 @@ from app.schemas.survey import MultiQuestion, OpenQuestion, SurveySheetIn
 def find_issues(payload: SurveySheetIn) -> list[dict[str, str]]:
     """What is wrong, with the editor's keys: title, <id>:text, <id>:choice:<n>, <id>:limit.
 
-    Blank text is FIELD_REQUIRED. A multiple-select limit above the number of choices is LIMIT_TOO_HIGH.
+    Blank text is FIELD_REQUIRED. A multiple-select limit above the number of choices is LIMIT_TOO_HIGH,
+    a min above the max is LIMIT_RANGE.
     """
     issues: list[dict[str, str]] = []
     if not payload.title.strip():
@@ -28,8 +29,12 @@ def find_issues(payload: SurveySheetIn) -> list[dict[str, str]]:
             for n, choice in enumerate(q.choices, start=1)
             if not choice.strip()
         )
-        if isinstance(q, MultiQuestion) and q.limit.n is not None and q.limit.n > len(q.choices):
-            issues.append({"code": "LIMIT_TOO_HIGH", "field": f"{q.id}:limit"})
+        if isinstance(q, MultiQuestion):
+            top = q.limit.max if q.limit.max is not None else len(q.choices)
+            if q.limit.min > len(q.choices) or top > len(q.choices):
+                issues.append({"code": "LIMIT_TOO_HIGH", "field": f"{q.id}:limit"})
+            elif q.limit.min > top:
+                issues.append({"code": "LIMIT_RANGE", "field": f"{q.id}:limit"})
     return issues
 
 

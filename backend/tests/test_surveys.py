@@ -93,7 +93,7 @@ async def test_results_count_choices_and_list_open_answers():
 
     questions = [
         {"id": "q1", "kind": "single", "text": "?", "required": True, "choices": ["a", "b"]},
-        {**multi(), "required": False, "limit": {"mode": "none", "n": None}},
+        {**multi(), "required": False, "limit": {"min": 1, "max": None}},
         {**open_(), "required": False, "maxWords": 100},
     ]
     responses = [

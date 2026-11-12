@@ -24,7 +24,7 @@ async def test_admins_write_and_share_sheets(as_user):
     assert body["title"] == "Term"
     assert body["questions"] == [
         {**single(), "required": True},
-        {**multi(), "required": True, "limit": {"mode": "none", "n": None}},
+        {**multi(), "required": True, "limit": {"min": 1, "max": None}},
         {**open_(), "required": True, "maxWords": 100},
     ]
     sid = body["id"]
@@ -32,10 +32,10 @@ async def test_admins_write_and_share_sheets(as_user):
         {"id": sid, "title": "Term", "questionCount": 3}
     ]
 
-    changed = sheet(questions=[multi(limit={"mode": "exact", "n": 2}, required=False)])
+    changed = sheet(questions=[multi(limit={"min": 2, "max": 2}, required=False)])
     r = await other.put(f"/admin/survey-sheets/{sid}", json=changed)
     assert r.status_code == 200
-    assert r.json()["questions"][0]["limit"] == {"mode": "exact", "n": 2}
+    assert r.json()["questions"][0]["limit"] == {"min": 2, "max": 2}
     assert r.json()["questions"][0]["required"] is False
 
     assert (await admin.delete(f"/admin/survey-sheets/{sid}")).status_code == 204
@@ -55,7 +55,7 @@ async def test_blank_fields_and_a_limit_above_the_choices(as_user):
         title=" ",
         questions=[
             single("a", text=""),
-            multi("b", choices=["x", " ", "z"], limit={"mode": "min", "n": 4}),
+            multi("b", choices=["x", " ", "z"], limit={"min": 4}),
             open_("c", text=" "),
         ],
     )
@@ -76,8 +76,8 @@ async def test_shape_errors_are_validation_errors(as_user):
         sheet(questions=[]),
         sheet(questions=[single(choices=["only"])]),
         sheet(questions=[single(choices=[str(n) for n in range(31)])]),
-        sheet(questions=[multi(limit={"mode": "max"})]),
-        sheet(questions=[multi(limit={"mode": "none", "n": 2})]),
+        sheet(questions=[multi(limit={"min": 0})]),
+        sheet(questions=[multi(limit={"max": 0})]),
         sheet(questions=[open_(maxWords=101)]),
         sheet(questions=[open_(maxWords=0)]),
         sheet(questions=[single("x"), open_("x")]),
@@ -94,3 +94,19 @@ async def test_thirty_choices_are_allowed(as_user):
         "/admin/survey-sheets", json=sheet(questions=[multi(choices=[str(n) for n in range(30)])])
     )
     assert r.status_code == 201
+
+
+async def test_a_min_above_the_max_is_a_range_error(as_user):
+    admin, _ = await as_user("root", role="admin")
+    bad = sheet(
+        questions=[
+            multi("a", choices=["x", "y", "z"], limit={"min": 3, "max": 2}),
+            multi("b", choices=["x", "y", "z"], limit={"min": 1, "max": 4}),
+            multi("c", choices=["x", "y", "z"], limit={"min": 2, "max": 3}),
+        ]
+    )
+    r = await admin.post("/admin/survey-sheets", json=bad)
+    assert [(i["code"], i["field"]) for i in r.json()["issues"]] == [
+        ("LIMIT_RANGE", "a:limit"),
+        ("LIMIT_TOO_HIGH", "b:limit"),
+    ]

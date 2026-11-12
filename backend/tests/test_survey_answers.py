@@ -68,9 +68,9 @@ async def test_nothing_ties_a_response_to_a_student(as_user):
 async def test_bad_answers_are_listed_per_question(as_user):
     questions = [
         single("s"),
-        multi("min", limit={"mode": "min", "n": 2}),
-        multi("max", limit={"mode": "max", "n": 1}),
-        multi("exact", limit={"mode": "exact", "n": 2}),
+        multi("min", limit={"min": 2}),
+        multi("max", limit={"min": 1, "max": 1}),
+        multi("exact", limit={"min": 2, "max": 2}),
         open_("o", maxWords=2),
         open_("opt", required=False),
     ]

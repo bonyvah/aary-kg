@@ -19,16 +19,13 @@ QuestionId = Annotated[str, StringConstraints(min_length=1, max_length=64)]
 
 
 class SelectLimit(CamelModel):
-    """How many choices a multiple-select question takes: none (any, at least one), min, max or exact."""
+    """How many choices a multiple-select question takes: at least `min` (1 by default), at most `max`.
 
-    mode: Literal["none", "min", "max", "exact"] = "none"
-    n: int | None = Field(default=None, ge=1, le=MAX_CHOICES)
+    No `max` means as many as there are choices, so it follows the choices as they change.
+    """
 
-    @model_validator(mode="after")
-    def _n_with_mode(self) -> "SelectLimit":
-        if (self.mode == "none") != (self.n is None):
-            raise ValueError("n goes with min, max and exact only")
-        return self
+    min: int = Field(default=1, ge=1, le=MAX_CHOICES)
+    max: int | None = Field(default=None, ge=1, le=MAX_CHOICES)
 
 
 class SingleQuestion(CamelModel):

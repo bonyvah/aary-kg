@@ -39,9 +39,9 @@ class CreateUserIn(CamelModel):
     first_name: str = ""
     last_name: str = ""
     login: str = ""
-    # An admin creates teachers and students. The first admin comes from the command line
-    # (python -m app.cli create-admin); "admin" here is refused.
-    role: Literal["teacher", "student"] = "teacher"
+    # An admin creates teachers and students, the superadmin creates admins: any other pair is refused.
+    # The superadmin comes from the command line (python -m app.cli create-superadmin).
+    role: Literal["teacher", "student", "admin"] = "teacher"
     # Required for a student, refused for a teacher.
     group_id: uuid.UUID | None = None
     # Chosen by the admin, under the same rules as a password a person chooses. Blank: generated.

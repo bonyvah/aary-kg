@@ -19,6 +19,16 @@ from app.security import generate_password, hash_password
 LOGIN_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,31}$")
 
 
+# Who manages whom on the admin screen: create, disable, reset the password.
+MANAGES: dict[str, tuple[str, ...]] = {"admin": ("teacher", "student"), "superadmin": ("admin",)}
+
+
+async def list_managed(session: AsyncSession, viewer: User) -> list[User]:
+    """Teachers and students; for the superadmin the admins too (the rest read-only). No superadmin."""
+    roles = ("teacher", "student", "admin") if viewer.role == "superadmin" else ("teacher", "student")
+    return await repo.list_managed(session, roles)
+
+
 async def _student_group(session: AsyncSession, group_id: uuid.UUID | None) -> Group:
     if group_id is None:
         raise ApiError(400, "GROUP_REQUIRED", "groupId")
@@ -54,8 +64,13 @@ async def create_user(
     role: str,
     group_id: uuid.UUID | None = None,
     password: str = "",
+    actor: User | None = None,
 ) -> tuple[User, str]:
-    """A teacher has no group; a student is in exactly one. A blank password is generated."""
+    """A teacher has no group; a student is in exactly one. A blank password is generated.
+    From the admin screen (an actor): an admin makes teachers and students, the superadmin makes admins.
+    The command line (no actor) makes any role."""
+    if actor is not None and role not in MANAGES.get(actor.role, ()):
+        raise ApiError(403, "FORBIDDEN")
     first_name, last_name = first_name.strip(), last_name.strip()
     login = login.strip().lower()
     for code, field in _problems(first_name, last_name, login):
@@ -197,7 +212,7 @@ async def disable(session: AsyncSession, actor: User, user_id: uuid.UUID) -> Use
     user = await _get(session, user_id)
     if user.id == actor.id:
         raise ApiError(400, "CANNOT_DISABLE_SELF")
-    _not_an_admin(user)
+    _check_target(actor, user)
     user.active = False
     await session.commit()
     return user
@@ -217,16 +232,16 @@ async def move_to_group(session: AsyncSession, user_id: uuid.UUID, group_id: uui
     return user
 
 
-def _not_an_admin(user: User) -> None:
-    """Admins manage teachers and students. Another admin can't be disabled or reset from here."""
-    if user.role in ("admin", "superadmin"):
+def _check_target(actor: User, user: User) -> None:
+    """Admins manage teachers and students, the superadmin manages admins. Nobody manages a superadmin."""
+    if user.role not in MANAGES.get(actor.role, ()):
         raise ApiError(403, "CANNOT_MANAGE_ADMIN")
 
 
-async def reset_password(session: AsyncSession, user_id: uuid.UUID, password: str = "") -> str:
+async def reset_password(session: AsyncSession, actor: User, user_id: uuid.UUID, password: str = "") -> str:
     """A blank password is generated."""
     user = await _get(session, user_id)
-    _not_an_admin(user)
+    _check_target(actor, user)
     if password:
         password_policy.check(
             password, first_name=user.first_name, last_name=user.last_name, login=user.login, field="password"

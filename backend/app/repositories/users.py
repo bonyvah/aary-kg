@@ -15,13 +15,9 @@ async def get_by_login(session: AsyncSession, login: str) -> User | None:
     return result.scalar_one_or_none()
 
 
-async def list_managed(session: AsyncSession) -> list[User]:
-    """Teachers and students: the accounts an admin manages. Admins are not listed."""
-    stmt = (
-        select(User)
-        .where(User.role.not_in(("admin", "superadmin")))
-        .order_by(User.created_at, User.first_name, User.last_name)
-    )
+async def list_managed(session: AsyncSession, roles: tuple[str, ...]) -> list[User]:
+    """The accounts of these roles, oldest first."""
+    stmt = select(User).where(User.role.in_(roles)).order_by(User.created_at, User.first_name, User.last_name)
     result = await session.execute(stmt)
     return list(result.scalars())
 

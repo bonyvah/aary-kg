@@ -7,11 +7,10 @@ from fastapi import APIRouter, File, Form, UploadFile
 from app.ai import materials, students
 from app.ai.questions import AiFailed, AiNotConfigured
 from app.config import get_settings
-from app.deps import AdminUser, Session
+from app.deps import AdminUser, OverseerUser, Session
 from app.errors import ApiError
 from app.game import ratelimit
 from app.redis import get_redis
-from app.repositories import users as repo
 from app.schemas.user import (
     CreateStudentsIn,
     CreateUserIn,
@@ -29,15 +28,15 @@ DAY_S = 24 * 60 * 60
 
 
 @router.get("", response_model=list[ManagedUser], response_model_by_alias=True)
-async def list_users(_: AdminUser, session: Session) -> list[ManagedUser]:
-    """Teachers and students. No admin is listed, the one asking included."""
-    return [ManagedUser.model_validate(u) for u in await repo.list_managed(session)]
+async def list_users(viewer: OverseerUser, session: Session) -> list[ManagedUser]:
+    """Teachers and students; for the superadmin the admins too. No superadmin is listed."""
+    return [ManagedUser.model_validate(u) for u in await service.list_managed(session, viewer)]
 
 
 @router.post("", status_code=201, response_model=UserWithPassword, response_model_by_alias=True)
-async def create_user(body: CreateUserIn, _: AdminUser, session: Session) -> UserWithPassword:
+async def create_user(body: CreateUserIn, actor: OverseerUser, session: Session) -> UserWithPassword:
     user, password = await service.create_user(
-        session, body.first_name, body.last_name, body.login, body.role, body.group_id, body.password
+        session, body.first_name, body.last_name, body.login, body.role, body.group_id, body.password, actor
     )
     return UserWithPassword(user=ManagedUser.model_validate(user), password=password)
 
@@ -94,7 +93,7 @@ async def create_students(body: CreateStudentsIn, _: AdminUser, session: Session
 
 
 @router.post("/{user_id}/disable", response_model=ManagedUser, response_model_by_alias=True)
-async def disable(user_id: uuid.UUID, actor: AdminUser, session: Session) -> ManagedUser:
+async def disable(user_id: uuid.UUID, actor: OverseerUser, session: Session) -> ManagedUser:
     return ManagedUser.model_validate(await service.disable(session, actor, user_id))
 
 
@@ -105,7 +104,7 @@ async def move_to_group(user_id: uuid.UUID, body: MoveGroupIn, _: AdminUser, ses
 
 @router.post("/{user_id}/reset-password", response_model=PasswordOut, response_model_by_alias=True)
 async def reset_password(
-    user_id: uuid.UUID, _: AdminUser, session: Session, body: ResetPasswordIn | None = None
+    user_id: uuid.UUID, actor: OverseerUser, session: Session, body: ResetPasswordIn | None = None
 ) -> PasswordOut:
     password = body.password if body else ""
-    return PasswordOut(password=await service.reset_password(session, user_id, password))
+    return PasswordOut(password=await service.reset_password(session, actor, user_id, password))

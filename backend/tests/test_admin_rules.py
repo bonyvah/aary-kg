@@ -18,12 +18,16 @@ async def test_an_admin_can_only_create_teachers(as_user):
     admin, _ = await as_user("root", role="admin")
     ok = await admin.post("/admin/users", json={"firstName": "Ulan", "lastName": "X", "login": "ulan"})
     assert ok.status_code == 201 and ok.json()["user"]["role"] == "teacher"  # the default
-    for role in ("admin", "user", "root", ""):
+    for role in ("superadmin", "user", "root", ""):
         r = await admin.post(
             "/admin/users",
             json={"firstName": "X", "lastName": "X", "login": f"x{len(role)}abc", "role": role},
         )
         assert (r.status_code, r.json()["code"]) == (422, "VALIDATION_ERROR"), role
+    r = await admin.post(
+        "/admin/users", json={"firstName": "X", "lastName": "X", "login": "xadmin", "role": "admin"}
+    )
+    assert (r.status_code, r.json()["code"]) == (403, "FORBIDDEN")  # only the superadmin makes admins
     assert {r["login"] for r in (await admin.get("/admin/users")).json()} == {"ulan"}
 
 

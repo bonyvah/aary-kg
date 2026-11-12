@@ -8,7 +8,7 @@ async def setup(as_user):
     admin, _ = await as_user("root", role="admin")
     gid = (await admin.post("/admin/groups", json={"name": "10-А"})).json()["id"]
     other_gid = (await admin.post("/admin/groups", json={"name": "10-Б"})).json()["id"]
-    ids = {}
+    ids, passwords = {}, {}
     for login, group in (("aizada", gid), ("bakyt", gid), ("cholpon", other_gid), ("dana", gid)):
         body = {
             "firstName": login.title(),
@@ -17,14 +17,15 @@ async def setup(as_user):
             "role": "student",
             "groupId": group,
         }
-        ids[login] = (await admin.post("/admin/users", json=body)).json()["user"]["id"]
+        created = (await admin.post("/admin/users", json=body)).json()
+        ids[login], passwords[login] = created["user"]["id"], created["password"]
     assert (await admin.post(f"/admin/users/{ids['dana']}/disable")).status_code == 200
     sid = (await admin.post("/admin/survey-sheets", json=sheet())).json()["id"]
-    return admin, gid, other_gid, ids, sid
+    return admin, gid, other_gid, ids, sid, passwords
 
 
 async def test_start_for_groups_list_and_close(as_user):
-    admin, gid, _, _, sid = await setup(as_user)
+    admin, gid, _, _, sid, _ = await setup(as_user)
     r = await admin.post("/admin/surveys", json={"sheetId": sid, "groupIds": [gid]})
     assert r.status_code == 201, r.text
     body = r.json()
@@ -48,7 +49,7 @@ async def test_start_for_groups_list_and_close(as_user):
 
 
 async def test_a_used_sheet_is_only_marked_deleted(as_user):
-    admin, gid, _, _, sid = await setup(as_user)
+    admin, gid, _, _, sid, _ = await setup(as_user)
     survey = (await admin.post("/admin/surveys", json={"sheetId": sid, "groupIds": [gid]})).json()
     assert (await admin.delete(f"/admin/survey-sheets/{sid}")).status_code == 204
     assert (await admin.get("/admin/survey-sheets")).json() == []
@@ -56,7 +57,7 @@ async def test_a_used_sheet_is_only_marked_deleted(as_user):
 
 
 async def test_bad_starts(as_user):
-    admin, gid, _, _, sid = await setup(as_user)
+    admin, gid, _, _, sid, _ = await setup(as_user)
     empty = (await admin.post("/admin/groups", json={"name": "11-А"})).json()["id"]
     unknown = "00000000-0000-0000-0000-000000000000"
     cases = [
@@ -71,7 +72,7 @@ async def test_bad_starts(as_user):
 
 
 async def test_who_may_run_and_see_surveys(as_user):
-    admin, gid, _, _, sid = await setup(as_user)
+    admin, gid, _, _, sid, _ = await setup(as_user)
     survey = (await admin.post("/admin/surveys", json={"sheetId": sid, "groupIds": [gid]})).json()
     superadmin, _ = await as_user("boss", role="superadmin")
     assert (await superadmin.get("/admin/surveys")).status_code == 200

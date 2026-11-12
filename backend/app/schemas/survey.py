@@ -132,3 +132,23 @@ class SurveyOut(SurveySummary):
     sheet_id: uuid.UUID
     groups: list[SurveyGroupOut]
     results: list[QuestionResult]
+
+
+# A single choice is its number (1 to n), a multiple select the list of numbers, an open answer the text.
+AnswerValue = Annotated[int, Field(ge=1, le=MAX_CHOICES)] | list[int] | str
+
+
+class SurveySubmitIn(CamelModel):
+    answers: dict[QuestionId, AnswerValue] = Field(max_length=MAX_QUESTIONS)
+
+
+class StudentSurveyOut(CamelModel):
+    id: uuid.UUID
+    title: str
+    status: SurveyStatus
+    opened_at: datetime
+    closed_at: datetime | None
+    question_count: int
+    answered: bool
+    # Only while it can still be answered, and only on the survey's own page.
+    questions: list[SurveyQuestion] | None = None

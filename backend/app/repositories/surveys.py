@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.survey import Survey, SurveyRespondent, SurveyResponse, SurveySheet
+from app.models.survey import Survey, SurveyRespondent, SurveyResponse, SurveySheet, SurveyStudent
 
 
 async def get_sheet(session: AsyncSession, sheet_id: uuid.UUID) -> SurveySheet | None:
@@ -46,3 +46,26 @@ async def responses(session: AsyncSession, survey_id: uuid.UUID) -> list[SurveyR
 async def sheet_used(session: AsyncSession, sheet_id: uuid.UUID) -> bool:
     found = await session.scalar(select(func.count()).select_from(Survey).where(Survey.sheet_id == sheet_id))
     return bool(found)
+
+
+async def list_for_student(session: AsyncSession, student_id: uuid.UUID) -> list[Survey]:
+    result = await session.execute(
+        select(Survey)
+        .join(SurveyStudent, SurveyStudent.survey_id == Survey.id)
+        .where(SurveyStudent.student_id == student_id)
+        .order_by(Survey.opened_at.desc())
+    )
+    return list(result.scalars())
+
+
+async def answered_by(
+    session: AsyncSession, student_id: uuid.UUID, survey_ids: list[uuid.UUID]
+) -> set[uuid.UUID]:
+    if not survey_ids:
+        return set()
+    result = await session.execute(
+        select(SurveyRespondent.survey_id).where(
+            SurveyRespondent.student_id == student_id, SurveyRespondent.survey_id.in_(survey_ids)
+        )
+    )
+    return set(result.scalars())

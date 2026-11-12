@@ -71,6 +71,17 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
     });
   }
 
+  // A new question comes only once the ones written are valid; what is wrong is marked at once.
+  function addQuestion() {
+    const found = findIssues({ title: "-", questions: sheet.questions });
+    if (found.size > 0) {
+      setIssues(found);
+      show("danger", t("saveFailed"));
+      return;
+    }
+    edit((s) => ({ ...s, questions: [...s.questions, blankQuestion(nextId(s.questions))] }));
+  }
+
   async function save() {
     const found = findIssues(sheet);
     setIssues(found);
@@ -162,7 +173,7 @@ export function SurveySheetEditorScreen({ sheet: initial }: { sheet: SurveySheet
           <Button
             variant="secondary"
             disabled={full}
-            onClick={() => edit((s) => ({ ...s, questions: [...s.questions, blankQuestion(nextId(s.questions))] }))}
+            onClick={addQuestion}
           >
             <Icon icon={Plus} weight="bold" />
             {t("addQuestion")}
